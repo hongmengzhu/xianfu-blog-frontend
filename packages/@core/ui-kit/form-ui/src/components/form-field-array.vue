@@ -4,7 +4,7 @@ import type { FormCommonConfig, FormFieldSchema } from '../types';
 
 import { computed } from 'vue';
 
-import { Plus, X } from '@vben-core/icons';
+import { Copy, Plus, X } from '@vben-core/icons';
 import {
   VbenButton,
   VbenIconButton,
@@ -124,6 +124,20 @@ function removeRow(index: number) {
   void formActions.removeFieldValue(arrayPath.value, index);
 }
 
+function copyRow(index: number) {
+  if (props.disabled || !canAdd.value) {
+    return;
+  }
+  const arr = formActions.useSelector((state) => {
+    const value = get(state.values, props.name);
+    return Array.isArray(value) ? value : [];
+  });
+  if (arr.length>0 && arr.length >= index) {
+    const row = arr[index];
+    formActions.pushFieldValue(arrayPath.value, {...row});
+  }
+}
+
 function rowSchemas(index: number) {
   return props.schema.map((col) =>
     createArrayChildSchema(col as never, {
@@ -200,6 +214,13 @@ const normalizedRowSchemas = computed(() =>
         </template>
 
         <div class="flex justify-end pt-1 sm:block sm:px-2 sm:py-3">
+          <VbenIconButton
+            :disabled="disabled || !canAdd"
+            :on-click="() => copyRow(index)"
+            class="text-muted-foreground hover:text-foreground"
+          >
+            <Copy class="size-4" />
+          </VbenIconButton>
           <VbenIconButton
             type="button"
             :disabled="disabled || !canRemove"
