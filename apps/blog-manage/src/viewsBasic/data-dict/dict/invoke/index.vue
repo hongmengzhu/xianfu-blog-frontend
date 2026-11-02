@@ -8,23 +8,24 @@ import { message } from '#/adapter';
 import { useVbenVxeGrid, VbenTableAction } from '#/adapter/vxe-table';
 
 import {
-  batchSelectDelete,
   batchSelectDisable,
   batchSelectEnable,
-  batchSelectPhysicalDeletion,
+  batchSelectDelete,
   batchSelectRecovery,
   deleteIds,
   List,
 } from './api';
-import Edit from './components/edit.vue';
+import DrawerEditTpl from './components/edit.vue';
 import { columns, useGridFormSchema } from './data';
 
 const emit = defineEmits(['ok']);
 
 const currenData = ref<Recordable<any>>({});
+// 当前字典类型编码，作为查询条件透传给接口
+const typeCode = ref('');
 
-const [FormDrawer, formDrawerApi] = useVbenDrawer({
-  connectedComponent: Edit,
+const [Drawer, drawerApi] = useVbenDrawer({
+  connectedComponent: DrawerEditTpl,
   destroyOnClose: true,
 });
 
@@ -38,7 +39,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
     height: 'auto',
     keepSource: true,
     pagerConfig: {
-      pageSize: 100,
+      pageSize: 20,
       pageSizes: [10, 20, 50, 100, 500, 1000],
     },
     proxyConfig: {
@@ -47,7 +48,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
           return await List({
             pageSize: page.pageSize,
             pageNum: page.currentPage,
-            typeCode: currenData.value.code,
+            typeCode: typeCode.value,
             ...formValues,
           });
         },
@@ -98,26 +99,32 @@ async function onRefresh() {
  * 新增
  */
 function onCreate() {
-  formDrawerApi.setData({
-    values: {},
-    parent: currenData.value,
-    isUpdate: false,
-  }).open();
+  drawerApi
+    .setData({
+      values: {},
+      parent: currenData.value,
+      isUpdate: false,
+    })
+    .open();
 }
 
 /**
  * 编辑
+ * @param row 行数据
  */
 function onEdit(row: any) {
-  formDrawerApi.setData({
-    values: row,
-    parent: currenData.value,
-    isUpdate: true,
-  }).open();
+  drawerApi
+    .setData({
+      values: row,
+      parent: currenData.value,
+      isUpdate: true,
+    })
+    .open();
 }
 
 /**
  * 删除
+ * @param row 行数据
  */
 function onDelete(row: any) {
   deleteIds([row.id]).then(() => {
@@ -213,35 +220,6 @@ function onRecovery() {
 }
 
 /**
- * 物理删除
- */
-function onPhysicalDeletion() {
-  const $grid = gridApi.grid;
-  if (!$grid) return;
-  const checkboxRecords = $grid.getCheckboxRecords();
-  if (checkboxRecords.length <= 0) {
-    message.warning('你没有选择任何数据');
-    return;
-  }
-  const ids: any[] = [];
-  checkboxRecords.forEach((item: any) => {
-    if (item.state > 10) {
-      ids.push(item.id);
-    } else {
-      $grid.setCheckboxRow(item, false);
-    }
-  });
-  if (ids.length <= 0) {
-    message.warning('你没有选择任何数据');
-    return;
-  }
-  batchSelectPhysicalDeletion(ids, () => {
-    onRefresh();
-    $grid.setAllCheckboxRow(false);
-  });
-}
-
-/**
  * 删除
  */
 function onBatchDelete() {
@@ -279,12 +257,13 @@ const [DrawerList, drawerApiList] = useVbenDrawer({
       destroyOnClose: true, // 关闭时销毁
     });
     currenData.value = {};
+    typeCode.value = '';
     if (isOpen) {
       const { values } = drawerApiList.getData<Record<string, any>>();
+      console.log('values=', values);
       if (values) {
         currenData.value = values;
-        drawerApiList.setState({ loading: false });
-        gridQuery();
+        typeCode.value = values.code;
       }
       drawerApiList.setState({
         title: `数据字典：${currenData.value.name} ( 码值：${currenData.value.code} )`,
@@ -305,83 +284,76 @@ const [DrawerList, drawerApiList] = useVbenDrawer({
 
 <template>
   <DrawerList class="w-[1100px]">
-    <div class="h-full p-2">
-      <FormDrawer @ok="onRefresh" />
-      <Grid>
-        <template #toolbar-actions>
-          <VbenButton
-            type="primary"
-            class="pg-button-size-small"
-            @click="onCreate"
-          >
-            <Plus class="size-5" />
-            新增
-          </VbenButton>
-        </template>
-        <template #toolbar-tools>
-          <VbenButton
-            class="ml-2 pg-button-size-small"
-            size="sm"
-            @click="onBatchEnable"
-          >
-            批量有效
-          </VbenButton>
-          <VbenButton
-            class="ml-2 pg-button-size-small"
-            size="sm"
-            @click="onBatchDisable"
-          >
-            批量停用
-          </VbenButton>
-          <VbenButton
-            class="ml-2 pg-button-size-small"
-            size="sm"
-            @click="onRecovery"
-          >
-            删除恢复
-          </VbenButton>
-          <VbenButton
-            class="ml-2 pg-button-size-small"
-            size="sm"
-            @click="onPhysicalDeletion"
-          >
-            物理删除
-          </VbenButton>
-          <VbenButton
-            class="ml-2 pg-button-size-small"
-            danger
-            @click="onBatchDelete"
-          >
-            删除
-          </VbenButton>
-        </template>
-        <template #operate="{ row }">
-          <VbenTableAction
-            :actions="[
-              {
-                tooltip: {
-                  content: '编辑',
-                },
-                icon: 'lucide:edit',
-                onClick: () => onEdit(row),
+    <Drawer @ok="onRefresh" />
+    <Grid>
+      <template #toolbar-actions>
+        <VbenButton
+          type="primary"
+          class="pg-button-size-small"
+          @click="onCreate"
+        >
+          <Plus class="size-5" />
+          新增
+        </VbenButton>
+      </template>
+      <template #toolbar-tools>
+        <VbenButton
+          class="ml-2 pg-button-size-small"
+          size="sm"
+          @click="onBatchEnable"
+        >
+          批量有效
+        </VbenButton>
+        <VbenButton
+          class="ml-2 pg-button-size-small"
+          size="sm"
+          @click="onBatchDisable"
+        >
+          批量停用
+        </VbenButton>
+        <!-- <VbenButton
+          class="ml-2 pg-button-size-small"
+          size="sm"
+          @click="onRecovery"
+        >
+          删除恢复
+        </VbenButton> -->
+        <VbenButton
+          class="ml-2 pg-button-size-small"
+          danger
+          @click="onBatchDelete"
+        >
+          删除
+        </VbenButton>
+      </template>
+      <template #operate="{ row }">
+        <VbenTableAction
+          :actions="[
+            {
+              tooltip: {
+                content: '编辑',
               },
-              {
-                tooltip: {
-                  content: '删除',
-                },
-                icon: 'lucide:trash-2',
-                danger: true,
-                popConfirm: {
-                  title: `确定删除 [${row.name}] 吗？`,
-                  confirm: () => onDelete(row),
-                },
+              icon: 'lucide:edit',
+              onClick: () => onEdit(row),
+            },
+            {
+              tooltip: {
+                content: '删除',
               },
-            ]"
-            align="center"
-          />
-        </template>
-      </Grid>
-    </div>
+              icon: 'lucide:trash-2',
+              danger: true,
+              popConfirm: {
+                okText: '确认',
+                cancelText: '取消',
+                title: `确定删除 [${row.name}] 吗？`,
+                confirm: () => onDelete(row),
+              },
+            },
+          ]"
+          align="center"
+        />
+      </template>
+    </Grid>
   </DrawerList>
 </template>
 

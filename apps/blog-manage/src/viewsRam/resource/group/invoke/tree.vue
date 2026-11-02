@@ -7,12 +7,12 @@ import { PgTree } from '@pg/components-n';
 
 import { message } from '#/adapter';
 
-import { selectPublic } from '../api';
+import { selectNodeAllPublic } from '../api';
 
 const emit = defineEmits(['ok']);
 const currenRecord = ref(false);
 const currenData = ref<Recordable<any>>({});
-const reloadTreeState = ref(false);
+const reloadTreeState = ref(0);
 const treeCheckedKeys = ref([]);
 const checkedData = ref([]);
 const reloadTreeComputed = computed(() => reloadTreeState.value);
@@ -82,7 +82,7 @@ const [Modal, modalApi] = useVbenModal({
     if (isOpen) {
       checkedData.value = [];
       treeCheckedKeys.value = [];
-      modalApi.setState({ title: `选择：资源` });
+      modalApi.setState({ title: `选择：资源组` });
     }
   },
   title: '：',
@@ -92,7 +92,8 @@ const [Modal, modalApi] = useVbenModal({
 <template>
   <Modal>
     <PgTree
-      :api="selectPublic"
+      :api="selectNodeAllPublic"
+      :is-node-all="true"
       :menu-dropdown-options="menuDropdownOptions"
       :props="{
         blockLine: true,

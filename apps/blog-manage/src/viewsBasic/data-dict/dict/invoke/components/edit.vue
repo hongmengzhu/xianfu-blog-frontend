@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {h, ref} from 'vue';
+import { h, ref } from 'vue';
 
 import { useVbenDrawer, VbenButton } from '@vben/common-ui';
 
@@ -27,7 +27,9 @@ const [FormEdit, formInApi] = usePgForm({
       labelWidth: 0,
       renderComponentContent: () => {
         return {
-          default: () => [`父级码值: ${parentData.value.name} ( ${parentData.value.code} )`],
+          default: () => [
+            `父级码值: ${parentData.value.name} ( ${parentData.value.code} )`,
+          ],
         };
       },
     },
@@ -60,7 +62,7 @@ const [FormEdit, formInApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formInApi.getValues();
               existName(values.name, values.id);
@@ -98,7 +100,7 @@ const [FormEdit, formInApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formInApi.getValues();
               existCode(values.code, values.id);
@@ -115,9 +117,7 @@ const [FormEdit, formInApi] = usePgForm({
       componentProps: {
         type: 'textarea',
         placeholder: '请输入',
-        onBlur: async (e) => {
-
-        },
+        onBlur: async (e) => {},
       },
       // suffix: () =>
       //   h(
@@ -182,13 +182,16 @@ const [FormEdit, formInApi] = usePgForm({
       },
     },
   ],
+  handleSubmit: onSubmit,
   showDefaultActions: false,
 });
 const [Drawer, drawerApi] = useVbenDrawer({
   onCancel() {
     drawerApi.close();
   },
-  onConfirm: onSubmit,
+  onConfirm: async () => {
+    await formInApi.submitForm();
+  },
   onOpenChange(isOpen: boolean) {
     parentData.value = {};
     recordData.value = {};
@@ -232,14 +235,9 @@ const [Drawer, drawerApi] = useVbenDrawer({
 /**
  * 提交
  */
-async function onSubmit() {
-  const { valid } = await formInApi.validate();
-  if (!valid) {
-    return false;
-  }
-  const values = await formInApi.getValues<Omit<Record<string, any>,'id'>>();
-  drawerApi.lock();
+function onSubmit(values: Record<string, any>) {
   try {
+    drawerApi.lock();
     drawerApi.setState({ loading: true, confirmLoading: true });
     const { isUpdate } = drawerApi.getData<Record<string, any>>();
     const data = {
@@ -249,14 +247,13 @@ async function onSubmit() {
       data.id = recordData.value.id;
       data.typeCode = parentData.value.code;
     }
-    saveOrUpdate(data, isUpdate)
-      .then((d) => {
-        setTimeout(() => {
-          emit('ok', values);
-          drawerApi.setState({ loading: false });
-          drawerApi.close();
-        }, 500);
-      });
+    saveOrUpdate(values).then((d) => {
+      setTimeout(() => {
+        emit('ok', values);
+        drawerApi.setState({ loading: false });
+        drawerApi.close();
+      }, 500);
+    });
   } catch (error) {
     console.error(error);
   } finally {

@@ -37,7 +37,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formApi.getValues();
               existName(values.name, values.id);
@@ -59,7 +59,8 @@ const [Form, formApi] = usePgForm({
     {
       tabGroup: 'home',
       fieldName: 'code',
-      label: '编码',
+      label: '码值',
+      defaultValue: '系统自动建立',
       component: 'Input',
       componentProps: {
         placeholder: '请输入',
@@ -70,6 +71,34 @@ const [Form, formApi] = usePgForm({
           }
         },
       },
+      description: () =>
+        h('div', [
+          h(
+            VbenButton,
+            {
+              class: 'pg-button-size-small',
+              onClick: async (e) => {
+                await formApi.setFieldValue('code', 'administrator');
+                await formApi.setFieldValue('name', '管理员');
+              },
+            },
+            () => h('span', { class: 'font-normal' }, '超管'),
+          ),
+          h(
+            VbenButton,
+            {
+              class: 'pg-button-size-small ml-2',
+              onClick: async (e) => {
+                await formApi.setFieldValue('code', '系统自动建立');
+              },
+            },
+            () => h('span', { class: 'font-normal' }, '系统自动建立'),
+          ),
+          h(
+            'div',
+            () => '超管[码值][administrator]新增成功后，不能修改，只能删除',
+          ),
+        ]),
     },
     {
       tabGroup: 'other',
@@ -120,7 +149,10 @@ const [Drawer, drawerApi] = useVbenDrawer({
         formApi.setValues(values);
       }
 
-      drawerApi.setState({ title: `角色：${isUpdate ? '编辑' : '新增'}` ,loading: false});
+      drawerApi.setState({
+        title: `角色：${isUpdate ? '编辑' : '新增'}`,
+        loading: false,
+      });
     }
   },
   title: '：',
@@ -134,19 +166,18 @@ async function onSubmit() {
   if (!valid) {
     return false;
   }
-  const values = await formApi.getValues<Omit<Record<string, any>,'id'>>();
+  const values = await formApi.getValues<Omit<Record<string, any>, 'id'>>();
   drawerApi.lock();
   try {
     drawerApi.setState({ loading: true, confirmLoading: true });
     const { isUpdate } = drawerApi.getData<Record<string, any>>();
-    saveOrUpdate(values, isUpdate)
-      .then((d) => {
-        setTimeout(() => {
-          emit('ok', values);
-          drawerApi.setState({ loading: false });
-          drawerApi.close();
-        }, 500);
-      });
+    saveOrUpdate(values, isUpdate).then((d) => {
+      setTimeout(() => {
+        emit('ok', values);
+        drawerApi.setState({ loading: false });
+        drawerApi.close();
+      }, 500);
+    });
   } catch (error) {
     console.error(error);
   } finally {

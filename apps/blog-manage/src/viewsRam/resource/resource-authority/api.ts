@@ -2,25 +2,26 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  create = '/xianfu/manage/iam/resource-authority/create',
-  createByGroup = '/xianfu/manage/iam/resource-authority/createByGroup',
-  delete = '/xianfu/manage/iam/resource-authority/delete',
-  detail = '/xianfu/manage/iam/resource-authority/detail/',
-  disable = '/xianfu/manage/iam/resource-authority/disable',
-  enable = '/xianfu/manage/iam/resource-authority/enable',
-  existName = '/xianfu/manage/iam/resource-authority/existName',
-  exportExcel = '/xianfu/manage/iam/resource-authority/exportExcel',
-  list = '/xianfu/manage/iam/resource-authority/query',
-  listByGroup = '/xianfu/manage/iam/resource-authority/queryByGroup',
-  physicalDeletion = '/xianfu/manage/iam/resource-authority/physicalDeletion',
-  recovery = '/xianfu/manage/iam/resource-authority/recovery',
-  selectNodeAllPublic = '/xianfu/manage/iam/resource-authority/selectNodeAllPublic',
-  selectNodePublic = '/xianfu/manage/iam/resource-authority/selectNodePublic',
-  selectPublic = '/xianfu/manage/iam/resource-authority/selectPublic',
-  selectCategoryPublic = '/xianfu/manage/iam/resource-authority/selectCategoryPublic',
-  state = '/xianfu/manage/iam/resource-authority/state',
-  update = '/xianfu/manage/iam/resource-authority/update',
-  updateByRole = '/xianfu/manage/iam/resource-authority/updateByRole',
+  create = '/xianfu/manage/ram/resource-authority/create',
+  createByGroup = '/xianfu/manage/ram/resource-authority/createByGroup',
+  createByMenu = '/xianfu/manage/ram/resource-authority/createByMenu',
+  delete = '/xianfu/manage/ram/resource-authority/delete',
+  detail = '/xianfu/manage/ram/resource-authority/detail/',
+  disable = '/xianfu/manage/ram/resource-authority/disable',
+  enable = '/xianfu/manage/ram/resource-authority/enable',
+  existName = '/xianfu/manage/ram/resource-authority/existName',
+  exportExcel = '/xianfu/manage/ram/resource-authority/exportExcel',
+  list = '/xianfu/manage/ram/resource-authority/query',
+  listByGroup = '/xianfu/manage/ram/resource-authority/queryByGroup',
+  physicalDeletion = '/xianfu/manage/ram/resource-authority/physicalDeletion',
+  recovery = '/xianfu/manage/ram/resource-authority/recovery',
+  selectNodeAllPublic = '/xianfu/manage/ram/resource-authority/selectNodeAllPublic',
+  selectNodePublic = '/xianfu/manage/ram/resource-authority/selectNodePublic',
+  selectPublic = '/xianfu/manage/ram/resource-authority/selectPublic',
+  selectCategoryPublic = '/xianfu/manage/ram/resource-authority/selectCategoryPublic',
+  state = '/xianfu/manage/ram/resource-authority/state',
+  update = '/xianfu/manage/ram/resource-authority/update',
+  updateByRole = '/xianfu/manage/ram/resource-authority/updateByRole',
 }
 
 /**
@@ -101,6 +102,16 @@ export const createByGroup = (data: any) => {
     successMessageMode: 'notification',
   });
 };
+/**
+ * 保存或者更新
+ * @param data
+ */
+export const createByMenu = (data: any) => {
+  return requestClient.post(Api.createByMenu, data, {
+    errorMessageMode: 'message',
+    successMessageMode: 'notification',
+  });
+};
 
 /**
  * 保存或者更新
@@ -133,7 +144,7 @@ export const deleteIds = (params: any) => {
  * 批量选中-删除
  * @param params
  */
-export const batchSelectDelete = (params, handleSuccess) => {
+export const batchSelectDelete = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认删除',
     content: '是否删除选中数据',
@@ -160,7 +171,7 @@ export const batchSelectDelete = (params, handleSuccess) => {
  * 批量选中-启用
  * @param params
  */
-export const batchSelectEnable = (params, handleSuccess) => {
+export const batchSelectEnable = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置有效',
     content: '是否[批量有效]选中数据',
@@ -187,7 +198,7 @@ export const batchSelectEnable = (params, handleSuccess) => {
  * 批量选中-禁用
  * @param params
  */
-export const batchSelectDisable = (params, handleSuccess) => {
+export const batchSelectDisable = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置停用',
     content: '是否[批量停用]选中数据',
@@ -214,7 +225,7 @@ export const batchSelectDisable = (params, handleSuccess) => {
  * 批量选中-恢复
  * @param params
  */
-export const batchSelectRecovery = (params, handleSuccess) => {
+export const batchSelectRecovery = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置恢复',
     content: '是否[批量恢复]选中数据',
@@ -241,7 +252,10 @@ export const batchSelectRecovery = (params, handleSuccess) => {
  * 批量选中-物理删除
  * @param params
  */
-export const batchSelectPhysicalDeletion = (params, handleSuccess) => {
+export const batchSelectPhysicalDeletion = (
+  params: any,
+  handleSuccess: any,
+) => {
   dialog.warning({
     title: '确认物理删除',
     content: '是否[物理删除]选中数据，操作后数据不可恢复',
@@ -286,8 +300,7 @@ export const exportExcelUrl = Api.exportExcel;
  * @param wd
  * @param id
  */
-export const existName = (wd: string, id?: number | string) => {
-  id = id || '0';
+export const existName = (wd: string, id: number | string = '0') => {
   return requestClient.post(
     Api.existName,
     { wd, id },

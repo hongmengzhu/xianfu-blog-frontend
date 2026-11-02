@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {h, watch, ref} from 'vue';
+import { h, watch, ref } from 'vue';
 
 import { useVbenDrawer } from '@vben/common-ui';
 
@@ -8,7 +8,7 @@ import { VbenButton } from '@vben/common-ui';
 
 import { usePgForm } from '#/adapter';
 
-import { existName, saveOrUpdate, selectNodeAllPublic } from '../api';
+import { existName, saveOrUpdate, selectNodeAll } from '../api';
 const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
   tabs: {
@@ -26,7 +26,7 @@ const [Form, formApi] = usePgForm({
       defaultValue: '',
       component: 'PgTreeSelect',
       componentProps: {
-        api: selectNodeAllPublic,
+        api: selectNodeAll,
         params: { by: 'no' },
         filterQueryAsync: true,
         props: {
@@ -55,7 +55,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formApi.getValues();
               existName(values.name, values.id);
@@ -78,6 +78,8 @@ const [Form, formApi] = usePgForm({
       tabGroup: 'home',
       fieldName: 'code',
       label: '码值',
+      defaultValue: '系统自动建立',
+      rules: 'required',
       component: 'Input',
       componentProps: {
         placeholder: '请输入',
@@ -133,7 +135,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
         closeOnClickModal: false, // 点击遮罩关闭弹窗
         destroyOnClose: true, // 关闭时销毁
       });
-      const { values, isUpdate, parent } = drawerApi.getData<Record<string, any>>();
+      const { values, isUpdate, parent } =
+        drawerApi.getData<Record<string, any>>();
       if (values) {
         formApi.setValues({
           ...values,
@@ -143,7 +146,10 @@ const [Drawer, drawerApi] = useVbenDrawer({
         formApi.setFieldValue('parentNo', parent.no);
       }
 
-      drawerApi.setState({ title: `部门：${isUpdate ? '编辑' : '新增'}` ,loading: false});
+      drawerApi.setState({
+        title: `部门：${isUpdate ? '编辑' : '新增'}`,
+        loading: false,
+      });
     }
   },
   title: '：',
@@ -157,19 +163,18 @@ async function onSubmit() {
   if (!valid) {
     return false;
   }
-  const values = await formApi.getValues<Omit<Record<string, any>,'id'>>();
+  const values = await formApi.getValues<Omit<Record<string, any>, 'id'>>();
   drawerApi.lock();
   try {
     drawerApi.setState({ loading: true, confirmLoading: true });
     const { isUpdate } = drawerApi.getData<Record<string, any>>();
-    saveOrUpdate(values, isUpdate)
-      .then((d) => {
-        setTimeout(() => {
-          emit('ok', values);
-          drawerApi.setState({ loading: false });
-          drawerApi.close();
-        }, 500);
-      });
+    saveOrUpdate(values, isUpdate).then((d) => {
+      setTimeout(() => {
+        emit('ok', values);
+        drawerApi.setState({ loading: false });
+        drawerApi.close();
+      }, 500);
+    });
   } catch (error) {
     console.error(error);
   } finally {
@@ -180,7 +185,6 @@ async function onSubmit() {
 </script>
 <template>
   <Drawer>
-    <Form>
-    </Form>
+    <Form> </Form>
   </Drawer>
 </template>

@@ -2,23 +2,23 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  create = '/xianfu/sys/basic/task/create',
-  delete = '/xianfu/sys/basic/task/delete',
-  detail = '/xianfu/sys/basic/task/detail/',
-  disable = '/xianfu/sys/basic/task/disable',
-  enable = '/xianfu/sys/basic/task/enable',
-  existName = '/xianfu/sys/basic/task/existName',
-  exportExcel = '/xianfu/sys/basic/task/exportExcel',
-  list = '/xianfu/sys/basic/task/query',
-  listByGroup = '/xianfu/sys/basic/task/queryByGroup',
-  physicalDeletion = '/xianfu/sys/basic/task/physicalDeletion',
-  recovery = '/xianfu/sys/basic/task/recovery',
-  selectNodeAllPublic = '/xianfu/sys/basic/task/selectNodeAllPublic',
-  selectNodePublic = '/xianfu/sys/basic/task/selectNodePublic',
-  selectPublic = '/xianfu/sys/basic/task/selectPublic',
-  state = '/xianfu/sys/basic/task/state',
-  update = '/xianfu/sys/basic/task/update',
-  updateByMenu = '/xianfu/sys/basic/task/updateByMenu',
+  create = '/xianfu/manage/basic/task/create',
+  delete = '/xianfu/manage/basic/task/delete',
+  detail = '/xianfu/manage/basic/task/detail/',
+  disable = '/xianfu/manage/basic/task/disable',
+  enable = '/xianfu/manage/basic/task/enable',
+  existName = '/xianfu/manage/basic/task/existName',
+  exportExcel = '/xianfu/manage/basic/task/exportExcel',
+  list = '/xianfu/manage/basic/task/query',
+  listByGroup = '/xianfu/manage/basic/task/queryByGroup',
+  physicalDeletion = '/xianfu/manage/basic/task/physicalDeletion',
+  recovery = '/xianfu/manage/basic/task/recovery',
+  selectNodeAllPublic = '/xianfu/manage/basic/task/selectNodeAllPublic',
+  selectNodePublic = '/xianfu/manage/basic/task/selectNodePublic',
+  selectPublic = '/xianfu/manage/basic/task/selectPublic',
+  state = '/xianfu/manage/basic/task/state',
+  update = '/xianfu/manage/basic/task/update',
+  updateByMenu = '/xianfu/manage/basic/task/updateByMenu',
 }
 
 /**
@@ -265,8 +265,7 @@ export const exportExcelUrl = Api.exportExcel;
  * @param wd
  * @param id
  */
-export const existName = (wd: string, id?: number | string) => {
-  id = id || '0';
+export const existName = (wd: string, id: number | string = '0') => {
   return requestClient.post(
     Api.existName,
     { wd, id },

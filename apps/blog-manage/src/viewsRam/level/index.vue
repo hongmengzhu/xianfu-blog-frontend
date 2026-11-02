@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 
+import { toRaw } from 'vue';
+
 import { Page, useVbenDrawer, VbenButton } from '@vben/common-ui';
 import { Plus } from '@vben/icons';
 
@@ -226,7 +228,7 @@ function onBatchDelete() {
 
 <template>
   <Page auto-content-height content-class="p-2">
-    <Drawer @ok="onRefresh"/>
+    <Drawer @ok="onRefresh" />
     <Grid>
       <template #toolbar-actions>
         <VbenButton

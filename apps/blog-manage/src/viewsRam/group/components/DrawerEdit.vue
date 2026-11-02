@@ -37,7 +37,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formApi.getValues();
               existName(values.name, values.id);
@@ -59,7 +59,8 @@ const [Form, formApi] = usePgForm({
     {
       tabGroup: 'home',
       fieldName: 'code',
-      label: '编码',
+      label: '码值',
+      defaultValue: '系统自动建立',
       component: 'Input',
       componentProps: {
         placeholder: '请输入',
@@ -115,12 +116,22 @@ const [Drawer, drawerApi] = useVbenDrawer({
         closeOnClickModal: false, // 点击遮罩关闭弹窗
         destroyOnClose: true, // 关闭时销毁
       });
-      const { values, isUpdate } = drawerApi.getData<Record<string, any>>();
-      if (values) {
-        formApi.setValues(values);
+      const { values, isUpdate, copy } =
+        drawerApi.getData<Record<string, any>>();
+      if (values && Object.keys(values).length > 0) {
+        formApi.setValues({ ...values });
+      } else if (copy && Object.keys(copy).length > 0) {
+        formApi.setValues({
+          ...copy,
+          id: '0',
+          code: '系统自动建立',
+        });
       }
 
-      drawerApi.setState({ title: `组：${isUpdate ? '编辑' : '新增'}` ,loading: false});
+      drawerApi.setState({
+        title: `分组：${isUpdate ? '编辑' : '新增'}`,
+        loading: false,
+      });
     }
   },
   title: '：',
@@ -134,19 +145,18 @@ async function onSubmit() {
   if (!valid) {
     return false;
   }
-  const values = await formApi.getValues<Omit<Record<string, any>,'id'>>();
+  const values = await formApi.getValues<Omit<Record<string, any>, 'id'>>();
   drawerApi.lock();
   try {
     drawerApi.setState({ loading: true, confirmLoading: true });
     const { isUpdate } = drawerApi.getData<Record<string, any>>();
-    saveOrUpdate(values, isUpdate)
-      .then((d) => {
-        setTimeout(() => {
-          emit('ok', values);
-          drawerApi.setState({ loading: false });
-          drawerApi.close();
-        }, 500);
-      });
+    saveOrUpdate(values, isUpdate).then((d) => {
+      setTimeout(() => {
+        emit('ok', values);
+        drawerApi.setState({ loading: false });
+        drawerApi.close();
+      }, 500);
+    });
   } catch (error) {
     console.error(error);
   } finally {

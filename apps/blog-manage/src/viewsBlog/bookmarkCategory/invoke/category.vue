@@ -1,43 +1,36 @@
 <script lang="ts" setup>
-import { h, ref } from 'vue';
+import { h } from 'vue';
 
-import { useVbenDrawer, VbenButton } from '@vben/common-ui';
+import { useVbenModal } from '@vben/common-ui';
+import { VbenButton } from '@vben/common-ui';
+import { TypeAttr } from '@pg/types';
 
-import {
-  basicOptionsType,
-  HttpMethod,
-  RamResourceType,
-  RamResourceTypeAttr,
-} from '@pg/types';
-
-import { usePgForm } from '#/adapter';
+import { usePgForm, useVbenForm } from '#/adapter';
 
 import { existName, saveOrUpdate, selectNodeAllPublic } from '../api';
-import { selectNodeAllPublic as selectNodeAllPublicCategory } from '#/viewsApi/diplCategory/api';
-import AccessKeyTableTpl from './AccessKeyTable.vue';
 const emit = defineEmits(['ok']);
-const showTable = ref(false);
-const recordData = ref({});
 const [Form, formApi] = usePgForm({
   tabs: {
+    hide: true,
     active: 'home',
     group: [
       { value: 'home', label: '基本' },
       { value: 'other', label: '其他' },
     ],
   },
-  // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
-  wrapperClass: 'grid-cols-2',
   schema: [
     {
       tabGroup: 'home',
-      fieldName: 'categoryNo',
-      label: '分类',
+      fieldName: 'parentNo',
+      label: '上级',
+      defaultValue: '',
       component: 'PgTreeSelect',
       componentProps: {
-        api: selectNodeAllPublicCategory,
+        api: selectNodeAllPublic,
         params: { by: 'no' },
+        filterQueryAsync: true,
         props: {
+          disabled: true,
           placeholder: '如果为空,则是一级',
           filterable: true,
         },
@@ -48,12 +41,21 @@ const [Form, formApi] = usePgForm({
       fieldName: 'typeSys',
       label: '类型',
       defaultValue: 'general',
-      component: 'PgRadioGroup',
+      component: 'Input',
       componentProps: {
         type: 'button',
-        options: basicOptionsType,
+        options: [
+          { label: '普通', value: 'general' },
+          { label: '系统', value: 'system' },
+          { label: 'api', value: 'api' },
+        ],
       },
       rules: 'required',
+      dependencies: {
+        show: false,
+        // 随意一个字段改变时，都会触发
+        triggerFields: ['description'],
+      },
     },
     {
       tabGroup: 'home',
@@ -96,9 +98,8 @@ const [Form, formApi] = usePgForm({
     {
       tabGroup: 'home',
       fieldName: 'code',
-      label: '标记',
+      label: '标志',
       defaultValue: '系统自动建立',
-      rules: 'required',
       component: 'Input',
       componentProps: {
         placeholder: '请输入',
@@ -107,10 +108,12 @@ const [Form, formApi] = usePgForm({
           if (!values.nameFl) {
             formApi.setFieldValue('nameFl', e.target.value);
           }
-          if (!values.path) {
-            formApi.setFieldValue('path', e.target.value);
-          }
         },
+      },
+      dependencies: {
+        show: false,
+        // 随意一个字段改变时，都会触发
+        triggerFields: ['description'],
       },
     },
     {
@@ -144,36 +147,35 @@ const [Form, formApi] = usePgForm({
   ],
   showDefaultActions: false,
 });
-const [Drawer, drawerApi] = useVbenDrawer({
+const [Modal, modalApi] = useVbenModal({
   onCancel() {
-    drawerApi.close();
+    modalApi.close();
   },
   onConfirm: onSubmit,
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      drawerApi.setState({ loading: true });
-      let data = {};
+      modalApi.setState({
+        loading: true,
+        confirmLoading: false,
+        closeOnClickModal: false,
+        destroyOnClose: true,
+      });
       const { values, isUpdate, parent } =
-        drawerApi.getData<Record<string, any>>();
+        modalApi.getData<Record<string, any>>();
       if (values) {
-        data = {
-          ...values,
-          categoryNo: '',
-        };
-        if (parent) {
-          data.categoryNo = parent.no;
-        }
         formApi.setValues({
-          ...data,
+          ...values,
         });
       }
-      if (isUpdate) {
-        recordData.value = data;
-        showTable.value = true;
-        console.log('recordData=>', recordData.value);
+      if (parent) {
+        formApi.setFieldValue('parentNo', parent.no);
       }
-      formApi.setState({ commonConfig: { disabled: true } });
-      drawerApi.setState({ title: `应用：密钥`, loading: false });
+      console.log('values', values);
+      console.log('parent', parent);
+      modalApi.setState({
+        title: `分类：${isUpdate ? '编辑' : '新增'}`,
+        loading: false,
+      });
     }
   },
   title: '：',
@@ -188,32 +190,29 @@ async function onSubmit() {
     return false;
   }
   const values = await formApi.getValues<Omit<Record<string, any>, 'id'>>();
-  drawerApi.lock();
+  modalApi.lock();
   try {
-    drawerApi.setState({ loading: true, confirmLoading: true });
-    const { isUpdate } = drawerApi.getData<Record<string, any>>();
+    modalApi.setState({ loading: true, confirmLoading: true });
+    const { isUpdate } = modalApi.getData<Record<string, any>>();
+    values['typeSys'] = 'general';
+    // values['typeAttr'] = 'categoryLast';
     saveOrUpdate(values, isUpdate).then((d) => {
       setTimeout(() => {
         emit('ok', values);
-        drawerApi.setState({ loading: false });
-        drawerApi.close();
-      }, 500);
+        modalApi.setState({ loading: false });
+        modalApi.close();
+      }, 900);
     });
   } catch (error) {
     console.error(error);
   } finally {
-    drawerApi.unlock();
-    drawerApi.setState({ loading: false, confirmLoading: false });
+    modalApi.unlock();
+    modalApi.setState({ loading: false, confirmLoading: false });
   }
 }
 </script>
 <template>
-  <Drawer class="w-[1200px]">
+  <Modal>
     <Form />
-    <AccessKeyTableTpl
-      v-if="showTable"
-      :dipl-no="recordData.no"
-      :data="recordData"
-    />
-  </Drawer>
+  </Modal>
 </template>

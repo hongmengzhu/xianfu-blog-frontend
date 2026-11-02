@@ -155,7 +155,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
       let data = {};
       const { values, isUpdate, parent } =
         drawerApi.getData<Record<string, any>>();
-      if (values) {
+      if (values && Object.keys(values).length > 0) {
         data = {
           ...values,
           categoryNo: '',

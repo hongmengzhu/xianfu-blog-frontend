@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 
+import { toRaw } from 'vue';
+
 import { Page, useVbenDrawer, VbenButton } from '@vben/common-ui';
 import { Plus } from '@vben/icons';
 
@@ -89,8 +91,14 @@ async function onRefresh() {
 /**
  * 新增
  */
-function onCreate() {
-  drawerApi.setData({ values: {}, isUpdate: false }).open();
+function onCreate(row: any = {}) {
+  drawerApi
+    .setData({
+      values: {},
+      isUpdate: false,
+      copy: Object.assign({}, row),
+    })
+    .open();
 }
 
 /**
@@ -226,7 +234,7 @@ function onBatchDelete() {
 
 <template>
   <Page auto-content-height content-class="p-2">
-    <Drawer @ok="onRefresh"/>
+    <Drawer @ok="onRefresh" />
     <Grid>
       <template #toolbar-actions>
         <VbenButton
@@ -274,6 +282,13 @@ function onBatchDelete() {
           :actions="[
             {
               tooltip: {
+                content: '复制',
+              },
+              icon: 'lucide:copy',
+              onClick: () => onCreate(row),
+            },
+            {
+              tooltip: {
                 content: '编辑',
               },
               icon: 'lucide:edit',
@@ -286,8 +301,6 @@ function onBatchDelete() {
               icon: 'lucide:trash-2',
               danger: true,
               popConfirm: {
-                okText: '确认',
-                cancelText: '取消',
                 title: `确定删除 [${row.name}] 吗？`,
                 confirm: () => onDelete(row),
               },

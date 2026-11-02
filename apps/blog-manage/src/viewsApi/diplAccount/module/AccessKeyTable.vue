@@ -18,6 +18,10 @@ const diplNo = defineModel('diplNo', {
   default: () => '',
   type: String,
 });
+const principalType = defineModel('principalType', {
+  default: () => 'APP',
+  type: String,
+});
 const emit = defineEmits(['changeOk']);
 const loading = ref(false);
 
@@ -105,12 +109,19 @@ const [Grid, gridApi] = useVbenVxeGrid({
       refresh: false,
       zoom: false,
     },
+    pagerConfig: {
+      enabled: false,
+    },
     proxyConfig: {
       ajax: {
         query: async () => {
           loading.value = true;
           try {
-            return await selectPublic({ diplNo: diplNo.value });
+            return await selectPublic({
+              diplNo: diplNo.value,
+              principalType: principalType.value,
+              ano: diplNo.value,
+            });
           } finally {
             loading.value = false;
           }
@@ -135,7 +146,7 @@ function radioChange(opt) {
   emit('changeOk', changeRows);
 }
 function eventMakeNew() {
-  makeNew(diplNo.value)
+  makeNew(diplNo.value, principalType.value)
     .then(() => {
       setTimeout(() => {
         gridApi.query();
@@ -226,27 +237,34 @@ function refreshTable() {
 .grid2 .vxe-tools--wrapper {
   margin-right: 0.8em;
 }
+
 .goods,
 .goods dd {
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
 }
+
 .goods {
   display: flex;
 }
+
 .goods .image {
   margin-right: 10px;
 }
+
 dl.expandContent {
   display: flex;
 }
+
 dl.expandContent dd {
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
 }
+
 dl.expandContent dd.content {
   width: 100%;
 }
+
 dl.expandContent dd.title {
   flex: 0 0 60px;
   text-align: center;

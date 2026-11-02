@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { VxeTableGridOptions } from '#/adapter/vxe-table';
+import type { Recordable } from '@vben/types';
 
 import { computed, ref } from 'vue';
 
@@ -9,8 +9,9 @@ import { PgTree } from '@pg/components-n';
 
 import { message } from '#/adapter';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { selectCategory as selectNodeAllPublic } from '#/viewsRam/resource/group/api';
 
-import { deleteIds, List, selectCategoryPublic } from '../api';
+import { List } from '../api';
 import { columns } from './data';
 
 const emit = defineEmits(['ok']);
@@ -18,14 +19,19 @@ const emit = defineEmits(['ok']);
 const currenRecord = ref(false);
 const currenData = ref<Recordable<any>>({});
 const reloadTreeState = ref(0);
-const tabSelectActive = ref('system');
+const leftCheckedKeys = ref<any[]>([]);
 const reloadTreeComputed = computed(() => reloadTreeState.value);
+const leftCheckedKeysComputed = computed(() => leftCheckedKeys.value);
+// 当前树节点 key，作为查询条件透传给接口
+const parentNo = ref('');
+const wd = ref('');
+const wdComputed = computed(() => wd.value);
 
 const treeChang = (record: any) => {
   currenRecord.value = true;
   currenData.value = record;
-  gridApi.formApi.setFieldValue('parentId', record.key);
-  onRefresh();
+  parentNo.value = record.key;
+  gridQuery();
 };
 /**
  * 重新加载
@@ -40,44 +46,30 @@ function reloadTree() {
 const treeOverload = (_e: any) => {
   currenRecord.value = false;
   currenData.value = {};
-  gridApi.formApi.setFieldValue('parentId', null);
-  onRefresh();
+  parentNo.value = '';
+  gridQuery();
 };
-/**
- * 树 搜索尾部菜单
- */
-const menuDropdownOptions: any[] = [];
 
 const [Grid, gridApi] = useVbenVxeGrid({
   formOptions: {
     commonConfig: {
-      labelWidth: 50,
-      componentProps: {
-        class: 'w-full',
-      },
+      labelWidth: 42,
     },
     schema: [
       {
-        fieldName: 'parentId',
-        label: '隐藏',
-        defaultValue: null,
         component: 'Input',
-        componentProps: {},
-        dependencies: {
-          show: false,
-          triggerFields: ['wd'],
+        fieldName: 'wd',
+        label: '关键词',
+        defaultValue: wdComputed.value,
+        componentProps: {
+          placeholder: '请输入',
+          clearable: true,
         },
       },
       {
-        fieldName: 'wd',
-        label: '关键词',
-        component: 'Input',
-        componentProps: { placeholder: '请输入', clearable: true },
-      },
-      {
+        component: 'Select',
         fieldName: 'state',
         label: '状态',
-        component: 'Select',
         componentProps: {
           clearable: true,
           options: [
@@ -96,8 +88,8 @@ const [Grid, gridApi] = useVbenVxeGrid({
     height: 'auto',
     keepSource: true,
     pagerConfig: {
-      pageSize: 20,
-      pageSizes: [10, 20, 50, 100, 500, 1000],
+      pageSize: 100,
+      pageSizes: [50, 100, 500, 1000],
     },
     proxyConfig: {
       ajax: {
@@ -105,6 +97,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
           return await List({
             pageSize: page.pageSize,
             pageNum: page.currentPage,
+            parentNo: parentNo.value,
             ...formValues,
           });
         },
@@ -113,19 +106,14 @@ const [Grid, gridApi] = useVbenVxeGrid({
     rowConfig: {
       keyField: 'id',
       isHover: true,
-      isCurrent: true,
     },
     toolbarConfig: {
       custom: true,
       export: false,
       refresh: true,
       zoom: true,
-      search: true,
     },
-    checkboxConfig: {
-      highlight: true,
-    },
-  } as VxeTableGridOptions,
+  } as any,
 });
 
 /**
@@ -156,14 +144,6 @@ async function onRefresh() {
   }
 }
 
-/**
- * 树右键菜单
- * @param option
- */
-const rightClickMenuOptions = ({ option }) => {
-  return [];
-};
-
 const [Modal, modalApi] = useVbenModal({
   onCancel() {
     modalApi.close();
@@ -184,49 +164,76 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      modalApi.setState({ title: `选择：资源` });
+      let title = '';
+      const { parent, row } = modalApi.getData<Record<string, any>>();
+      // console.log('onOpenChange=',parent, row);
+      if (parent && Object.keys(parent).length > 0) {
+        currenData.value = parent;
+        wd.value = parent.name;
+        leftCheckedKeys.value = [parent.no];
+        parentNo.value = parent.no;
+        // leftCheckedKeys.value = ["202607061553546108582534"];
+        title = ` [ ${parent.name} ]`;
+        if (row) {
+          title = `${title} ${row.name}`;
+        }
+      }
+
+      modalApi.setState({ title: `选择：资源${title}` });
     }
   },
   title: '：',
 });
+function treeAfterFetch(data: any) {
+  console.log('treeAfterFetch', data);
+  if (data) {
+    for (let i in data) {
+      if (!data[i].parentId) {
+        data[i].label =
+          data[i].label +
+          (data[i]?.data && data[i]?.data?.terminalCode
+            ? ' [ ' + data[i]?.data?.terminalCode + ' ]'
+            : '');
+      }
+    }
+  }
+  return data;
+}
 </script>
 
 <template>
   <Modal class="w-[900px]">
-    <div>
-      <div>
-        <n-tabs v-model:value="tabSelectActive" type="segment">
-          <n-tab name="system"> 系统 </n-tab>
-          <n-tab name="tenant"> 租户 </n-tab>
-        </n-tabs>
+    <div class="flex size-full">
+      <NCard
+        class="min-w-[290px]"
+        style="width: unset"
+        content-style="padding-left:10px;padding-right:10px;padding-top:10px;"
+      >
+        <PgTree
+          :api="selectNodeAllPublic"
+          :after-fetch="treeAfterFetch"
+          :reload="reloadTreeComputed"
+          :props="{
+            blockLine: true,
+            showLine: true,
+            cascade: false,
+            checkable: false,
+            selectable: true,
+            defaultExpandAll: true,
+            selectedKeys: leftCheckedKeysComputed,
+          }"
+          @ok="treeChang"
+          @overload="treeOverload"
+        />
+      </NCard>
+      <div class="w-[calc(100%-290px)] ml-2 pl-2 bg-card rounded-md">
+        <Grid key="resource-invoke-list">
+          <template #nameAll="{ row }">
+            <div>{{ row.name }}</div>
+            <div>{{ row.path }}</div>
+          </template>
+        </Grid>
       </div>
-      <NLayout class="h-full p-2" has-sider>
-        <NLayoutSider class="min-w-[160px]" width="160">
-          <PgTree
-            :api="selectCategoryPublic"
-            :menu-dropdown-options="menuDropdownOptions"
-            :reload="reloadTreeComputed"
-            :right-click-menu="true"
-            :right-click-menu-options="rightClickMenuOptions"
-            @ok="treeChang"
-            @overload="treeOverload"
-          />
-        </NLayoutSider>
-        <NLayout class="w-[calc(100%-160px)]">
-          <NLayoutContent>
-            <Grid>
-              <template #nameAll="{ row }">
-                <div>
-                  {{ row.name }}
-                </div>
-                <div>
-                  {{ row.path }}
-                </div>
-              </template>
-            </Grid>
-          </NLayoutContent>
-        </NLayout>
-      </NLayout>
     </div>
   </Modal>
 </template>

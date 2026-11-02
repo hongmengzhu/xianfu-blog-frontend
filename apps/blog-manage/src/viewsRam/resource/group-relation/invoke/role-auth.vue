@@ -1,22 +1,32 @@
 <script setup lang="ts">
-import type { VxeTableGridOptions } from '#/adapter/vxe-table';
+import type { Recordable } from '@vben/types';
 
-import { computed, ref } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 
-import { useVbenModal } from '@vben/common-ui';
+import { useVbenModal } from '@vben-core/popup-ui';
 
 import { PgTree } from '@pg/components-n';
+import { VXETable } from 'vxe-table';
+import type {
+  VxeGridInstance,
+  VxeGridListeners,
+  VxeGridProps,
+} from 'vxe-table';
 
 import { message } from '#/adapter';
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { useDataDictionaryStore } from '#/store';
 
-import { selectPublic } from '../../group/api';
-import { updateByRole, ListByGroup } from '../../resource-authority/api';
-import { selectedByRole } from '../api';
-import { columns } from './data';
+import { selectNodeAllPublic } from '../../group/api';
+import { selectedByRole, updateByRole } from '../api';
 
 const emit = defineEmits(['ok']);
 
+// 数据字典
+const dataDictionaryStore = useDataDictionaryStore();
+// 数据字典-加载
+dataDictionaryStore.requestAllSet(['terminalCode']);
+//
+const terminalCode = ref<string>('system');
 const currenRecord = ref(false);
 const checkedData = ref([]);
 const treeCheckedKeys = ref([]);
@@ -24,12 +34,13 @@ const currenData = ref<Recordable<any>>({});
 const parentData = ref<Recordable<any>>({});
 const reloadTreeState = ref(0);
 const reloadTreeComputed = computed(() => reloadTreeState.value);
-const treeCheckedKeysComputed = computed(() => treeCheckedKeys.value);
+const formParam = { typeValue: '0', typeCategory: 'group' };
 
-const treeChang = (record: any) => {
+const treeChang = (record) => {
   currenRecord.value = true;
   currenData.value = record;
-  gridApi.formApi.setFieldValue('typeValue', record.key);
+  // console.log('record', record);
+  formParam.typeValue = record.key;
 };
 /**
  * 重新加载
@@ -41,68 +52,13 @@ function reloadTree() {
  * 树重载
  * @param e
  */
-const treeOverload = (_e: any) => {
+const treeOverload = (e) => {
   currenRecord.value = false;
   currenData.value = {};
-  gridApi.formApi.setFieldValue('typeValue', '0');
+  formParam.typeValue = '0';
 };
 
-const [Grid, gridApi] = useVbenVxeGrid({
-  formOptions: {
-    commonConfig: {
-      labelWidth: 50,
-      componentProps: {
-        class: 'w-full',
-      },
-    },
-    schema: [
-      {
-        fieldName: 'typeValue',
-        label: '隐藏',
-        defaultValue: '0',
-        component: 'Input',
-        componentProps: {},
-        dependencies: {
-          show: false,
-          triggerFields: ['wd'],
-        },
-      },
-    ],
-    submitOnChange: false,
-  },
-  gridOptions: {
-    columns,
-    height: 'auto',
-    keepSource: true,
-    pagerConfig: {
-      pageSize: 20,
-      pageSizes: [10, 20, 50, 100, 500, 1000],
-    },
-    proxyConfig: {
-      ajax: {
-        query: async ({ page }, formValues) => {
-          return await ListByGroup({
-            pageSize: page.pageSize,
-            pageNum: page.currentPage,
-            ...formValues,
-          });
-        },
-      },
-    },
-    rowConfig: {
-      keyField: 'id',
-      isHover: true,
-      isCurrent: true,
-    },
-    toolbarConfig: {
-      custom: true,
-      export: false,
-      refresh: true,
-      zoom: true,
-      search: true,
-    },
-  } as VxeTableGridOptions,
-});
+onMounted(() => {});
 
 /**
  * 树右键菜单
@@ -118,10 +74,14 @@ function treeUpdateCheckedKeys({ keys, options, meta }) {
 }
 
 const [Modal, modalApi] = useVbenModal({
+  closeOnClickModal: false,
+  draggable: true,
+  fullscreenButton: false,
   onCancel() {
     modalApi.close();
   },
   onConfirm: async () => {
+    console.log('checkedData.value', checkedData.value);
     // 获取选中数据
     if (checkedData.value <= 0) {
       if (treeCheckedKeys.value.length <= 0) {
@@ -136,24 +96,27 @@ const [Modal, modalApi] = useVbenModal({
       message.warning('没选择角色');
       return false;
     }
-    const ids: any[] = [];
-    checkedData.value.map((item: any) => {
+    const ids = [];
+    checkedData.value.map((item) => {
       if (item && item?.data) {
-        ids.push(item.data.id);
+        ids.push(item.data.no);
       }
     });
-    if (ids.length <= 0) {
+    if (ids <= 0) {
       message.warning('你没有选择任何数据');
       return false;
     }
     updateByRole({
-      typeValue: parentData.value.id,
-      ids,
+      typeValue: parentData.value.no,
+      nos: ids,
+    }).then((d) => {
+      setTimeout(() => {
+        emit('ok', checkedData.value);
+        modalApi.setData({ rows: checkedData.value });
+        modalApi.close();
+      }, 1500);
     });
 
-    emit('ok', checkedData.value);
-    modalApi.setData({ rows: checkedData.value });
-    modalApi.close();
     return true;
   },
   onOpenChange(isOpen: boolean) {
@@ -165,60 +128,71 @@ const [Modal, modalApi] = useVbenModal({
       if (values) {
         parentData.value = values;
         title = `角色授权：${values.name} ( ${values.code} )`;
-        selectedByRole({ typeValue: values.id }).then((d) => {
-          if (d) {
-            for (const dKey in d) {
-              treeCheckedKeys.value.push(d[dKey]);
+        selectedByRole({ typeValue: values.no, typeCategory: 'role' }).then(
+          (d) => {
+            if (d) {
+              console.log('dKey', d);
+              for (const dKey in d) {
+                console.log('dKey', d[dKey]);
+                treeCheckedKeys.value.push(d[dKey].groupNo);
+              }
             }
-          }
-        });
+            console.log('treeCheckedKeys.value', treeCheckedKeys.value);
+          },
+        );
       }
     }
     modalApi.setState({ title });
   },
   title: '：',
 });
+const treeCheckedKeysComputed = computed(() => treeCheckedKeys.value);
+async function onUpdateValue(tabName: string) {
+  console.log('onBeforeLeave=', tabName);
+  if (terminalCode.value != tabName) {
+    terminalCode.value = tabName;
+    reloadTreeState.value++;
+  }
+}
 </script>
 
 <template>
   <Modal class="w-[1100px]">
-    <div>
-      <NLayout class="h-full p-2" has-sider>
-        <NLayoutSider class="min-w-[360px]">
-          <PgTree
-            :api="selectPublic"
-            :props="{
-              blockLine: true,
-              showLine: true,
-              cascade: true,
-              checkable: true,
-              selectable: false,
-              defaultCheckedKeys: treeCheckedKeysComputed,
-            }"
-            :reload="reloadTreeComputed"
-            :right-click-menu="true"
-            :right-click-menu-options="rightClickMenuOptions"
-            @ok="treeChang"
-            @overload="treeOverload"
-            @update:checked-keys="treeUpdateCheckedKeys"
-          />
-        </NLayoutSider>
-        <NLayout class="w-[calc(100%-360px)]">
-          <NLayoutContent>
-            <Grid>
-              <template #nameAll="{ row }">
-                <div>
-                  {{ row.name }}
-                </div>
-                <div>
-                  {{ row.path }}
-                </div>
-              </template>
-            </Grid>
-          </NLayoutContent>
-        </NLayout>
-      </NLayout>
-    </div>
+    <n-tabs
+      type="card"
+      size="small"
+      animated
+      style="margin-top: -2px"
+      class="ajsMenu"
+      @update:value="onUpdateValue"
+    >
+      <template #prefix> 终端类型 </template>
+      <n-tab
+        v-for="item in dataDictionaryStore.get('terminalCode')"
+        :name="item.value"
+        :tab="item.label"
+      />
+    </n-tabs>
+    <PgTree
+      :api="selectNodeAllPublic"
+      :params="{ terminalCode: terminalCode }"
+      :props="{
+        blockLine: true,
+        showLine: true,
+        cascade: true,
+        checkable: true,
+        selectable: false,
+        defaultCheckedKeys: treeCheckedKeysComputed,
+        // defaultSelectedKeys: treeCheckedKeys,
+      }"
+      :is-node-all="true"
+      :reload="reloadTreeComputed"
+      :right-click-menu="true"
+      :right-click-menu-options="rightClickMenuOptions"
+      @ok="treeChang"
+      @overload="treeOverload"
+      @update:checked-keys="treeUpdateCheckedKeys"
+    />
   </Modal>
 </template>
 

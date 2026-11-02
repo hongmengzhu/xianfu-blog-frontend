@@ -1,41 +1,67 @@
 <script setup lang="ts">
+import type { Recordable } from '@vben/types';
+
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 
 import { computed, ref } from 'vue';
 
-import { Page, useVbenDrawer, useVbenModal, VbenButton } from '@vben/common-ui';
+import { Page, useVbenModal, VbenButton } from '@vben/common-ui';
 
 import { PgTree } from '@pg/components-n';
+import { stateYesNoOption } from '@pg/types';
 
-import { dialog, message } from '#/adapter';
+import { message } from '#/adapter';
 import { useVbenVxeGrid, VbenTableAction } from '#/adapter/vxe-table';
-import {
-  deletePhysicalDeletion as groupDeletePhysicalDeletion,
-  selectPublic,
-} from '#/viewsRam/resource/group/api';
+import { useDataDictionaryStore } from '#/store';
+import { selectNodeAllPublic } from '#/viewsRam/resource/group/api';
+import { selectNodeAllPublic as selectNodeAllPublicMenu } from '#/viewsRam/resource/menu/api';
 
-import Category from './components/category.vue';
 import ResourceList from '../resource/invoke/list.vue';
 import {
-  batchSelectPhysicalDeletion,
+  batchSelectDelete,
   createByGroup,
+  createByMenu,
   deleteIds,
-  List,
+  ListByGroup,
 } from './api';
-import DrawerEdit from './components/edit.vue';
-import { columns, useGridFormSchema } from './data';
+import { columns } from './data';
+import { MdiTickCircle } from '@pg/icons';
 
 const currenRecord = ref(false);
-const currenData = ref<Recordable<any>>({});
+const currenData = ref<Recordable<any>>(null);
+const currenParentData = ref<Recordable<any>>(null);
 const reloadTreeState = ref(0);
-const tabSelectActive = ref('system');
 const reloadTreeComputed = computed(() => reloadTreeState.value);
+const reloadTreeStateRight = ref(0);
+const reloadTreeComputedRight = computed(() => reloadTreeStateRight.value);
+const checkedData = ref<any[]>([]);
+const treeCheckedKeys = ref<any[]>([]);
+const dataAll = ref<any[]>([]);
+const terminalCode = ref<string>('system');
+const treeKey = ref(0);
+const menuTreeKey = ref(0);
+const treeCheckedKeysComputed = computed(() => treeCheckedKeys.value);
+const selectTitle = ref<string>('');
+// 数据字典
+const dataDictionaryStore = useDataDictionaryStore();
+// 数据字典-加载
+dataDictionaryStore.requestAllSet(['terminalCode']);
 
 const treeChang = (record: any) => {
+  console.log('treeChang=', record);
   currenRecord.value = true;
-  currenData.value = record;
+  currenData.value = record.data;
   gridApi.formApi.setFieldValue('typeValue', record.key);
   onRefresh();
+  //
+  if (dataAll.value && currenData.value) {
+    for (let item of dataAll.value) {
+      if (item.value == currenData.value.parentNo) {
+        currenParentData.value = item.extend;
+      }
+    }
+  }
+  selectTitle.value = `${currenData.value.name}`;
 };
 /**
  * 重新加载
@@ -50,57 +76,80 @@ function reloadTree() {
 const treeOverload = (_e: any) => {
   currenRecord.value = false;
   currenData.value = {};
-  gridApi.formApi.setFieldValue('typeValue', '');
+  gridApi.formApi.setFieldValue('typeValue', null);
   onRefresh();
 };
-const [FormDrawer, formDrawerApi] = useVbenDrawer({
-  connectedComponent: DrawerEdit,
-});
 
-const [FormModal, formModalApi] = useVbenModal({
-  // 连接抽离的组件
-  connectedComponent: Category,
-});
 const [FormModalResource, formModalApiResource] = useVbenModal({
-  // 连接抽离的组件
   connectedComponent: ResourceList,
+  destroyOnClose: true,
 });
-/**
- * 树 搜索尾部菜单
- */
-const menuDropdownOptions = [
-  {
-    label: '添加',
-    key: '添加',
-    props: {
-      onClick: () => {
-        formModalApi.setData({
-          // 表单值
-          values: {},
-          isUpdate: false,
-        });
-        formModalApi.open();
-      },
-    },
-  },
-];
 
 const [Grid, gridApi] = useVbenVxeGrid({
   formOptions: {
     commonConfig: {
-      labelWidth: 50,
-      componentProps: {
-        class: 'w-full',
-      },
+      labelWidth: 42,
     },
-    schema: useGridFormSchema(),
+    schema: [
+      {
+        fieldName: 'typeValue',
+        label: '隐藏',
+        defaultValue: '0',
+        component: 'Input',
+        componentProps: {},
+        dependencies: {
+          show: false,
+          triggerFields: ['wd'],
+        },
+      },
+      // {
+      //   fieldName: 'terminalCode',
+      //   label: '隐藏',
+      //   defaultValue: terminalCode.value,
+      //   component: 'Input',
+      //   componentProps: {},
+      //   dependencies: {
+      //     show: false,
+      //     triggerFields: ['wd'],
+      //   },
+      // },
+      {
+        fieldName: 'typeCategory',
+        label: '隐藏',
+        defaultValue: 'group',
+        component: 'Input',
+        componentProps: {},
+        dependencies: {
+          show: false,
+          triggerFields: ['wd'],
+        },
+      },
+      {
+        component: 'Input',
+        fieldName: 'wd',
+        label: '关键词',
+      },
+      {
+        fieldName: 'state',
+        label: '状态',
+        component: 'Select',
+        componentProps: {
+          clearable: true,
+          options: stateYesNoOption,
+        },
+      },
+    ],
     submitOnChange: false,
   },
   gridOptions: {
     columns,
     height: 'auto',
     keepSource: true,
+    cellConfig: {
+      height: 60,
+    },
     pagerConfig: {
+      enabled: false,
       pageSize: 20,
       pageSizes: [10, 20, 50, 100, 500, 1000],
     },
@@ -113,26 +162,25 @@ const [Grid, gridApi] = useVbenVxeGrid({
             ...formValues,
           };
           if (formValues?.typeValue) {
-            queryParams.typeValue = formValues.typeValue;
+            queryParams.groupNo = formValues.typeValue;
           }
-          return await List(queryParams);
+          treeCheckedKeys.value = [];
+          const res = await ListByGroup(queryParams);
+          treeCheckedKeys.value = res.menus || [];
+          menuTreeKey.value++;
+          return res;
         },
       },
     },
     rowConfig: {
       keyField: 'id',
       isHover: true,
-      isCurrent: true,
     },
     toolbarConfig: {
       custom: true,
-      export: false,
       refresh: true,
       zoom: true,
       search: true,
-    },
-    checkboxConfig: {
-      highlight: true,
     },
   } as VxeTableGridOptions,
 });
@@ -166,6 +214,16 @@ async function onRefresh() {
 }
 
 /**
+ * 删除
+ * @param row 行数据
+ */
+function onDelete(row: any) {
+  deleteIds([row.id]).then(() => {
+    onRefresh();
+  });
+}
+
+/**
  * 批量删除
  */
 function onBatchDelete() {
@@ -185,7 +243,7 @@ function onBatchDelete() {
     message.warning('你没有选择任何数据');
     return;
   }
-  batchSelectPhysicalDeletion(ids, () => {
+  batchSelectDelete(ids, () => {
     onRefresh();
     $grid.setAllCheckboxRow(false);
   });
@@ -199,7 +257,8 @@ async function onSelectResource() {
   if (formValues.typeValue) {
     formModalApiResource.setData({
       values: {},
-      rows: [],
+      row: currenData.value,
+      parent: currenParentData.value,
       isUpdate: false,
     });
     formModalApiResource.open();
@@ -208,189 +267,249 @@ async function onSelectResource() {
   }
 }
 
-/**
- * 删除 指定行数据
- * @param row
- */
-function onDelete(row: any) {
-  const $grid = gridApi.grid;
-  if (!$grid) return;
-  batchSelectPhysicalDeletion([row.id], () => {
-    $grid.remove(row);
-  });
-}
-
-/**
- * 删除 指定数据
- * @param row
- */
-const removeTreeEvent = (row: any) => {
-  dialog.warning({
-    title: '确认删除',
-    content: `是否[删除]选中数据[ ${row.name} ]，操作后数据不可恢复`,
-    positiveText: '确认',
-    negativeText: '取消',
-    onPositiveClick: () => {
-      groupDeletePhysicalDeletion([row.id]).then(() => {
-        treeChangOverload();
-      });
-    },
-  });
-};
-
 function treeChangOverload() {
-  onRefresh();
   reloadTree();
   setTimeout(() => {
-    reloadTree();
+    onRefresh();
   }, 1000);
 }
 
-/**
- * 树右键菜单
- * @param option
- */
-const rightClickMenuOptions = ({ option }) => {
-  return [
-    {
-      label: '修改',
-      key: '修改',
-      props: {
-        onClick: () => {
-          formModalApi.setData({
-            // 表单值
-            values: option.data,
-            isUpdate: true,
-          });
-          formModalApi.open();
-        },
-      },
-    },
-    {
-      label: '添加下级',
-      key: '添加下级',
-      props: {
-        onClick: () => {
-          formModalApi.setData({
-            // 表单值
-            values: {},
-            parent: option?.data,
-            isUpdate: false,
-          });
-          formModalApi.open();
-        },
-      },
-    },
-    {
-      label: '删除',
-      key: '删除',
-      props: {
-        onClick: () => {
-          removeTreeEvent(option.data);
-        },
-      },
-    },
-  ];
-};
-
-function selectResourceOk(rows: any) {
-  console.log('rows', rows);
-  gridApi.formApi.getValues().then((formValues: any) => {
-    if (formValues.typeValue) {
-      if (!rows || rows <= 0) {
-        message.warning('你没有选择资源数据');
-        return;
-      }
-      createByGroup({
-        groupId: formValues.typeValue,
-        ids: rows.map((item: any) => item.id),
-      }).then(() => {
-        setTimeout(() => {
-          onRefresh();
-        }, 3000);
-      });
-    } else {
-      message.warning('你没有选择资源组');
+async function selectResourceOk(rows: any) {
+  const formValues = await gridApi.formApi.getValues();
+  if (formValues.typeValue) {
+    if (!rows || rows.length <= 0) {
+      message.warning('你没有选择资源数据');
+      return;
     }
-  });
+    createByGroup({
+      groupNo: formValues.typeValue,
+      ids: rows.map((item: any) => item.no),
+    }).then(() => {
+      setTimeout(() => {
+        onRefresh();
+      }, 3000);
+    });
+  } else {
+    message.warning('你没有选择资源组');
+  }
+}
+
+const treeChangMenu = (_record: any) => {};
+
+function treeUpdateCheckedKeys(opt: any) {
+  if (opt && opt.keys) {
+    checkedData.value = [...opt.keys];
+  }
+}
+
+async function save() {
+  const values = await gridApi.formApi.getValues();
+  if (currenData.value && values.typeValue && currenData.value?.id) {
+    createByMenu({
+      groupNo: values.typeValue,
+      ids: checkedData.value,
+    });
+  } else {
+    message.warning('你没有选择资源组');
+  }
+}
+function onResultSource(opt) {
+  // console.log('onResultSource',opt);
+  dataAll.value = opt;
+}
+function treeAfterFetch(data: any) {
+  console.log('treeAfterFetch', data);
+  if (data) {
+    for (let i in data) {
+      if (!data[i].parentId) {
+        data[i].label =
+          data[i].label +
+          (data[i]?.data && data[i]?.data?.terminalCodeName
+            ? ' [ ' + data[i]?.data?.terminalCodeName + ' ]'
+            : '');
+      }
+    }
+  }
+  return data;
+}
+async function onUpdateValue(tabName: string) {
+  console.log('onBeforeLeave=', tabName);
+  if (terminalCode.value != tabName) {
+    treeKey.value++;
+    reloadTreeState.value++;
+    terminalCode.value = tabName;
+    //
+    reloadTreeStateRight.value++;
+    //
+    currenRecord.value = false;
+    currenData.value = {};
+    gridApi.formApi.setFieldValue('typeValue', '0');
+    setTimeout(() => {
+      onRefresh();
+    }, 10);
+    selectTitle.value = '';
+  }
 }
 </script>
 
 <template>
   <Page auto-content-height content-class="p-2">
-    <div>
-      <div>
-        <n-tabs v-model:value="tabSelectActive" type="segment">
-          <n-tab name="system"> 系统 </n-tab>
-          <n-tab name="tenant"> 租户 </n-tab>
+    <div class="flex flex-col size-full">
+      <div
+        class="flex-shrink-0 bg-card rounded-md pl-2"
+        style="margin-top: -2px"
+      >
+        <n-tabs
+          type="card"
+          animated
+          style="margin-top: -2px"
+          class="ajsMenu"
+          @update:value="onUpdateValue"
+        >
+          <template #prefix> 终端类型 </template>
+          <template #suffix>
+            <div v-show="selectTitle" class="ml-2 flex items-center">
+              <MdiTickCircle class="size-7 text-green-500" />
+              <n-tag type="success" class="ml-2">
+                {{ selectTitle }}
+              </n-tag>
+            </div>
+          </template>
+          <n-tab
+            v-for="item in dataDictionaryStore.get('terminalCode')"
+            :name="item.value"
+            :tab="item.label"
+          />
         </n-tabs>
       </div>
-      <NLayout class="h-full p-2" has-sider>
-        <NLayoutSider class="min-w-[160px]" width="160">
+      <div class="flex flex-1 min-h-0 overflow-hidden">
+        <NCard
+          class="min-w-[290px]"
+          style="width: unset; margin-top: -1px"
+          content-style="padding-left:10px;padding-right:10px;padding-top:10px;"
+        >
           <PgTree
-            :api="selectPublic"
-            :menu-dropdown-options="menuDropdownOptions"
+            :key="treeKey"
+            :api="selectNodeAllPublic"
+            :params="{ terminalCode }"
+            :after-fetch="treeAfterFetch"
+            :is-node-all="true"
             :reload="reloadTreeComputed"
-            :right-click-menu="true"
-            :right-click-menu-options="rightClickMenuOptions"
+            :props="{
+              defaultExpandAll: true,
+            }"
+            class="pg-tree"
             @ok="treeChang"
             @overload="treeOverload"
+            @result:source="onResultSource"
           />
-        </NLayoutSider>
-        <NLayout class="w-[calc(100%-160px)]">
-          <NLayoutContent>
-            <Grid>
-              <template #toolbar-actions>
-                <VbenButton
-                  type="primary"
-                  class="pg-button-size-small"
-                  @click="onSelectResource"
-                >
-                  选择
-                </VbenButton>
-                <VbenButton
-                  class="ml-2 pg-button-size-small"
-                  danger
-                  @click="onBatchDelete"
-                >
-                  批量删除
-                </VbenButton>
-              </template>
-              <template #nameAll="{ row }">
-                <div>
-                  {{ row.name }}
-                </div>
-                <div>
-                  {{ row.path }}
-                </div>
-              </template>
-              <template #operate="{ row }">
-                <VbenTableAction
-                  :actions="[
-                    {
-                      tooltip: {
-                        content: '删除',
-                      },
-                      icon: 'lucide:trash-2',
-                      danger: true,
-                      popConfirm: {
-                        title: `确定删除 ${row.name} 吗？`,
-                        confirm: () => onDelete(row),
-                      },
+        </NCard>
+        <div class="w-[calc(100%-600px)] ml-1 pl-2 bg-card rounded-md">
+          <Grid>
+            <template #toolbar-actions>
+              <VbenButton
+                :disabled="currenRecord ? false : true"
+                type="primary"
+                class="pg-button-size-small"
+                @click="onSelectResource"
+              >
+                选择
+              </VbenButton>
+              <VbenButton
+                class="ml-2 pg-button-size-small"
+                danger
+                @click="onBatchDelete"
+              >
+                批量删除
+              </VbenButton>
+            </template>
+            <template #nameAll="{ row }">
+              <div>
+                {{ row.name }}
+              </div>
+              <div>
+                <n-tag type="success">{{ row.method }}</n-tag> {{ row.path }}
+              </div>
+            </template>
+            <template #operate="{ row }">
+              <VbenTableAction
+                :actions="[
+                  {
+                    tooltip: {
+                      content: '删除',
                     },
-                  ]"
-                  align="center"
-                />
-              </template>
-            </Grid>
-          </NLayoutContent>
-        </NLayout>
-        <FormDrawer />
-        <FormModal @ok="treeChangOverload" />
-      </NLayout>
+                    icon: 'lucide:trash-2',
+                    danger: true,
+                    popConfirm: {
+                      title: `确定删除 ${row.name} 吗？`,
+                      confirm: () => onDelete(row),
+                    },
+                  },
+                ]"
+                align="center"
+              />
+            </template>
+          </Grid>
+        </div>
+        <NCard
+          class="min-w-[300px] ml-1"
+          style="width: unset"
+          content-style="padding-left:10px;padding-right:10px;padding-top:10px;overflow:hidden;"
+        >
+          <div class="h-[30px]">
+            <VbenButton size="sm" @click="save">保存菜单权限</VbenButton>
+          </div>
+          <NDivider
+            title-placement="left"
+            style="margin-top: 10px; margin-bottom: 10px"
+          >
+            菜单权限
+          </NDivider>
+          <PgTree
+            :key="menuTreeKey"
+            :api="selectNodeAllPublicMenu"
+            :params="{ terminalCode }"
+            :after-fetch="treeAfterFetch"
+            :reload="reloadTreeComputedRight"
+            :is-node-all="true"
+            :right-click-menu="false"
+            :props="{
+              blockLine: true,
+              showLine: true,
+              cascade: true,
+              checkable: true,
+              selectable: false,
+              defaultCheckedKeys: treeCheckedKeysComputed,
+              defaultExpandAll: true,
+            }"
+            class="pg-tree2"
+            @ok="treeChangMenu"
+            @update:checked-keys="treeUpdateCheckedKeys"
+          />
+        </NCard>
+      </div>
       <FormModalResource @ok="selectResourceOk" />
     </div>
   </Page>
 </template>
 
-<style scoped></style>
+<style scoped>
+:deep(.pg-tree .n-tree) {
+  max-height: calc(100vh - 220px);
+  overflow-y: auto;
+}
+
+:deep(.pg-tree2 .n-tree) {
+  max-height: calc(100vh - 300px);
+  overflow-y: auto;
+}
+
+:deep(.ajsMenu.n-tabs .n-tabs-nav > .n-tabs-nav-scroll-wrapper) {
+  flex: 0 0 auto;
+}
+
+:deep(.ajsMenu.n-tabs .n-tabs-nav > .n-tabs-nav__suffix) {
+  flex: 1 1 auto;
+  padding-left: 0;
+}
+</style>

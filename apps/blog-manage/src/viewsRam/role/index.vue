@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 
+import { toRaw } from 'vue';
 import { Page, useVbenDrawer, useVbenModal, VbenButton } from '@vben/common-ui';
 import { Plus } from '@vben/icons';
 
@@ -232,11 +233,13 @@ function onBatchDelete() {
 }
 
 const onAuth = (row: any) => {
-  modalApiResourceGroup.setData({
-    // 表单值
-    values: row,
-    isUpdate: true,
-  }).open();
+  modalApiResourceGroup
+    .setData({
+      // 表单值
+      values: row,
+      isUpdate: true,
+    })
+    .open();
 };
 </script>
 
@@ -289,7 +292,7 @@ const onAuth = (row: any) => {
         <VbenTableAction
           :actions="[
             {
-              ifShow: row.code!='administrator',
+              ifShow: row.code != 'administrator',
               text: '授权',
               onClick: () => onAuth(row),
             },

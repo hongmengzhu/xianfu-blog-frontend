@@ -22,7 +22,7 @@ enum Api {
   upload = '/xianfu/manage/basic/attachment/upload',
   uploadQr = '/xianfu/manage/basic/attachment/upload-qr',
   uploadLink = '/xianfu/manage/basic/attachment/upload-link',
-  uploadList = '/xianfu/sys/manage/attachment/upload-list',
+  uploadList = '/xianfu/manage/manage/attachment/upload-list',
   updateByFileOwner = '/xianfu/manage/basic/attachment/upload-updateByFileOwner',
   updateDetail = '/xianfu/manage/basic/attachment/upload-detail',
 }
@@ -99,7 +99,7 @@ export const deleteIds = (params: any) => {
  * 批量选中-删除
  * @param params
  */
-export const batchSelectDelete = (params:any, handleSuccess:any) => {
+export const batchSelectDelete = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认删除',
     content: '是否删除选中数据',
@@ -126,7 +126,7 @@ export const batchSelectDelete = (params:any, handleSuccess:any) => {
  * 批量选中-启用
  * @param params
  */
-export const batchSelectEnable = (params:any, handleSuccess:any) => {
+export const batchSelectEnable = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置有效',
     content: '是否[批量有效]选中数据',
@@ -153,7 +153,7 @@ export const batchSelectEnable = (params:any, handleSuccess:any) => {
  * 批量选中-禁用
  * @param params
  */
-export const batchSelectDisable = (params:any, handleSuccess:any) => {
+export const batchSelectDisable = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置停用',
     content: '是否[批量停用]选中数据',
@@ -180,7 +180,7 @@ export const batchSelectDisable = (params:any, handleSuccess:any) => {
  * 批量选中-恢复
  * @param params
  */
-export const batchSelectRecovery = (params:any, handleSuccess:any) => {
+export const batchSelectRecovery = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置恢复',
     content: '是否[批量恢复]选中数据',
@@ -207,7 +207,10 @@ export const batchSelectRecovery = (params:any, handleSuccess:any) => {
  * 批量选中-物理删除
  * @param params
  */
-export const batchSelectPhysicalDeletion = (params:any, handleSuccess:any) => {
+export const batchSelectPhysicalDeletion = (
+  params: any,
+  handleSuccess: any,
+) => {
   dialog.warning({
     title: '确认物理删除',
     content: '是否[物理删除]选中数据，操作后数据不可恢复',
@@ -251,8 +254,7 @@ export const exportExcelUrl = Api.exportExcel;
  * 查询名称是否存在
  * @param params
  */
-export const existName = (wd, id?) => {
-  id = id || '0';
+export const existName = (wd, id = '0') => {
   return requestClient.post(
     Api.existName,
     { wd, id },
@@ -307,11 +309,14 @@ export const uploadUpByFileOwner = (data?) => {
  * }
  * @param setting
  */
-export const uploadFn = (data?: any, setting?: {
-  type?:string,
-  url?:string,
-  config?:object,
-}) => {
+export const uploadFn = (
+  data?: any,
+  setting?: {
+    type?: string;
+    url?: string;
+    config?: object;
+  },
+) => {
   let url = Api.upload;
   data = data || {};
   let config = {};
@@ -322,12 +327,12 @@ export const uploadFn = (data?: any, setting?: {
     if (setting.url) {
       url = setting.url;
     } else {
-      url = `${Api.upload}-${  setting.type}`;
+      url = `${Api.upload}-${setting.type}`;
     }
     if (setting.config) {
       config = setting.config;
     }
-    if(setting.type && setting.type === 'formdata') {
+    if (setting.type && setting.type === 'formdata') {
       url = Api.upload;
       config = setting?.config || {
         errorMessageMode: 'message',
@@ -343,17 +348,19 @@ export const uploadFn = (data?: any, setting?: {
   return requestClient.post(url, data, config);
 };
 
-
 /**
  * 定义自定义上传函数
  * @param
  */
-export const uploadFnByMarkdown = (data:any, setting?: {
-  type?:string,
-  url?:string,
-  config?:object,
-})=> {
-  let config = setting?.config || {
+export const uploadFnByMarkdown = (
+  data: any,
+  setting?: {
+    type?: string;
+    url?: string;
+    config?: object;
+  },
+) => {
+  const config = setting?.config || {
     errorMessageMode: '',
     isTransformResponse: false,
     successMessageMode: '',
@@ -362,17 +369,17 @@ export const uploadFnByMarkdown = (data:any, setting?: {
       'Content-Type': `multipart/form-data;boundary = ${Date.now()}`,
     },
   };
-    return requestClient.post(Api.upload+'-more', data,config);
-}
+  return requestClient.post(`${Api.upload}-more`, data, config);
+};
 /**
  * key 详情
  * @param data {
  *   mark : '标记'
  * }
  */
-export const updateDetail = (key:any) => {
-  let data = { fileOwner:[] };
-  if(typeof key === 'string') {
+export const updateDetail = (key: any) => {
+  const data = { fileOwner: [] };
+  if (typeof key === 'string') {
     data.fileOwner.push(key);
   } else {
     data.fileOwner.push(...key);

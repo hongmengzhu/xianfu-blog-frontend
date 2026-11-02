@@ -105,6 +105,9 @@ const [Grid, gridApi] = useVbenVxeGrid({
       refresh: false,
       zoom: false,
     },
+    pagerConfig: {
+      enabled: false,
+    },
     proxyConfig: {
       ajax: {
         query: async () => {
@@ -226,27 +229,34 @@ function refreshTable() {
 .grid2 .vxe-tools--wrapper {
   margin-right: 0.8em;
 }
+
 .goods,
 .goods dd {
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
 }
+
 .goods {
   display: flex;
 }
+
 .goods .image {
   margin-right: 10px;
 }
+
 dl.expandContent {
   display: flex;
 }
+
 dl.expandContent dd {
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
 }
+
 dl.expandContent dd.content {
   width: 100%;
 }
+
 dl.expandContent dd.title {
   flex: 0 0 60px;
   text-align: center;

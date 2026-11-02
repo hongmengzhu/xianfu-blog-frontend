@@ -16,7 +16,7 @@ const routes: RouteRecordRaw[] = [
       {
         meta: {
           icon: 'mdi:memory',
-          title: '接口外交官',
+          title: 'APP接口外交官',
         },
         name: 'api-dipl',
         path: '/lq2/api/dipl',
@@ -25,11 +25,20 @@ const routes: RouteRecordRaw[] = [
       {
         meta: {
           icon: 'mdi:layers-triple-outline',
-          title: '分类',
+          title: 'APP接口分类',
         },
         name: 'api-dipl-cat',
         path: '/lq2/api/dipl-cat',
         component: () => import('#/viewsApi/diplCategory/index.vue'),
+      },
+      {
+        meta: {
+          icon: 'mdi:memory',
+          title: '用户接口',
+        },
+        name: 'api-account',
+        path: '/lq2/api/account',
+        component: () => import('#/viewsApi/diplAccount/index.vue'),
       },
     ],
   },

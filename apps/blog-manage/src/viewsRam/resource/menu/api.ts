@@ -2,21 +2,24 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  create = '/xianfu/sys/iam/menu/create',
-  delete = '/xianfu/sys/iam/menu/delete',
-  detail = '/xianfu/sys/iam/menu/detail/',
-  disable = '/xianfu/sys/iam/menu/disable',
-  enable = '/xianfu/sys/iam/menu/enable',
-  existName = '/xianfu/sys/iam/menu/existName',
-  exportExcel = '/xianfu/sys/iam/menu/exportExcel',
-  list = '/xianfu/sys/iam/menu/query',
-  physicalDeletion = '/xianfu/sys/iam/menu/physicalDeletion',
-  recovery = '/xianfu/sys/iam/menu/recovery',
-  selectNodeAllPublic = '/xianfu/sys/iam/menu/selectNodeAllPublic',
-  selectNodePublic = '/xianfu/sys/iam/menu/selectNodePublic',
-  selectPublic = '/xianfu/sys/iam/menu/selectPublic',
-  state = '/xianfu/sys/iam/menu/state',
-  update = '/xianfu/sys/iam/menu/update',
+  create = '/xianfu/manage/ram/menu/create',
+  createUpdate = '/xianfu/manage/ram/menu/createUpdate',
+  delete = '/xianfu/manage/ram/menu/delete',
+  detail = '/xianfu/manage/ram/menu/detail/',
+  disable = '/xianfu/manage/ram/menu/disable',
+  enable = '/xianfu/manage/ram/menu/enable',
+  existName = '/xianfu/manage/ram/menu/existName',
+  exportExcel = '/xianfu/manage/ram/menu/exportExcel',
+  list = '/xianfu/manage/ram/menu/query',
+  queryAll = '/xianfu/manage/ram/menu/queryAll',
+  physicalDeletion = '/xianfu/manage/ram/menu/physicalDeletion',
+  recovery = '/xianfu/manage/ram/menu/recovery',
+  selectNodeAll = '/xianfu/manage/ram/menu/selectNodeAll',
+  selectNodeAllPublic = '/xianfu/manage/ram/menu/selectNodeAllPublic',
+  selectNodePublic = '/xianfu/manage/ram/menu/selectNodePublic',
+  selectPublic = '/xianfu/manage/ram/menu/selectPublic',
+  state = '/xianfu/manage/ram/menu/state',
+  update = '/xianfu/manage/ram/menu/update',
 }
 
 /**
@@ -27,29 +30,27 @@ enum Api {
 export async function List(data?: any) {
   return requestClient.post(Api.list, data);
 }
-
 /**
- * 公共列表展示
+ * 列表
+ * @constructor
  * @param data
  */
-export const selectPublic = (data?: any) => {
-  return requestClient.post(Api.selectPublic, data);
-};
-
-/**
- * 公共树展示
- * @param data
- */
-export const selectNodePublic = (data?: any) => {
-  return requestClient.post(Api.selectNodePublic, data);
-};
-
+export async function queryAll(data?: any) {
+  return requestClient.post(Api.queryAll, data);
+}
 /**
  * 公共树展示
  * @param data
  */
 export const selectNodeAllPublic = (data?: any) => {
   return requestClient.post(Api.selectNodeAllPublic, data);
+};
+/**
+ * 公共树展示
+ * @param data
+ */
+export const selectNodeAll = (data?: any) => {
+  return requestClient.post(Api.selectNodeAll, data);
 };
 /**
  * 详情
@@ -65,7 +66,7 @@ export const detail = (data?: any) => {
  * @param isUpdate
  */
 export const saveOrUpdate = (data: any, isUpdate: boolean) => {
-  return requestClient.post(isUpdate ? Api.update : Api.create, data, {
+  return requestClient.post(Api.createUpdate, data, {
     errorMessageMode: 'message',
     successMessageMode: 'notification',
   });
@@ -91,7 +92,7 @@ export const deleteIds = (params: any) => {
  * 批量选中-删除
  * @param params
  */
-export const batchSelectDelete = (params, handleSuccess) => {
+export const batchSelectDelete = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认删除',
     content: '是否删除选中数据',
@@ -118,7 +119,7 @@ export const batchSelectDelete = (params, handleSuccess) => {
  * 批量选中-启用
  * @param params
  */
-export const batchSelectEnable = (params, handleSuccess) => {
+export const batchSelectEnable = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置有效',
     content: '是否[批量有效]选中数据',
@@ -145,7 +146,7 @@ export const batchSelectEnable = (params, handleSuccess) => {
  * 批量选中-禁用
  * @param params
  */
-export const batchSelectDisable = (params, handleSuccess) => {
+export const batchSelectDisable = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置停用',
     content: '是否[批量停用]选中数据',
@@ -229,11 +230,10 @@ export const batchSelectPhysicalDeletion = (params, handleSuccess, dialog) => {
  */
 export const setStateEnableDisable = (id: number, status: number) =>
   requestClient.post(
-    Api.state,
+    status === 1 ? Api.enable : Api.disable,
     { ids: [id], state: status },
     { errorMessageMode: 'message', successMessageMode: 'message' },
   );
-
 /**
  * 导出excel url地址
  */
@@ -243,8 +243,7 @@ export const exportExcelUrl = Api.exportExcel;
  * 查询名称是否存在
  * @param params
  */
-export const existName = (wd, id?) => {
-  id = id || '0';
+export const existName = (wd, id = '0') => {
   return requestClient.post(
     Api.existName,
     { wd, id },

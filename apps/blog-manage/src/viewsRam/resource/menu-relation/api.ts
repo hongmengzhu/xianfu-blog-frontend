@@ -2,23 +2,23 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  create = '/xianfu/sys/iam/menu-relation/create',
-  delete = '/xianfu/sys/iam/menu-relation/delete',
-  detail = '/xianfu/sys/iam/menu-relation/detail/',
-  disable = '/xianfu/sys/iam/menu-relation/disable',
-  enable = '/xianfu/sys/iam/menu-relation/enable',
-  existName = '/xianfu/sys/iam/menu-relation/existName',
-  exportExcel = '/xianfu/sys/iam/menu-relation/exportExcel',
-  list = '/xianfu/sys/iam/menu-relation/query',
-  listByGroup = '/xianfu/sys/iam/menu-relation/queryByGroup',
-  physicalDeletion = '/xianfu/sys/iam/menu-relation/physicalDeletion',
-  recovery = '/xianfu/sys/iam/menu-relation/recovery',
-  selectNodeAllPublic = '/xianfu/sys/iam/menu-relation/selectNodeAllPublic',
-  selectNodePublic = '/xianfu/sys/iam/menu-relation/selectNodePublic',
-  selectPublic = '/xianfu/sys/iam/menu-relation/selectPublic',
-  state = '/xianfu/sys/iam/menu-relation/state',
-  update = '/xianfu/sys/iam/menu-relation/update',
-  updateByMenu = '/xianfu/sys/iam/menu-relation/updateByMenu',
+  create = '/xianfu/manage/ram/menu-relation/create',
+  delete = '/xianfu/manage/ram/menu-relation/delete',
+  detail = '/xianfu/manage/ram/menu-relation/detail/',
+  disable = '/xianfu/manage/ram/menu-relation/disable',
+  enable = '/xianfu/manage/ram/menu-relation/enable',
+  existName = '/xianfu/manage/ram/menu-relation/existName',
+  exportExcel = '/xianfu/manage/ram/menu-relation/exportExcel',
+  list = '/xianfu/manage/ram/menu-relation/query',
+  listByGroup = '/xianfu/manage/ram/menu-relation/queryByGroup',
+  physicalDeletion = '/xianfu/manage/ram/menu-relation/physicalDeletion',
+  recovery = '/xianfu/manage/ram/menu-relation/recovery',
+  selectNodeAllPublic = '/xianfu/manage/ram/menu-relation/selectNodeAllPublic',
+  selectNodePublic = '/xianfu/manage/ram/menu-relation/selectNodePublic',
+  selectPublic = '/xianfu/manage/ram/menu-relation/selectPublic',
+  state = '/xianfu/manage/ram/menu-relation/state',
+  update = '/xianfu/manage/ram/menu-relation/update',
+  updateByMenu = '/xianfu/manage/ram/menu-relation/updateByMenu',
 }
 
 /**
@@ -112,7 +112,7 @@ export const deleteIds = (params: any) => {
  * 批量选中-删除
  * @param params
  */
-export const batchSelectDelete = (params, handleSuccess) => {
+export const batchSelectDelete = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认删除',
     content: '是否删除选中数据',
@@ -139,7 +139,7 @@ export const batchSelectDelete = (params, handleSuccess) => {
  * 批量选中-启用
  * @param params
  */
-export const batchSelectEnable = (params, handleSuccess) => {
+export const batchSelectEnable = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置有效',
     content: '是否[批量有效]选中数据',
@@ -166,7 +166,7 @@ export const batchSelectEnable = (params, handleSuccess) => {
  * 批量选中-禁用
  * @param params
  */
-export const batchSelectDisable = (params, handleSuccess) => {
+export const batchSelectDisable = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置停用',
     content: '是否[批量停用]选中数据',
@@ -193,7 +193,7 @@ export const batchSelectDisable = (params, handleSuccess) => {
  * 批量选中-恢复
  * @param params
  */
-export const batchSelectRecovery = (params, handleSuccess) => {
+export const batchSelectRecovery = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置恢复',
     content: '是否[批量恢复]选中数据',
@@ -220,7 +220,10 @@ export const batchSelectRecovery = (params, handleSuccess) => {
  * 批量选中-物理删除
  * @param params
  */
-export const batchSelectPhysicalDeletion = (params, handleSuccess) => {
+export const batchSelectPhysicalDeletion = (
+  params: any,
+  handleSuccess: any,
+) => {
   dialog.warning({
     title: '确认物理删除',
     content: '是否[物理删除]选中数据，操作后数据不可恢复',
@@ -265,8 +268,7 @@ export const exportExcelUrl = Api.exportExcel;
  * @param wd
  * @param id
  */
-export const existName = (wd: string, id?: number | string) => {
-  id = id || '0';
+export const existName = (wd: string, id: number | string = '0') => {
   return requestClient.post(
     Api.existName,
     { wd, id },

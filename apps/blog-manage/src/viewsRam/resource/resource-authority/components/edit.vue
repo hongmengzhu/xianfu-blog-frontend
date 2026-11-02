@@ -7,7 +7,7 @@ import { VbenButton } from '@vben/common-ui';
 import { usePgForm, useVbenForm } from '#/adapter';
 
 import { existName, saveOrUpdate, selectNodeAllPublic } from '../api';
-const emit = defineEmits(['ok']);
+
 const [Form, formApi] = usePgForm({
   tabs: {
     active: 'home',
@@ -83,6 +83,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formApi.getValues();
               existName(values.name, values.id);
@@ -184,7 +185,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const { values, isUpdate, parent } = drawerApi.getData<Record<string, any>>();
+      const { values, isUpdate, parent } =
+        drawerApi.getData<Record<string, any>>();
       if (values) {
         if (parent) {
           values.parentId = parent.id;
@@ -203,21 +205,14 @@ const [Drawer, drawerApi] = useVbenDrawer({
  */
 function onSubmit(values: Record<string, any>) {
   try {
-    drawerApi.setState({ loading: true, confirmLoading: true });
+    console.log('values', values);
     const { isUpdate } = drawerApi.getData<Record<string, any>>();
-    saveOrUpdate(values, isUpdate)
-      .then((d) => {
-        setTimeout(() => {
-          emit('ok', values);
-          drawerApi.setState({ loading: false });
-          drawerApi.close();
-        }, 500);
-      })
-      .catch(() => {
-        drawerApi.setState({ loading: false, confirmLoading: false });
-      });
+    saveOrUpdate(values, isUpdate).then((d) => {
+      setTimeout(() => {
+        drawerApi.close();
+      }, 500);
+    });
   } catch (error) {
-    drawerApi.setState({ loading: false, confirmLoading: false });
     console.error(error);
   }
 }

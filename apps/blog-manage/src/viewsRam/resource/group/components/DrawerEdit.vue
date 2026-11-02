@@ -1,12 +1,15 @@
 <script lang="ts" setup>
 import { h } from 'vue';
 
-import { useVbenDrawer, VbenButton } from '@vben/common-ui';
+import { useVbenDrawer } from '@vben/common-ui';
 
-import { usePgForm } from '#/adapter';
+import { VbenButton } from '@vben/common-ui';
 
-import { existName, saveOrUpdate } from '../api';
+import { usePgForm, useVbenForm } from '#/adapter';
 
+import { existName, saveOrUpdate, selectCategory } from '../api';
+import { RamResourceType, RamResourceTypeAttr } from '@pg/types';
+import { typeCodePublic } from '#/viewsBasic/data-dict/dict/api';
 const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
   tabs: {
@@ -19,9 +22,52 @@ const [Form, formApi] = usePgForm({
   schema: [
     {
       tabGroup: 'home',
+      fieldName: 'terminalCode',
+      label: '终端类型',
+      component: 'ApiRadioGroup',
+      componentProps: {
+        api: typeCodePublic,
+        params: { typeCode: 'terminalCode' },
+        autoSelect: 'first',
+        optionType: 'button',
+        buttonStyle: 'solid',
+      },
+      rules: 'required',
+    },
+    {
+      tabGroup: 'home',
+      fieldName: 'parentNo',
+      label: '上级',
+      component: 'PgTreeSelect',
+      componentProps: {
+        // api: selectCategory,
+        // params: {typeAttr:'categoryLast'},
+        convertNode: true,
+        props: {
+          placeholder: '如果为空,则是一级',
+          filterable: true,
+        },
+      },
+      dependencies: {
+        show: (values) => values.terminalCode,
+        triggerFields: ['terminalCode'],
+        componentProps(values) {
+          return {
+            api: selectCategory,
+            params: {
+              typeAttr: 'categoryLast',
+              terminalCode: values.terminalCode,
+            },
+          };
+        },
+      },
+    },
+    {
+      tabGroup: 'home',
       fieldName: 'name',
       label: '名称',
       component: 'Input',
+      defaultValue: '',
       rules: 'required',
       componentProps: {
         placeholder: '请输入',
@@ -58,7 +104,8 @@ const [Form, formApi] = usePgForm({
     {
       tabGroup: 'home',
       fieldName: 'code',
-      label: '编码',
+      label: '码值',
+      defaultValue: '系统自动建立',
       component: 'Input',
       componentProps: {
         placeholder: '请输入',
@@ -78,6 +125,31 @@ const [Form, formApi] = usePgForm({
     },
     {
       tabGroup: 'home',
+      fieldName: 'typeSys',
+      label: '类型',
+      defaultValue: 'general',
+      component: 'PgRadioGroup',
+      componentProps: {
+        type: 'button',
+        options: RamResourceType,
+      },
+      rules: 'required',
+    },
+    // {
+    //   tabGroup: 'home',
+    //   fieldName: 'typeAttr',
+    //   label: '属性',
+    //   defaultValue: 'resource',
+    //   component: 'PgRadioGroup',
+    //   componentProps: {
+    //     placeholder: '请选择',
+    //     type: 'button',
+    //     options: RamResourceTypeAttr,
+    //   },
+    //   rules: 'required',
+    // },
+    {
+      tabGroup: 'home',
       fieldName: 'description',
       label: '描述',
       component: 'Textarea',
@@ -89,6 +161,7 @@ const [Form, formApi] = usePgForm({
     {
       fieldName: 'id',
       label: 'id',
+      defaultValue: '0',
       component: 'Input',
       componentProps: {},
       dependencies: {
@@ -113,15 +186,41 @@ const [Drawer, drawerApi] = useVbenDrawer({
         closeOnClickModal: false, // 点击遮罩关闭弹窗
         destroyOnClose: true, // 关闭时销毁
       });
-      const { values, isUpdate } = drawerApi.getData<Record<string, any>>();
-      if (values) {
-        formApi.setValues(values);
+      const { values, isUpdate, parent, copy, terminalCode } =
+        drawerApi.getData<Record<string, any>>();
+      if (values && Object.keys(values).length > 0) {
+        const data = {
+          ...values,
+        };
+        if (parent) {
+          data.parentNo = parent.no;
+        }
+        formApi.setValues(data);
+      } else if (copy && Object.keys(copy).length > 0) {
+        const data = {
+          ...copy,
+          id: '0',
+          code: '系统自动建立',
+        };
+        formApi.setValues(data);
+      } else if (parent && Object.keys(parent).length > 0) {
+        console.log('parent', parent);
+        const data = { parentNo: parent.no };
+        if (terminalCode) {
+          data['terminalCode'] = terminalCode;
+        }
+        formApi.setValues(data);
+      } else if (terminalCode) {
+        formApi.setValues({ terminalCode: terminalCode });
       }
 
-      drawerApi.setState({ title: `角色：${isUpdate ? '编辑' : '新增'}`, loading: false });
+      drawerApi.setState({
+        title: `分组：${isUpdate ? '编辑' : '新增'}`,
+        loading: false,
+      });
     }
   },
-  title: '角色：',
+  title: '：',
 });
 
 /**
@@ -137,17 +236,13 @@ async function onSubmit() {
   try {
     drawerApi.setState({ loading: true, confirmLoading: true });
     const { isUpdate } = drawerApi.getData<Record<string, any>>();
-    saveOrUpdate(values, isUpdate)
-      .then((d) => {
-        setTimeout(() => {
-          emit('ok', values);
-          drawerApi.setState({ loading: false });
-          drawerApi.close();
-        }, 500);
-      })
-      .catch(() => {
-        drawerApi.setState({ loading: false, confirmLoading: false });
-      });
+    saveOrUpdate(values, isUpdate).then((d) => {
+      setTimeout(() => {
+        emit('ok', values);
+        drawerApi.setState({ loading: false });
+        drawerApi.close();
+      }, 500);
+    });
   } catch (error) {
     console.error(error);
   } finally {

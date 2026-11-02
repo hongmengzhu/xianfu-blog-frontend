@@ -62,7 +62,7 @@ const [FormEdit, formInApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formInApi.getValues();
               existName(values.name, values.id);
@@ -100,7 +100,7 @@ const [FormEdit, formInApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formInApi.getValues();
               existCode(values.code, values.id);
@@ -237,6 +237,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
  */
 function onSubmit(values: Record<string, any>) {
   try {
+    drawerApi.lock();
     drawerApi.setState({ loading: true, confirmLoading: true });
     const { isUpdate } = drawerApi.getData<Record<string, any>>();
     const data = {
@@ -256,6 +257,7 @@ function onSubmit(values: Record<string, any>) {
   } catch (error) {
     console.error(error);
   } finally {
+    drawerApi.unlock();
     drawerApi.setState({ loading: false, confirmLoading: false });
   }
 }

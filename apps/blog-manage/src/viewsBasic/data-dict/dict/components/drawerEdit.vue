@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {h, ref} from 'vue';
+import { h, ref } from 'vue';
 
 import { useVbenDrawer, VbenButton } from '@vben/common-ui';
 
@@ -49,7 +49,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formApi.getValues();
               existName(values.name, values.id);
@@ -72,6 +72,7 @@ const [Form, formApi] = usePgForm({
       tabGroup: 'home',
       fieldName: 'code',
       label: '码值',
+      defaultValue: '系统自动建立',
       component: 'Input',
       componentProps: {
         placeholder: '请输入',
@@ -86,7 +87,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formApi.getValues();
               existCode(values.code, values.id);
@@ -170,7 +171,7 @@ async function onSubmit() {
   if (!valid) {
     return false;
   }
-  const values = await formApi.getValues<Omit<Record<string, any>,'id'>>();
+  const values = await formApi.getValues<Omit<Record<string, any>, 'id'>>();
   drawerApi.lock();
   try {
     drawerApi.setState({ loading: true, confirmLoading: true });
@@ -181,7 +182,7 @@ async function onSubmit() {
     if (isUpdate) {
       data.id = recordData.value.id;
     }
-    saveOrUpdate(data, isUpdate).then((d) => {
+    saveOrUpdate(data).then((d) => {
       setTimeout(() => {
         emit('ok', values);
         drawerApi.setState({ loading: false });

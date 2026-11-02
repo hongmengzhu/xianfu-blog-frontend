@@ -2,22 +2,22 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  create = '/xianfu/sys/basic/area/create',
-  delete = '/xianfu/sys/basic/area/delete',
-  detail = '/xianfu/sys/basic/area/detail/',
-  disable = '/xianfu/sys/basic/area/disable',
-  enable = '/xianfu/sys/basic/area/enable',
-  existName = '/xianfu/sys/basic/area/existName',
-  existCode = '/xianfu/sys/basic/area/existCode',
-  exportExcel = '/xianfu/sys/basic/area/exportExcel',
-  list = '/xianfu/sys/basic/area/query',
-  physicalDeletion = '/xianfu/sys/basic/area/physicalDeletion',
-  recovery = '/xianfu/sys/basic/area/recovery',
-  selectNodeAllPublic = '/xianfu/sys/basic/area/selectNodeAllPublic',
-  selectNodePublic = '/xianfu/sys/basic/area/selectNodePublic',
-  selectPublic = '/xianfu/sys/basic/area/selectPublic',
-  state = '/xianfu/sys/basic/area/state',
-  update = '/xianfu/sys/basic/area/update',
+  create = '/xianfu/manage/basic/area/create',
+  delete = '/xianfu/manage/basic/area/delete',
+  detail = '/xianfu/manage/basic/area/detail/',
+  disable = '/xianfu/manage/basic/area/disable',
+  enable = '/xianfu/manage/basic/area/enable',
+  existName = '/xianfu/manage/basic/area/existName',
+  existCode = '/xianfu/manage/basic/area/existCode',
+  exportExcel = '/xianfu/manage/basic/area/exportExcel',
+  list = '/xianfu/manage/basic/area/query',
+  physicalDeletion = '/xianfu/manage/basic/area/physicalDeletion',
+  recovery = '/xianfu/manage/basic/area/recovery',
+  selectNodeAllPublic = '/xianfu/manage/basic/area/selectNodeAllPublic',
+  selectNodePublic = '/xianfu/manage/basic/area/selectNodePublic',
+  selectPublic = '/xianfu/manage/basic/area/selectPublic',
+  state = '/xianfu/manage/basic/area/state',
+  update = '/xianfu/manage/basic/area/update',
 }
 
 /**
@@ -244,8 +244,7 @@ export const exportExcelUrl = Api.exportExcel;
  * 查询名称是否存在
  * @param params
  */
-export const existName = (wd, id?) => {
-  id = id || '0';
+export const existName = (wd, id = '0') => {
   return requestClient.post(
     Api.existName,
     { wd, id },
@@ -257,8 +256,7 @@ export const existName = (wd, id?) => {
  * 查询名称是否存在
  * @param params
  */
-export const existCode = (wd, id?) => {
-  id = id || '0';
+export const existCode = (wd, id = '0') => {
   return requestClient.post(
     Api.existCode,
     { wd, id },

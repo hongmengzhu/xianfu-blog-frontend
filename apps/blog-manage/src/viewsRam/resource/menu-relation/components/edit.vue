@@ -83,6 +83,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formApi.getValues();
               existName(values.name, values.id);
@@ -184,7 +185,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const { values, isUpdate, parent } = drawerApi.getData<Record<string, any>>();
+      const { values, isUpdate, parent } =
+        drawerApi.getData<Record<string, any>>();
       if (values) {
         if (parent) {
           values.parentId = parent.id;
@@ -203,7 +205,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
  */
 function onSubmit(values: Record<string, any>) {
   try {
-    console.log('values',values)
+    console.log('values', values);
     const { isUpdate } = drawerApi.getData<Record<string, any>>();
     saveOrUpdate(values, isUpdate).then((d) => {
       setTimeout(() => {

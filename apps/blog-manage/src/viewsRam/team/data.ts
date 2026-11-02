@@ -4,6 +4,7 @@ import type { VxeGridPropTypes } from 'vxe-table';
 import _XEUtils_ from 'xe-utils';
 
 import { confirmSwitch } from '#/adapter/vxe-table';
+
 import { setStateEnableDisable } from './api';
 
 /**
@@ -49,7 +50,11 @@ export const columns: VxeGridPropTypes.Columns = [
     cellRender: {
       name: 'CellSwitchPg',
       attrs: {
-        beforeChange: async (newStatus: number | string, record: any, $table: any) => {
+        beforeChange: async (
+          newStatus: number | string,
+          record: any,
+          $table: any,
+        ) => {
           try {
             await confirmSwitch(record.name, newStatus);
             await setStateEnableDisable(record.id, newStatus);

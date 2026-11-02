@@ -6,8 +6,14 @@ import { VbenButton } from '@vben/common-ui';
 
 import { usePgForm, useVbenForm } from '#/adapter';
 
-import { existName, saveOrUpdate, selectNodeAllPublic } from '../api';
-const emit = defineEmits(['ok',]);
+import {
+  existName,
+  createUpdateByCategory,
+  selectNodeAllPublic,
+  selectCategory,
+} from '../api';
+import { typeCodePublic } from '#/viewsBasic/data-dict/dict/api';
+const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
   tabs: {
     active: 'home',
@@ -19,22 +25,31 @@ const [Form, formApi] = usePgForm({
   schema: [
     {
       tabGroup: 'home',
-      fieldName: 'parentId',
+      fieldName: 'terminalCode',
+      label: '终端类型',
+      component: 'ApiRadioGroup',
+      componentProps: {
+        api: typeCodePublic,
+        params: { typeCode: 'terminalCode' },
+        autoSelect: 'first',
+        optionType: 'button',
+        buttonStyle: 'solid',
+      },
+      rules: 'required',
+    },
+    {
+      tabGroup: 'home',
+      fieldName: 'parentNo',
       label: '上级',
       defaultValue: '',
-      component: 'Input',
+      component: 'PgTreeSelect',
       componentProps: {
-        api: selectNodeAllPublic,
+        api: selectCategory,
         params: {},
         props: {
           placeholder: '如果为空,则是一级',
           filterable: true,
         },
-      },
-      dependencies: {
-        show: false,
-        // 随意一个字段改变时，都会触发
-        triggerFields: ['description'],
       },
     },
     {
@@ -98,6 +113,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formApi.getValues();
               existName(values.name, values.id);
@@ -191,6 +207,7 @@ const [Form, formApi] = usePgForm({
     {
       fieldName: 'id',
       label: 'id',
+      defaultValue: '0',
       component: 'Input',
       componentProps: {},
       dependencies: {
@@ -212,9 +229,15 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const { values, isUpdate } = modalApi.getData<Record<string, any>>();
+      const { values, isUpdate, parent } =
+        modalApi.getData<Record<string, any>>();
       if (values) {
-        formApi.setValues(values);
+        formApi.setValues({
+          ...values,
+        });
+      }
+      if (parent) {
+        formApi.setFieldValue('parentNo', parent.no);
       }
 
       modalApi.setState({ title: `分类：${isUpdate ? '编辑' : '新增'}` });
@@ -231,12 +254,12 @@ function onSubmit(values: Record<string, any>) {
     // console.log('values',values)
     const { isUpdate } = modalApi.getData<Record<string, any>>();
     values['typeSys'] = 'general';
-    values['typeAttr'] = 'menu';
+    values['typeAttr'] = 'categoryLast';
     values['typeCategory'] = 'group';
-    saveOrUpdate(values, isUpdate).then((d) => {
+    createUpdateByCategory(values).then((d) => {
       setTimeout(() => {
-        formApi.close();
-        emit('ok',values);
+        modalApi.close();
+        emit('ok', values);
       }, 500);
     });
   } catch (error) {

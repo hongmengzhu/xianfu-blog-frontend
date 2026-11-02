@@ -89,6 +89,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formApi.getValues();
               existName(values.name, values.id);
@@ -203,7 +204,8 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const { values, isUpdate, parent } = modalApi.getData<Record<string, any>>();
+      const { values, isUpdate, parent } =
+        modalApi.getData<Record<string, any>>();
       if (values) {
         formApi.setValues(values);
       }

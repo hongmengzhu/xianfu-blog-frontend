@@ -2,22 +2,23 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  create = '/xianfu/manage/iam/resource-group-relation/create',
-  delete = '/xianfu/manage/iam/resource-group-relation/delete',
-  detail = '/xianfu/manage/iam/resource-group-relation/detail/',
-  disable = '/xianfu/manage/iam/resource-group-relation/disable',
-  enable = '/xianfu/manage/iam/resource-group-relation/enable',
-  existName = '/xianfu/manage/iam/resource-group-relation/existName',
-  exportExcel = '/xianfu/manage/iam/resource-group-relation/exportExcel',
-  list = '/xianfu/manage/iam/resource-group-relation/query',
-  physicalDeletion = '/xianfu/manage/iam/resource-group-relation/physicalDeletion',
-  recovery = '/xianfu/manage/iam/resource-group-relation/recovery',
-  selectNodeAllPublic = '/xianfu/manage/iam/resource-group-relation/selectNodeAllPublic',
-  selectNodePublic = '/xianfu/manage/iam/resource-group-relation/selectNodePublic',
-  selectPublic = '/xianfu/manage/iam/resource-group-relation/selectPublic',
-  state = '/xianfu/manage/iam/resource-group-relation/state',
-  update = '/xianfu/manage/iam/resource-group-relation/update',
-  selectedByRole = '/xianfu/manage/iam/resource-group-relation/selectedByRole',
+  create = '/xianfu/manage/ram/resource-group-relation/create',
+  delete = '/xianfu/manage/ram/resource-group-relation/delete',
+  detail = '/xianfu/manage/ram/resource-group-relation/detail/',
+  disable = '/xianfu/manage/ram/resource-group-relation/disable',
+  enable = '/xianfu/manage/ram/resource-group-relation/enable',
+  existName = '/xianfu/manage/ram/resource-group-relation/existName',
+  exportExcel = '/xianfu/manage/ram/resource-group-relation/exportExcel',
+  list = '/xianfu/manage/ram/resource-group-relation/query',
+  physicalDeletion = '/xianfu/manage/ram/resource-group-relation/physicalDeletion',
+  recovery = '/xianfu/manage/ram/resource-group-relation/recovery',
+  selectNodeAllPublic = '/xianfu/manage/ram/resource-group-relation/selectNodeAllPublic',
+  selectNodePublic = '/xianfu/manage/ram/resource-group-relation/selectNodePublic',
+  selectPublic = '/xianfu/manage/ram/resource-group-relation/selectPublic',
+  state = '/xianfu/manage/ram/resource-group-relation/state',
+  update = '/xianfu/manage/ram/resource-group-relation/update',
+  updateByRole = '/xianfu/manage/ram/resource-group-relation/updateByRole',
+  selectedByRole = '/xianfu/manage/ram/resource-group-relation/selectedByRole',
 }
 
 /**
@@ -99,7 +100,7 @@ export const deleteIds = (params: any) => {
  * 批量选中-删除
  * @param params
  */
-export const batchSelectDelete = (params, handleSuccess) => {
+export const batchSelectDelete = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认删除',
     content: '是否删除选中数据',
@@ -126,7 +127,7 @@ export const batchSelectDelete = (params, handleSuccess) => {
  * 批量选中-启用
  * @param params
  */
-export const batchSelectEnable = (params, handleSuccess) => {
+export const batchSelectEnable = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置有效',
     content: '是否[批量有效]选中数据',
@@ -153,7 +154,7 @@ export const batchSelectEnable = (params, handleSuccess) => {
  * 批量选中-禁用
  * @param params
  */
-export const batchSelectDisable = (params, handleSuccess) => {
+export const batchSelectDisable = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置停用',
     content: '是否[批量停用]选中数据',
@@ -251,11 +252,20 @@ export const exportExcelUrl = Api.exportExcel;
  * 查询名称是否存在
  * @param params
  */
-export const existName = (wd, id?) => {
-  id = id || '0';
+export const existName = (wd, id = '0') => {
   return requestClient.post(
     Api.existName,
     { wd, id },
     { errorMessageMode: 'message', successMessageMode: 'notification' },
   );
+};
+/**
+ *
+ * @param data
+ */
+export const updateByRole = (data?: any) => {
+  return requestClient.post(Api.updateByRole, data, {
+    errorMessageMode: 'message',
+    successMessageMode: 'notification',
+  });
 };

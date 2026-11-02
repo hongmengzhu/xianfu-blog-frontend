@@ -86,14 +86,10 @@ export const saveOrUpdate = (data: any, isUpdate: boolean) => {
  * @param isUpdate
  */
 export const saveOrUpdateAccount = (data: any) => {
-  return requestClient.post(
-    Api.createUpdateSimple,
-    data,
-    {
-      errorMessageMode: 'message',
-      successMessageMode: 'notification',
-    },
-  );
+  return requestClient.post(Api.createUpdateSimple, data, {
+    errorMessageMode: 'message',
+    successMessageMode: 'notification',
+  });
 };
 
 /**
@@ -116,7 +112,7 @@ export const deleteIds = (params: any) => {
  * 批量选中-删除
  * @param params
  */
-export const batchSelectDelete = (params:any, handleSuccess:any) => {
+export const batchSelectDelete = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认删除',
     content: '是否删除选中数据',
@@ -143,7 +139,7 @@ export const batchSelectDelete = (params:any, handleSuccess:any) => {
  * 批量选中-启用
  * @param params
  */
-export const batchSelectEnable = (params:any, handleSuccess:any) => {
+export const batchSelectEnable = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置有效',
     content: '是否[批量有效]选中数据',
@@ -170,7 +166,7 @@ export const batchSelectEnable = (params:any, handleSuccess:any) => {
  * 批量选中-禁用
  * @param params
  */
-export const batchSelectDisable = (params:any, handleSuccess:any) => {
+export const batchSelectDisable = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置停用',
     content: '是否[批量停用]选中数据',
@@ -224,7 +220,7 @@ export const batchSelectRecovery = (params, handleSuccess, dialog) => {
  * 批量选中-物理删除
  * @param params
  */
-export const batchSelectPhysicalDeletion = (params, handleSuccess, dialog) => {
+export const batchSelectPhysicalDeletion = (params, handleSuccess) => {
   dialog.warning({
     title: '确认物理删除',
     content: '是否[物理删除]选中数据，操作后数据不可恢复',
@@ -254,7 +250,7 @@ export const batchSelectPhysicalDeletion = (params, handleSuccess, dialog) => {
  */
 export const setStateEnableDisable = (id: number, status: number) =>
   requestClient.post(
-    1 === status ? Api.enable : Api.disable,
+    status === 1 ? Api.enable : Api.disable,
     { ids: [id], state: status },
     { errorMessageMode: 'message', successMessageMode: 'message' },
   );
@@ -268,8 +264,7 @@ export const exportExcelUrl = Api.exportExcel;
  * @param wd
  * @param id
  */
-export const existName = (wd: string, id?: number | string) => {
-  id = id || '0';
+export const existName = (wd: string, id: number | string = '0') => {
   return requestClient.post(
     Api.existName,
     { wd, id },
@@ -281,8 +276,7 @@ export const existName = (wd: string, id?: number | string) => {
  * @param wd
  * @param id
  */
-export const existAccount = (wd: string, id?: number | string) => {
-  id = id || '0';
+export const existAccount = (wd: string, id: number | string = '0') => {
   return requestClient.post(
     Api.existAccount,
     { wd, id },
@@ -295,8 +289,7 @@ export const existAccount = (wd: string, id?: number | string) => {
  * @param wd
  * @param id
  */
-export const existPhone = (wd: string, id?: number | string) => {
-  id = id || '0';
+export const existPhone = (wd: string, id: number | string = '0') => {
   return requestClient.post(
     Api.existPhone,
     { wd, id },
@@ -308,8 +301,7 @@ export const existPhone = (wd: string, id?: number | string) => {
  * @param wd
  * @param id
  */
-export const existMail = (wd: string, id?: number | string) => {
-  id = id || '0';
+export const existMail = (wd: string, id: number | string = '0') => {
   return requestClient.post(
     Api.existMail,
     { wd, id },
@@ -321,8 +313,7 @@ export const existMail = (wd: string, id?: number | string) => {
  * @param wd
  * @param id
  */
-export const existCode = (wd: string, id?: number | string) => {
-  id = id || '0';
+export const existCode = (wd: string, id: number | string = '0') => {
   return requestClient.post(
     Api.existCode,
     { wd, id },

@@ -2,23 +2,23 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  create = '/xianfu/sys/basic/explain/create',
-  delete = '/xianfu/sys/basic/explain/delete',
-  detail = '/xianfu/sys/basic/explain/detail/',
-  disable = '/xianfu/sys/basic/explain/disable',
-  enable = '/xianfu/sys/basic/explain/enable',
-  existName = '/xianfu/sys/basic/explain/existName',
-  exportExcel = '/xianfu/sys/basic/explain/exportExcel',
-  list = '/xianfu/sys/basic/explain/query',
-  listByGroup = '/xianfu/sys/basic/explain/queryByGroup',
-  physicalDeletion = '/xianfu/sys/basic/explain/physicalDeletion',
-  recovery = '/xianfu/sys/basic/explain/recovery',
-  selectNodeAllPublic = '/xianfu/sys/basic/explain/selectNodeAllPublic',
-  selectNodePublic = '/xianfu/sys/basic/explain/selectNodePublic',
-  selectPublic = '/xianfu/sys/basic/explain/selectPublic',
-  state = '/xianfu/sys/basic/explain/state',
-  update = '/xianfu/sys/basic/explain/update',
-  updateByMenu = '/xianfu/sys/basic/explain/updateByMenu',
+  create = '/xianfu/manage/basic/explain/create',
+  delete = '/xianfu/manage/basic/explain/delete',
+  detail = '/xianfu/manage/basic/explain/detail/',
+  disable = '/xianfu/manage/basic/explain/disable',
+  enable = '/xianfu/manage/basic/explain/enable',
+  existName = '/xianfu/manage/basic/explain/existName',
+  exportExcel = '/xianfu/manage/basic/explain/exportExcel',
+  list = '/xianfu/manage/basic/explain/query',
+  listByGroup = '/xianfu/manage/basic/explain/queryByGroup',
+  physicalDeletion = '/xianfu/manage/basic/explain/physicalDeletion',
+  recovery = '/xianfu/manage/basic/explain/recovery',
+  selectNodeAllPublic = '/xianfu/manage/basic/explain/selectNodeAllPublic',
+  selectNodePublic = '/xianfu/manage/basic/explain/selectNodePublic',
+  selectPublic = '/xianfu/manage/basic/explain/selectPublic',
+  state = '/xianfu/manage/basic/explain/state',
+  update = '/xianfu/manage/basic/explain/update',
+  updateByMenu = '/xianfu/manage/basic/explain/updateByMenu',
 }
 
 /**
@@ -265,8 +265,7 @@ export const exportExcelUrl = Api.exportExcel;
  * @param wd
  * @param id
  */
-export const existName = (wd: string, id?: number | string) => {
-  id = id || '0';
+export const existName = (wd: string, id: number | string = '0') => {
   return requestClient.post(
     Api.existName,
     { wd, id },

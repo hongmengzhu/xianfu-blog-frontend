@@ -2,21 +2,21 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  create = '/xianfu/sys/basic/data-snapshot/create',
-  delete = '/xianfu/sys/basic/data-snapshot/delete',
-  detail = '/xianfu/sys/basic/data-snapshot/detail/',
-  disable = '/xianfu/sys/basic/data-snapshot/disable',
-  enable = '/xianfu/sys/basic/data-snapshot/enable',
-  existName = '/xianfu/sys/basic/data-snapshot/existName',
-  exportExcel = '/xianfu/sys/basic/data-snapshot/exportExcel',
-  list = '/xianfu/sys/basic/data-snapshot/query',
-  physicalDeletion = '/xianfu/sys/basic/data-snapshot/physicalDeletion',
-  recovery = '/xianfu/sys/basic/data-snapshot/recovery',
-  selectNodeAllPublic = '/xianfu/sys/basic/data-snapshot/selectNodeAllPublic',
-  selectNodePublic = '/xianfu/sys/basic/data-snapshot/selectNodePublic',
-  selectPublic = '/xianfu/sys/basic/data-snapshot/selectPublic',
-  state = '/xianfu/sys/basic/data-snapshot/state',
-  update = '/xianfu/sys/basic/data-snapshot/update',
+  create = '/xianfu/manage/basic/data-snapshot/create',
+  delete = '/xianfu/manage/basic/data-snapshot/delete',
+  detail = '/xianfu/manage/basic/data-snapshot/detail/',
+  disable = '/xianfu/manage/basic/data-snapshot/disable',
+  enable = '/xianfu/manage/basic/data-snapshot/enable',
+  existName = '/xianfu/manage/basic/data-snapshot/existName',
+  exportExcel = '/xianfu/manage/basic/data-snapshot/exportExcel',
+  list = '/xianfu/manage/basic/data-snapshot/query',
+  physicalDeletion = '/xianfu/manage/basic/data-snapshot/physicalDeletion',
+  recovery = '/xianfu/manage/basic/data-snapshot/recovery',
+  selectNodeAllPublic = '/xianfu/manage/basic/data-snapshot/selectNodeAllPublic',
+  selectNodePublic = '/xianfu/manage/basic/data-snapshot/selectNodePublic',
+  selectPublic = '/xianfu/manage/basic/data-snapshot/selectPublic',
+  state = '/xianfu/manage/basic/data-snapshot/state',
+  update = '/xianfu/manage/basic/data-snapshot/update',
 }
 
 /**
@@ -243,8 +243,7 @@ export const exportExcelUrl = Api.exportExcel;
  * 查询名称是否存在
  * @param params
  */
-export const existName = (wd, id?) => {
-  id = id || '0';
+export const existName = (wd, id = '0') => {
   return requestClient.post(
     Api.existName,
     { wd, id },

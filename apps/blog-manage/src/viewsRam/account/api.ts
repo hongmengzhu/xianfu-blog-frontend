@@ -2,27 +2,30 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  create = '/xianfu/manage/iam/account/create',
-  createAccount = '/xianfu/manage/iam/account/createAccount',
-  delete = '/xianfu/manage/iam/account/delete',
-  detail = '/xianfu/manage/iam/account/detail/',
-  disable = '/xianfu/manage/iam/account/disable',
-  enable = '/xianfu/manage/iam/account/enable',
-  existAccount = '/xianfu/manage/iam/account/existAccount',
-  existMail = '/xianfu/manage/iam/account/existMail',
-  existName = '/xianfu/manage/iam/account/existName',
-  existPhone = '/xianfu/manage/iam/account/existPhone',
-  exportExcel = '/xianfu/manage/iam/account/exportExcel',
-  list = '/xianfu/manage/iam/account/query',
-  physicalDeletion = '/xianfu/manage/iam/account/physicalDeletion',
-  recovery = '/xianfu/manage/iam/account/recovery',
-  selectNodeAllPublic = '/xianfu/manage/iam/account/selectNodeAllPublic',
-  selectNodePublic = '/xianfu/manage/iam/account/selectNodePublic',
-  selectPublic = '/xianfu/manage/iam/account/selectPublic',
-  state = '/xianfu/manage/iam/account/state',
-  update = '/xianfu/manage/iam/account/update',
-  updateAccount = '/xianfu/manage/iam/account/updateAccount',
-  updatePassword = '/xianfu/manage/iam/account/updatePassword',
+  create = '/xianfu/manage/ram/account/create',
+  createUpdate = '/xianfu/manage/ram/account/createUpdate',
+  createAccount = '/xianfu/manage/ram/account/createAccount',
+  createUpdateSimple = '/xianfu/manage/ram/account/createUpdateSimple',
+  delete = '/xianfu/manage/ram/account/delete',
+  detail = '/xianfu/manage/ram/account/detail/',
+  disable = '/xianfu/manage/ram/account/disable',
+  enable = '/xianfu/manage/ram/account/enable',
+  existAccount = '/xianfu/manage/ram/account/existAccount',
+  existMail = '/xianfu/manage/ram/account/existMail',
+  existName = '/xianfu/manage/ram/account/existName',
+  existPhone = '/xianfu/manage/ram/account/existPhone',
+  existCode = '/xianfu/manage/ram/account/existCode',
+  exportExcel = '/xianfu/manage/ram/account/exportExcel',
+  list = '/xianfu/manage/ram/account/query',
+  physicalDeletion = '/xianfu/manage/ram/account/physicalDeletion',
+  recovery = '/xianfu/manage/ram/account/recovery',
+  selectNodeAllPublic = '/xianfu/manage/ram/account/selectNodeAllPublic',
+  selectNodePublic = '/xianfu/manage/ram/account/selectNodePublic',
+  selectPublic = '/xianfu/manage/ram/account/selectPublic',
+  state = '/xianfu/manage/ram/account/state',
+  update = '/xianfu/manage/ram/account/update',
+  updateAccount = '/xianfu/manage/ram/account/updateAccount',
+  updatePassword = '/xianfu/manage/ram/account/updatePassword',
 }
 
 /**
@@ -71,7 +74,7 @@ export const detail = (data?: any) => {
  * @param isUpdate
  */
 export const saveOrUpdate = (data: any, isUpdate: boolean) => {
-  return requestClient.post(isUpdate ? Api.update : Api.create, data, {
+  return requestClient.post(Api.createUpdate, data, {
     errorMessageMode: 'message',
     successMessageMode: 'notification',
   });
@@ -82,15 +85,11 @@ export const saveOrUpdate = (data: any, isUpdate: boolean) => {
  * @param data
  * @param isUpdate
  */
-export const saveOrUpdateAccount = (data: any, isUpdate: boolean) => {
-  return requestClient.post(
-    isUpdate ? Api.updateAccount : Api.createAccount,
-    data,
-    {
-      errorMessageMode: 'message',
-      successMessageMode: 'notification',
-    },
-  );
+export const saveOrUpdateAccount = (data: any) => {
+  return requestClient.post(Api.createUpdateSimple, data, {
+    errorMessageMode: 'message',
+    successMessageMode: 'notification',
+  });
 };
 
 /**
@@ -113,7 +112,7 @@ export const deleteIds = (params: any) => {
  * 批量选中-删除
  * @param params
  */
-export const batchSelectDelete = (params, handleSuccess) => {
+export const batchSelectDelete = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认删除',
     content: '是否删除选中数据',
@@ -140,7 +139,7 @@ export const batchSelectDelete = (params, handleSuccess) => {
  * 批量选中-启用
  * @param params
  */
-export const batchSelectEnable = (params, handleSuccess) => {
+export const batchSelectEnable = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置有效',
     content: '是否[批量有效]选中数据',
@@ -167,7 +166,7 @@ export const batchSelectEnable = (params, handleSuccess) => {
  * 批量选中-禁用
  * @param params
  */
-export const batchSelectDisable = (params, handleSuccess) => {
+export const batchSelectDisable = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置停用',
     content: '是否[批量停用]选中数据',
@@ -194,7 +193,7 @@ export const batchSelectDisable = (params, handleSuccess) => {
  * 批量选中-恢复
  * @param params
  */
-export const batchSelectRecovery = (params, handleSuccess) => {
+export const batchSelectRecovery = (params, handleSuccess, dialog) => {
   dialog.warning({
     title: '确认设置恢复',
     content: '是否[批量恢复]选中数据',
@@ -251,7 +250,7 @@ export const batchSelectPhysicalDeletion = (params, handleSuccess) => {
  */
 export const setStateEnableDisable = (id: number, status: number) =>
   requestClient.post(
-    Api.state,
+    status === 1 ? Api.enable : Api.disable,
     { ids: [id], state: status },
     { errorMessageMode: 'message', successMessageMode: 'message' },
   );
@@ -266,8 +265,7 @@ export const exportExcelUrl = Api.exportExcel;
  * @param wd
  * @param id
  */
-export const existName = (wd: string, id?: number | string) => {
-  id = id || '0';
+export const existName = (wd: string, id: number | string = '0') => {
   return requestClient.post(
     Api.existName,
     { wd, id },
@@ -279,8 +277,7 @@ export const existName = (wd: string, id?: number | string) => {
  * @param wd
  * @param id
  */
-export const existAccount = (wd: string, id?: number | string) => {
-  id = id || '0';
+export const existAccount = (wd: string, id: number | string = '0') => {
   return requestClient.post(
     Api.existAccount,
     { wd, id },
@@ -293,8 +290,7 @@ export const existAccount = (wd: string, id?: number | string) => {
  * @param wd
  * @param id
  */
-export const existPhone = (wd: string, id?: number | string) => {
-  id = id || '0';
+export const existPhone = (wd: string, id: number | string = '0') => {
   return requestClient.post(
     Api.existPhone,
     { wd, id },
@@ -306,10 +302,21 @@ export const existPhone = (wd: string, id?: number | string) => {
  * @param wd
  * @param id
  */
-export const existMail = (wd: string, id?: number | string) => {
-  id = id || '0';
+export const existMail = (wd: string, id: number | string = '0') => {
   return requestClient.post(
     Api.existMail,
+    { wd, id },
+    { errorMessageMode: 'message', successMessageMode: 'notification' },
+  );
+};
+/**
+ * 查询名称是否存在
+ * @param wd
+ * @param id
+ */
+export const existCode = (wd: string, id: number | string = '0') => {
+  return requestClient.post(
+    Api.existCode,
     { wd, id },
     { errorMessageMode: 'message', successMessageMode: 'notification' },
   );

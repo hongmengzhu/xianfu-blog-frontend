@@ -19,7 +19,6 @@ import {
   batchSelectPhysicalDeletion,
   batchSelectRecovery,
   cacheOverride,
-  deleteIds,
   deleteIds as categoryDeleteIds,
   List,
 } from './api';
@@ -29,7 +28,7 @@ import { columns, useGridFormSchema } from './data';
 
 const currenRecord = ref(false);
 const currenData = ref<Recordable<any>>({});
-const reloadTreeState = ref(false);
+const reloadTreeState = ref(0);
 const reloadTreeComputed = computed(() => reloadTreeState.value);
 const formParam = reactive({ categoryNo: '' });
 
@@ -49,7 +48,7 @@ const treeChang = (record) => {
  * 重新加载
  */
 function reloadTree() {
-  reloadTreeState.value = true;
+  reloadTreeState.value++;
 }
 /**
  * 树重载
@@ -160,7 +159,6 @@ const [Grid, gridApi] = useVbenVxeGrid({
       zoom: true,
     },
     checkboxConfig: {
-      labelField: 'id',
       reserve: true,
       highlight: true,
       range: true,
@@ -423,92 +421,91 @@ const rightClickMenuOptions = ({ option }) => {
 
 <template>
   <Page auto-content-height content-class="p-2">
-    <NLayout class="h-full" has-sider>
-      <NLayoutSider class="min-w-[160px]" width="160">
+    <Drawer @ok="onRefresh" />
+    <DrawerAccessKey />
+    <Modal @ok="reloadTree" />
+    <div class="flex size-full">
+      <n-card
+        class="min-w-[160px]"
+        style="width: unset"
+        content-style="padding-left:10px;padding-right:10px;padding-top:10px;"
+      >
         <PgTree
           :api="selectPublicCategory"
           :is-node-all="true"
-          :menu-dropdown-options="menuDropdownOptions"
           :reload="reloadTreeComputed"
-          :right-click-menu="true"
-          :right-click-menu-options="rightClickMenuOptions"
           @ok="treeChang"
           @overload="treeOverload"
         />
-      </NLayoutSider>
-      <NLayout class="w-[calc(100%-160px)]">
-        <NLayoutContent>
-          <Drawer @ok="onRefresh" />
-          <DrawerAccessKey />
-          <Modal @ok="reloadTree" />
-          <Grid>
-            <template #toolbar-actions>
-              <VbenButton
-                type="primary"
-                class="pg-button-size-small"
-                @click="onCreate"
-              >
-                <Plus class="size-5" />
-                新增
-              </VbenButton>
-            </template>
-            <template #toolbar-tools>
-              <VbenButton
-                class="ml-2 pg-button-size-small"
-                size="sm"
-                @click="onBatchEnable"
-              >
-                批量有效
-              </VbenButton>
-              <VbenButton
-                class="ml-2 pg-button-size-small"
-                size="sm"
-                @click="onBatchDisable"
-              >
-                批量停用
-              </VbenButton>
-              <VbenButton
-                class="ml-2 pg-button-size-small"
-                size="sm"
-                @click="onCacheOverride"
-              >
-                缓存更新
-              </VbenButton>
-              <!-- <VbenButton
-                class="ml-2 pg-button-size-small"
-                size="sm"
-                @click="onRecovery"
-              >
-                删除恢复
-              </VbenButton> -->
-              <VbenButton
-                class="ml-2 pg-button-size-small"
-                danger
-                @click="onBatchPhysicalDeletion"
-              >
-                物理删除
-              </VbenButton>
-            </template>
-            <template #operate="{ row }">
-              <VbenTableAction
-                :actions="[
-                  {
-                    tooltip: { content: '编辑' },
-                    icon: 'lucide:edit',
-                    onClick: () => onEdit(row),
-                  },
-                  {
-                    text: '密钥',
-                    onClick: () => onAccessKey(row),
-                  },
-                ]"
-                align="center"
-              />
-            </template>
-          </Grid>
-        </NLayoutContent>
-      </NLayout>
-    </NLayout>
+      </n-card>
+      <div class="w-[calc(100%-160px)] ml-2 pl-2 bg-card rounded-md">
+        <Grid>
+          <template #toolbar-actions>
+            <VbenButton
+              type="primary"
+              class="pg-button-size-small"
+              @click="onCreate"
+            >
+              <Plus class="size-5" />
+              新增
+            </VbenButton>
+          </template>
+          <template #toolbar-tools>
+            <VbenButton
+              class="ml-2 pg-button-size-small"
+              size="sm"
+              @click="onBatchEnable"
+            >
+              批量有效
+            </VbenButton>
+            <VbenButton
+              class="ml-2 pg-button-size-small"
+              size="sm"
+              @click="onBatchDisable"
+            >
+              批量停用
+            </VbenButton>
+            <VbenButton
+              class="ml-2 pg-button-size-small"
+              size="sm"
+              @click="onCacheOverride"
+            >
+              缓存更新
+            </VbenButton>
+            <!-- <VbenButton
+              class="ml-2 pg-button-size-small"
+              size="sm"
+              @click="onRecovery"
+            >
+              删除恢复
+            </VbenButton> -->
+            <VbenButton
+              class="ml-2 pg-button-size-small"
+              danger
+              @click="onBatchPhysicalDeletion"
+            >
+              删除
+            </VbenButton>
+          </template>
+          <template #operate="{ row }">
+            <VbenTableAction
+              :actions="[
+                {
+                  tooltip: { content: '编辑' },
+                  icon: 'lucide:edit',
+                  onClick: () => onEdit(row),
+                },
+                {
+                  text: '密钥',
+                  onClick: () => onAccessKey(row),
+                },
+              ]"
+              align="center"
+            />
+          </template>
+        </Grid>
+      </div>
+    </div>
   </Page>
 </template>
 

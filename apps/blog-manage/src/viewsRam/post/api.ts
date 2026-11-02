@@ -2,21 +2,22 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  create = '/xianfu/manage/iam/post/create',
-  delete = '/xianfu/manage/iam/post/delete',
-  detail = '/xianfu/manage/iam/post/detail/',
-  disable = '/xianfu/manage/iam/post/disable',
-  enable = '/xianfu/manage/iam/post/enable',
-  existName = '/xianfu/manage/iam/post/existName',
-  exportExcel = '/xianfu/manage/iam/post/exportExcel',
-  list = '/xianfu/manage/iam/post/query',
-  physicalDeletion = '/xianfu/manage/iam/post/physicalDeletion',
-  recovery = '/xianfu/manage/iam/post/recovery',
-  selectNodeAllPublic = '/xianfu/manage/iam/post/selectNodeAllPublic',
-  selectNodePublic = '/xianfu/manage/iam/post/selectNodePublic',
-  selectPublic = '/xianfu/manage/iam/post/selectPublic',
-  state = '/xianfu/manage/iam/post/state',
-  update = '/xianfu/manage/iam/post/update',
+  create = '/xianfu/manage/ram/post/create',
+  createUpdate = '/xianfu/manage/ram/post/createUpdate',
+  delete = '/xianfu/manage/ram/post/delete',
+  detail = '/xianfu/manage/ram/post/detail/',
+  disable = '/xianfu/manage/ram/post/disable',
+  enable = '/xianfu/manage/ram/post/enable',
+  existName = '/xianfu/manage/ram/post/existName',
+  exportExcel = '/xianfu/manage/ram/post/exportExcel',
+  list = '/xianfu/manage/ram/post/query',
+  physicalDeletion = '/xianfu/manage/ram/post/physicalDeletion',
+  recovery = '/xianfu/manage/ram/post/recovery',
+  selectNodeAllPublic = '/xianfu/manage/ram/post/selectNodeAllPublic',
+  selectNodePublic = '/xianfu/manage/ram/post/selectNodePublic',
+  selectPublic = '/xianfu/manage/ram/post/selectPublic',
+  state = '/xianfu/manage/ram/post/state',
+  update = '/xianfu/manage/ram/post/update',
 }
 
 /**
@@ -65,7 +66,7 @@ export const detail = (data?: any) => {
  * @param isUpdate
  */
 export const saveOrUpdate = (data: any, isUpdate: boolean) => {
-  return requestClient.post(isUpdate ? Api.update : Api.create, data, {
+  return requestClient.post(Api.createUpdate, data, {
     errorMessageMode: 'message',
     successMessageMode: 'notification',
   });
@@ -91,7 +92,7 @@ export const deleteIds = (params: any) => {
  * 批量选中-删除
  * @param params
  */
-export const batchSelectDelete = (params, handleSuccess) => {
+export const batchSelectDelete = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认删除',
     content: '是否删除选中数据',
@@ -118,7 +119,7 @@ export const batchSelectDelete = (params, handleSuccess) => {
  * 批量选中-启用
  * @param params
  */
-export const batchSelectEnable = (params, handleSuccess) => {
+export const batchSelectEnable = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置有效',
     content: '是否[批量有效]选中数据',
@@ -145,7 +146,7 @@ export const batchSelectEnable = (params, handleSuccess) => {
  * 批量选中-禁用
  * @param params
  */
-export const batchSelectDisable = (params, handleSuccess) => {
+export const batchSelectDisable = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置停用',
     content: '是否[批量停用]选中数据',
@@ -229,11 +230,10 @@ export const batchSelectPhysicalDeletion = (params, handleSuccess, dialog) => {
  */
 export const setStateEnableDisable = (id: number, status: number) =>
   requestClient.post(
-    Api.state,
+    status === 1 ? Api.enable : Api.disable,
     { ids: [id], state: status },
     { errorMessageMode: 'message', successMessageMode: 'message' },
   );
-
 /**
  * 导出excel url地址
  */
@@ -243,8 +243,7 @@ export const exportExcelUrl = Api.exportExcel;
  * 查询名称是否存在
  * @param params
  */
-export const existName = (wd, id?) => {
-  id = id || '0';
+export const existName = (wd, id = '0') => {
   return requestClient.post(
     Api.existName,
     { wd, id },

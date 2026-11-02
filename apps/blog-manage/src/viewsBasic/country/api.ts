@@ -2,21 +2,24 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  create = '/xianfu/sys/basic/country/create',
-  delete = '/xianfu/sys/basic/country/delete',
-  detail = '/xianfu/sys/basic/country/detail/',
-  disable = '/xianfu/sys/basic/country/disable',
-  enable = '/xianfu/sys/basic/country/enable',
-  existName = '/xianfu/sys/basic/country/existName',
-  exportExcel = '/xianfu/sys/basic/country/exportExcel',
-  list = '/xianfu/sys/basic/country/query',
-  physicalDeletion = '/xianfu/sys/basic/country/physicalDeletion',
-  recovery = '/xianfu/sys/basic/country/recovery',
-  selectNodeAllPublic = '/xianfu/sys/basic/country/selectNodeAllPublic',
-  selectNodePublic = '/xianfu/sys/basic/country/selectNodePublic',
-  selectPublic = '/xianfu/sys/basic/country/selectPublic',
-  state = '/xianfu/sys/basic/country/state',
-  update = '/xianfu/sys/basic/country/update',
+  create = '/xianfu/manage/basic/country/create',
+  createUpdate = '/xianfu/manage/basic/country/createUpdate',
+  delete = '/xianfu/manage/basic/country/delete',
+  detail = '/xianfu/manage/basic/country/detail/',
+  disable = '/xianfu/manage/basic/country/disable',
+  enable = '/xianfu/manage/basic/country/enable',
+  existName = '/xianfu/manage/basic/country/existName',
+  exportExcel = '/xianfu/manage/basic/country/exportExcel',
+  list = '/xianfu/manage/basic/country/query',
+  physicalDeletion = '/xianfu/manage/basic/country/physicalDeletion',
+  recovery = '/xianfu/manage/basic/country/recovery',
+  selectNodeAllPublic = '/xianfu/manage/basic/country/selectNodeAllPublic',
+  selectNodePublic = '/xianfu/manage/basic/country/selectNodePublic',
+  selectPublic = '/xianfu/manage/basic/country/selectPublic',
+  state = '/xianfu/manage/basic/country/state',
+  update = '/xianfu/manage/basic/country/update',
+  selectPublicCountryCode = '/xianfu/manage/basic/country/selectPublicCountryCode',
+  selectNodePublicCountryCode = '/xianfu/manage/basic/country/selectNodePublicCountryCode',
 }
 
 /**
@@ -65,7 +68,7 @@ export const detail = (data?: any) => {
  * @param isUpdate
  */
 export const saveOrUpdate = (data: any, isUpdate: boolean) => {
-  return requestClient.post(isUpdate ? Api.update : Api.create, data, {
+  return requestClient.post(Api.createUpdate, data, {
     errorMessageMode: 'message',
     successMessageMode: 'notification',
   });
@@ -91,7 +94,7 @@ export const deleteIds = (params: any) => {
  * 批量选中-删除
  * @param params
  */
-export const batchSelectDelete = (params, handleSuccess) => {
+export const batchSelectDelete = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认删除',
     content: '是否删除选中数据',
@@ -118,7 +121,7 @@ export const batchSelectDelete = (params, handleSuccess) => {
  * 批量选中-启用
  * @param params
  */
-export const batchSelectEnable = (params, handleSuccess) => {
+export const batchSelectEnable = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置有效',
     content: '是否[批量有效]选中数据',
@@ -145,7 +148,7 @@ export const batchSelectEnable = (params, handleSuccess) => {
  * 批量选中-禁用
  * @param params
  */
-export const batchSelectDisable = (params, handleSuccess) => {
+export const batchSelectDisable = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置停用',
     content: '是否[批量停用]选中数据',
@@ -172,7 +175,7 @@ export const batchSelectDisable = (params, handleSuccess) => {
  * 批量选中-恢复
  * @param params
  */
-export const batchSelectRecovery = (params, handleSuccess) => {
+export const batchSelectRecovery = (params: any, handleSuccess: any) => {
   dialog.warning({
     title: '确认设置恢复',
     content: '是否[批量恢复]选中数据',
@@ -199,7 +202,10 @@ export const batchSelectRecovery = (params, handleSuccess) => {
  * 批量选中-物理删除
  * @param params
  */
-export const batchSelectPhysicalDeletion = (params, handleSuccess) => {
+export const batchSelectPhysicalDeletion = (
+  params: any,
+  handleSuccess: any,
+) => {
   dialog.warning({
     title: '确认物理删除',
     content: '是否[物理删除]选中数据，操作后数据不可恢复',
@@ -229,7 +235,7 @@ export const batchSelectPhysicalDeletion = (params, handleSuccess) => {
  */
 export const setStateEnableDisable = (id: number, status: number) =>
   requestClient.post(
-    Api.state,
+    status === 1 ? Api.enable : Api.disable,
     { ids: [id], state: status },
     { errorMessageMode: 'message', successMessageMode: 'message' },
   );
@@ -243,11 +249,25 @@ export const exportExcelUrl = Api.exportExcel;
  * 查询名称是否存在
  * @param params
  */
-export const existName = (wd, id?) => {
-  id = id || '0';
+export const existName = (wd, id = '0') => {
   return requestClient.post(
     Api.existName,
     { wd, id },
     { errorMessageMode: 'message', successMessageMode: 'notification' },
   );
+};
+/**
+ * 公共树展示
+ * @param data
+ */
+export const selectPublicCountryCode = (data?: any) => {
+  return requestClient.post(Api.selectPublicCountryCode, data);
+};
+
+/**
+ * 公共树展示
+ * @param data
+ */
+export const selectNodePublicCountryCode = (data?: any) => {
+  return requestClient.post(Api.selectNodePublicCountryCode, data);
 };

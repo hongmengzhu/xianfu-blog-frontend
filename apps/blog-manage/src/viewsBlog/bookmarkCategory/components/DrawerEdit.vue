@@ -3,17 +3,10 @@ import { h } from 'vue';
 
 import { useVbenDrawer, VbenButton } from '@vben/common-ui';
 
-import {
-  basicOptionsType,
-  HttpMethod,
-  RamResourceType,
-  RamResourceTypeAttr,
-} from '@pg/types';
-
 import { usePgForm } from '#/adapter';
 
-import { existName, saveOrUpdate, selectNodeAllPublic } from '../api';
-import { selectNodeAllPublic as selectNodeAllPublicCategory } from '#/viewsApi/diplCategory/api';
+import { existName, saveOrUpdate, selectNodeAll } from '../api';
+
 const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
   tabs: {
@@ -26,36 +19,26 @@ const [Form, formApi] = usePgForm({
   schema: [
     {
       tabGroup: 'home',
-      fieldName: 'categoryNo',
-      label: '分类',
+      fieldName: 'parentNo',
+      label: '上级',
       component: 'PgTreeSelect',
       componentProps: {
-        api: selectNodeAllPublicCategory,
+        api: selectNodeAll,
         params: { by: 'no' },
+        filterQueryAsync: true,
         props: {
-          placeholder: '如果为空,则是一级',
           filterable: true,
+          placeholder: '请选择',
         },
       },
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'typeSys',
-      label: '类型',
-      defaultValue: 'general',
-      component: 'PgRadioGroup',
-      componentProps: {
-        type: 'button',
-        options: basicOptionsType,
-      },
-      rules: 'required',
+      // rules: 'required',
     },
     {
       tabGroup: 'home',
       fieldName: 'name',
       label: '名称',
       component: 'Input',
-      defaultValue: '',
+      rules: 'required',
       componentProps: {
         placeholder: '请输入',
         onBlur: async (e) => {
@@ -65,7 +48,6 @@ const [Form, formApi] = usePgForm({
           }
         },
       },
-      rules: 'required',
       suffix: () =>
         h(
           VbenButton,
@@ -84,6 +66,7 @@ const [Form, formApi] = usePgForm({
       fieldName: 'nameFl',
       label: '名称英文',
       component: 'Input',
+      defaultValue: '',
       componentProps: {
         placeholder: '请输入',
       },
@@ -91,9 +74,8 @@ const [Form, formApi] = usePgForm({
     {
       tabGroup: 'home',
       fieldName: 'code',
-      label: '标记',
+      label: '编码',
       defaultValue: '系统自动建立',
-      rules: 'required',
       component: 'Input',
       componentProps: {
         placeholder: '请输入',
@@ -102,11 +84,9 @@ const [Form, formApi] = usePgForm({
           if (!values.nameFl) {
             formApi.setFieldValue('nameFl', e.target.value);
           }
-          if (!values.path) {
-            formApi.setFieldValue('path', e.target.value);
-          }
         },
       },
+      rules: 'required',
     },
     {
       tabGroup: 'other',
@@ -127,8 +107,8 @@ const [Form, formApi] = usePgForm({
     {
       fieldName: 'id',
       label: 'id',
-      component: 'Input',
       defaultValue: '0',
+      component: 'Input',
       componentProps: {},
       dependencies: {
         show: false,
@@ -149,27 +129,24 @@ const [Drawer, drawerApi] = useVbenDrawer({
       drawerApi.setState({
         loading: true,
         confirmLoading: false,
-        closeOnClickModal: false, // 点击遮罩关闭弹窗
-        destroyOnClose: true, // 关闭时销毁
+        closeOnClickModal: false,
+        destroyOnClose: true,
       });
-      let data = { categoryNo: '' };
       const { values, isUpdate, parent } =
         drawerApi.getData<Record<string, any>>();
       if (values) {
-        data = {
-          ...values,
-        };
-        if (parent && !isUpdate) {
-          data.categoryNo = parent.no;
-        }
-        // console.log('data', data)
         formApi.setValues({
-          ...data,
+          ...values,
         });
+      } else {
+        formApi.setValues({});
       }
-
+      if (parent) {
+        formApi.setFieldValue('parentNo', parent.no);
+      }
+      //console.log('values', values);
       drawerApi.setState({
-        title: `外交：${isUpdate ? '编辑' : '新增'}`,
+        title: `分类：${isUpdate ? '编辑' : '新增'}`,
         loading: false,
       });
     }
@@ -195,7 +172,7 @@ async function onSubmit() {
         emit('ok', values);
         drawerApi.setState({ loading: false });
         drawerApi.close();
-      }, 500);
+      }, 900);
     });
   } catch (error) {
     console.error(error);

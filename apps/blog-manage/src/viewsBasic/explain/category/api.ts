@@ -2,21 +2,21 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  create = '/xianfu/sys/basic/explain-category/create',
-  delete = '/xianfu/sys/basic/explain-category/delete',
-  detail = '/xianfu/sys/basic/explain-category/detail/',
-  disable = '/xianfu/sys/basic/explain-category/disable',
-  enable = '/xianfu/sys/basic/explain-category/enable',
-  existName = '/xianfu/sys/basic/explain-category/existName',
-  exportExcel = '/xianfu/sys/basic/explain-category/exportExcel',
-  list = '/xianfu/sys/basic/explain-category/query',
-  physicalDeletion = '/xianfu/sys/basic/explain-category/physicalDeletion',
-  recovery = '/xianfu/sys/basic/explain-category/recovery',
-  selectNodeAllPublic = '/xianfu/sys/basic/explain-category/selectNodeAllPublic',
-  selectNodePublic = '/xianfu/sys/basic/explain-category/selectNodePublic',
-  selectPublic = '/xianfu/sys/basic/explain-category/selectPublic',
-  state = '/xianfu/sys/basic/explain-category/state',
-  update = '/xianfu/sys/basic/explain-category/update',
+  create = '/xianfu/manage/basic/explain-category/create',
+  delete = '/xianfu/manage/basic/explain-category/delete',
+  detail = '/xianfu/manage/basic/explain-category/detail/',
+  disable = '/xianfu/manage/basic/explain-category/disable',
+  enable = '/xianfu/manage/basic/explain-category/enable',
+  existName = '/xianfu/manage/basic/explain-category/existName',
+  exportExcel = '/xianfu/manage/basic/explain-category/exportExcel',
+  list = '/xianfu/manage/basic/explain-category/query',
+  physicalDeletion = '/xianfu/manage/basic/explain-category/physicalDeletion',
+  recovery = '/xianfu/manage/basic/explain-category/recovery',
+  selectNodeAllPublic = '/xianfu/manage/basic/explain-category/selectNodeAllPublic',
+  selectNodePublic = '/xianfu/manage/basic/explain-category/selectNodePublic',
+  selectPublic = '/xianfu/manage/basic/explain-category/selectPublic',
+  state = '/xianfu/manage/basic/explain-category/state',
+  update = '/xianfu/manage/basic/explain-category/update',
 }
 
 /**
@@ -243,8 +243,7 @@ export const exportExcelUrl = Api.exportExcel;
  * 查询名称是否存在
  * @param params
  */
-export const existName = (wd, id?) => {
-  id = id || '0';
+export const existName = (wd, id = '0') => {
   return requestClient.post(
     Api.existName,
     { wd, id },

@@ -255,8 +255,7 @@ export const exportExcelUrl = Api.exportExcel;
  * @param wd
  * @param id
  */
-export const existName = (wd: string, id?: number | string) => {
-  id = id || '0';
+export const existName = (wd: string, id: number | string = '0') => {
   return requestClient.post(
     Api.existName,
     { wd, id },
@@ -280,10 +279,10 @@ export const cacheOverride = () => {
  * 生成新记录
  * @param id
  */
-export const makeNew = (id: string) => {
+export const makeNew = (no: string, principalType: string) => {
   return requestClient.post(
     Api.makeNew,
-    { id },
+    { no, principalType },
     { errorMessageMode: 'message', successMessageMode: 'notification' },
   );
 };

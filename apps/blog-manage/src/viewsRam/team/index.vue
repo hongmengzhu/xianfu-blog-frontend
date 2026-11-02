@@ -1,10 +1,9 @@
-<script lang="ts" setup>
-import type { VxeTableGridOptions } from '#/adapter/vxe-table';
+<script setup lang="ts">
+import { onMounted, reactive, ref } from 'vue';
 
 import { Page, useVbenDrawer, VbenButton } from '@vben/common-ui';
 import { Plus } from '@vben/icons';
-
-import { dialog, message } from '#/adapter';
+import { message } from '#/adapter';
 import { useVbenVxeGrid, VbenTableAction } from '#/adapter/vxe-table';
 
 import {
@@ -15,8 +14,8 @@ import {
   deleteIds,
   List,
 } from './api';
-import { columns, useGridFormSchema } from './data';
 import DrawerEditTpl from './components/DrawerEdit.vue';
+import { columns, useGridFormSchema } from './data';
 
 const [Drawer, drawerApi] = useVbenDrawer({
   connectedComponent: DrawerEditTpl,
@@ -59,6 +58,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
     },
   } as any,
 });
+
 /**
  * 重新查询
  */
@@ -69,6 +69,7 @@ async function gridQuery(params: Record<string, any> = {}) {
     console.error('Error occurred while reloading:', error);
   }
 }
+
 /**
  * 刷新表格
  */
@@ -226,7 +227,7 @@ function onBatchDelete() {
 
 <template>
   <Page auto-content-height content-class="p-2">
-    <Drawer @ok="onRefresh"/>
+    <Drawer @ok="onRefresh" />
     <Grid>
       <template #toolbar-actions>
         <VbenButton
@@ -262,7 +263,6 @@ function onBatchDelete() {
         </VbenButton> -->
         <VbenButton
           class="ml-2 pg-button-size-small"
-          size="small"
           danger
           @click="onBatchDelete"
         >
@@ -299,3 +299,5 @@ function onBatchDelete() {
     </Grid>
   </Page>
 </template>
+
+<style scoped></style>

@@ -3,28 +3,24 @@ import type { Recordable } from '@vben/types';
 
 import type { VxeTableGridOptions } from '#/adapter/vxe-table';
 
-import { computed, ref } from 'vue';
+import { computed, ref, toRaw } from 'vue';
 
 import { Page, useVbenDrawer, useVbenModal, VbenButton } from '@vben/common-ui';
 import { Plus } from '@vben/icons';
+import { cn, isEqual } from '@vben/utils';
 
 import { PgTree } from '@pg/components-n';
+import { stateYesNoOption } from '@pg/types';
 import {
   basicTypeDomainFormatter,
   IdentityTypeFormatter,
   SexOptionsFormatter,
-  state as stateOptions,
 } from '@pg/types';
 
 import { message } from '#/adapter';
 import { useVbenVxeGrid, VbenTableAction } from '#/adapter/vxe-table';
+import { typeCodePublic } from '#/viewsBasic/data-dict/dict/api';
 import { selectNodeAllPublic } from '#/viewsRam/department/api';
-import { selectNodeAllPublic as groupNode } from '#/viewsRam/group/api';
-import { selectNodeAllPublic as levelNode } from '#/viewsRam/level/api';
-import { selectNodeAllPublic as positionNode } from '#/viewsRam/position/api';
-import { selectNodeAllPublic as postNode } from '#/viewsRam/post/api';
-import { selectNodeAllPublic as roleNode } from '#/viewsRam/role/api';
-import { selectNodeAllPublic as teamNode } from '#/viewsRam/team/api';
 
 import {
   batchSelectDisable,
@@ -34,9 +30,9 @@ import {
   deleteIds,
   List,
 } from './api';
+import Account from './components/account.vue';
 import DrawerEditTpl from './components/DrawerEdit.vue';
-import ModalAccountTpl from './components/ModalAccount.vue';
-import ModalPasswordTpl from './components/ModalPassword.vue';
+import PasswordModal from './components/ModalPassword.vue';
 import { columns } from './data';
 
 const currenRecord = ref(false);
@@ -66,15 +62,12 @@ const treeOverload = (_e: any) => {
 };
 const [FormDrawer, formDrawerApi] = useVbenDrawer({
   connectedComponent: DrawerEditTpl,
-  destroyOnClose: true,
 });
 const [FormModal, formModalApi] = useVbenModal({
-  connectedComponent: ModalAccountTpl,
-  destroyOnClose: true,
+  connectedComponent: Account,
 });
 const [FormModalPassword, formModalApiPassword] = useVbenModal({
-  connectedComponent: ModalPasswordTpl,
-  destroyOnClose: true,
+  connectedComponent: PasswordModal,
 });
 /**
  * 树 搜索尾部菜单
@@ -99,127 +92,34 @@ const [Grid, gridApi] = useVbenVxeGrid({
         component: 'Input',
         fieldName: 'wd',
         label: '关键词',
-        componentProps: {
-          placeholder: '请输入',
-        },
       },
       {
         component: 'Input',
         fieldName: 'account',
-        label: '账号',
-        componentProps: {
-          placeholder: '请输入',
-        },
+        label: '账户',
       },
       {
         component: 'Input',
         fieldName: 'mail',
         label: '邮箱',
-        componentProps: {
-          placeholder: '请输入',
-        },
       },
       {
         component: 'Input',
         fieldName: 'phone',
         label: '手机号',
-        componentProps: {
-          placeholder: '请输入',
-        },
       },
       {
         component: 'Input',
         fieldName: 'code',
         label: '编号',
-        componentProps: {
-          placeholder: '请输入',
-        },
       },
       {
-        fieldName: 'departments',
-        label: '部门',
+        fieldName: 'sex',
+        label: '性别',
         component: 'PgTreeSelect',
         componentProps: {
-          api: selectNodeAllPublic,
-          params: {},
-          props: {
-            multiple: true,
-            placeholder: '请选择',
-          },
-        },
-      },
-      {
-        fieldName: 'roleId',
-        label: '角色',
-        component: 'PgTreeSelect',
-        componentProps: {
-          api: roleNode,
-          params: {},
-          props: {
-            multiple: true,
-            placeholder: '请选择',
-          },
-        },
-      },
-      {
-        fieldName: 'levelId',
-        label: '级别',
-        component: 'PgTreeSelect',
-        componentProps: {
-          api: levelNode,
-          convertNode: true,
-          params: {},
-          props: {
-            placeholder: '请选择',
-          },
-        },
-      },
-      {
-        fieldName: 'groupId',
-        label: '分组',
-        component: 'PgTreeSelect',
-        componentProps: {
-          api: groupNode,
-          params: {},
-          props: {
-            placeholder: '请选择',
-          },
-        },
-      },
-      {
-        fieldName: 'team',
-        label: '团队',
-        component: 'PgTreeSelect',
-        componentProps: {
-          api: teamNode,
-          params: {},
-          props: {
-            multiple: true,
-            placeholder: '请选择',
-          },
-        },
-      },
-      {
-        fieldName: 'position',
-        label: '职务',
-        component: 'PgTreeSelect',
-        componentProps: {
-          api: positionNode,
-          convertNode: true,
-          params: {},
-          props: {
-            placeholder: '请选择',
-          },
-        },
-      },
-      {
-        fieldName: 'job',
-        label: '职位',
-        component: 'PgTreeSelect',
-        componentProps: {
-          api: postNode,
-          convertNode: true,
-          params: {},
+          api: typeCodePublic,
+          params: 'sex',
           props: {
             placeholder: '请选择',
           },
@@ -230,67 +130,8 @@ const [Grid, gridApi] = useVbenVxeGrid({
         label: '状态',
         component: 'Select',
         componentProps: {
-          placeholder: '请选择',
-          options: stateOptions,
           clearable: true,
-        },
-      },
-      {
-        fieldName: 'jobTitle',
-        label: '职衔',
-        component: 'Input',
-      },
-      {
-        fieldName: 'jobRank',
-        label: '职级',
-        component: 'Input',
-      },
-      {
-        fieldName: 'registerTimeRange',
-        label: '注册时间',
-        component: 'PgDatePicker',
-        special: 'DatePicker',
-        componentProps: {
-          clearable: true,
-          isTimestamp: false,
-          type: 'datetimerange',
-          format: 'yyyy-MM-dd HH:mm:ss',
-          valueFormat: 'yyyy-MM-dd HH:mm:ss',
-          shortcuts: {
-            昨天: () => Date.now() - 24 * 60 * 60 * 1000,
-          },
-        },
-      },
-      {
-        fieldName: 'loginTimeRange',
-        label: '登陆时间',
-        component: 'PgDatePicker',
-        special: 'DatePicker',
-        componentProps: {
-          clearable: true,
-          isTimestamp: false,
-          type: 'datetimerange',
-          format: 'yyyy-MM-dd HH:mm:ss',
-          valueFormat: 'yyyy-MM-dd HH:mm:ss',
-          shortcuts: {
-            昨天: () => Date.now() - 24 * 60 * 60 * 1000,
-          },
-        },
-      },
-      {
-        fieldName: 'birthdayRange',
-        label: '生日',
-        component: 'PgDatePicker',
-        special: 'DatePicker',
-        componentProps: {
-          clearable: true,
-          isTimestamp: false,
-          type: 'daterange',
-          format: 'yyyy-MM-dd',
-          valueFormat: 'yyyy-MM-dd',
-          shortcuts: {
-            昨天: () => Date.now() - 24 * 60 * 60 * 1000,
-          },
+          options: stateYesNoOption,
         },
       },
     ],
@@ -469,13 +310,10 @@ function onRecovery() {
     message.warning('你没有选择任何数据');
     return;
   }
-  batchSelectRecovery(
-    ids,
-    () => {
-      onRefresh();
-      $grid.setAllCheckboxRow(false);
-    },
-  );
+  batchSelectRecovery(ids, () => {
+    onRefresh();
+    $grid.setAllCheckboxRow(false);
+  });
 }
 
 /**
@@ -497,13 +335,10 @@ function onBatchDelete() {
     message.warning('你没有选择任何数据');
     return;
   }
-  batchSelectDelete(
-    ids,
-    () => {
-      onRefresh();
-      $grid.setAllCheckboxRow(false);
-    },
-  );
+  batchSelectDelete(ids, () => {
+    onRefresh();
+    $grid.setAllCheckboxRow(false);
+  });
 }
 
 /**
@@ -598,7 +433,8 @@ function handleAccount(row: any) {
           <template #accountAll="{ row }">
             <div>账号:{{ row.account }}</div>
             <div>邮箱:{{ row.mail }}</div>
-            <div>编号:{{ row.code }}</div>
+            <div>码值:{{ row.code }}</div>
+            <div>编号:{{ row.no }}</div>
           </template>
           <template #nameAll="{ row }">
             <div class="text-xs">
@@ -611,30 +447,27 @@ function handleAccount(row: any) {
           </template>
           <template #osAll="{ row }">
             <div class="text-xs">
-              <div>主部门:{{ row.departmentIdName }}</div>
+              <div>主部门:{{ row.departmentNoName }}</div>
               <div>
                 多部门:{{
-                  row.os?.codeName?.departments
-                    ? row.os?.codeName?.departments.join(',')
+                  row.os?.noName?.departments
+                    ? row.os?.noName?.departments.join(',')
                     : ''
                 }}
               </div>
-              <div>主角色:{{ row.roleIdName }}</div>
               <div>
                 多角色:{{
-                  row.os?.codeName?.roles
-                    ? row.os?.codeName?.roles.join(',')
-                    : ''
+                  row.os?.noName?.roles ? row.os?.noName?.roles.join(',') : ''
                 }}
               </div>
-              <div>级别:{{ row.levelIdName }}</div>
-              <div>分组:{{ row.groupIdName }}</div>
+              <div>级别:{{ row.levelNoName }}</div>
+              <div>分组:{{ row.groupNoName }}</div>
             </div>
           </template>
           <template #jobAll="{ row }">
             <div class="text-xs">
-              <div>职位:{{ row.job }}</div>
-              <div>岗位:{{ row.position }}</div>
+              <div>职位:{{ row.jobName }}</div>
+              <div>岗位:{{ row.positionName }}</div>
               <div>职衔:{{ row.jobTitle }}</div>
               <div>职级:{{ row.jobRank }}</div>
             </div>
@@ -686,3 +519,5 @@ function handleAccount(row: any) {
     <FormModalPassword />
   </Page>
 </template>
+
+<style scoped></style>

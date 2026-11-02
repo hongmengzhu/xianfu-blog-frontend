@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { h } from 'vue';
+import { h, ref } from 'vue';
 
 import { useVbenModal, VbenButton, z } from '@vben/common-ui';
 import { $t } from '@vben/locales';
@@ -7,14 +7,17 @@ import { $t } from '@vben/locales';
 import { usePgForm } from '#/adapter';
 
 import { updatePassword } from '../api';
+import { useConfigPubStore } from '#/store';
+import { SmUtil } from '#/tools/smUtil';
 
+const configPubStore = useConfigPubStore();
+const sm = new SmUtil();
+const currentData = ref({});
 const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
   tabs: {
     active: 'home',
-    group: [
-      { value: 'home', label: '修改密码' },
-    ],
+    group: [{ value: 'home', label: '修改密码' }],
   },
   schema: [
     {
@@ -54,6 +57,7 @@ const [Form, formApi] = usePgForm({
       fieldName: 'id',
       label: 'id',
       component: 'Input',
+      defaultValue: '0',
       componentProps: {},
       dependencies: {
         show: false,
@@ -75,13 +79,13 @@ const [Modal, modalApi] = useVbenModal({
   onConfirm: onSubmit,
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      modalApi.setState({
-        loading: true,
-        confirmLoading: false,
-        destroyOnClose: true,
-      });
       const { values } = modalApi.getData<Record<string, any>>();
-      modalApi.setState({ title: `修改密码：${values.account} (${values.phone})  ${values.id}`, loading: false });
+      currentData.value = values;
+      formApi.setFieldValue('id', values.id);
+
+      modalApi.setState({
+        title: `修改密码：${values.account} (${values.phone})  ${values.id}`,
+      });
     }
   },
 });
@@ -93,22 +97,32 @@ async function onSubmit() {
   if (!valid) {
     return false;
   }
-  const values = await formApi.getValues<Omit<Record<string, any>,'id'>>();
+  const values = await formApi.getValues<Omit<Record<string, any>, 'id'>>();
   modalApi.lock();
   try {
-    modalApi.setState({ loading: true, confirmLoading: true });
-    updatePassword(values).then((d) => {
+    const data = {
+      ...values,
+    };
+    if (
+      configPubStore.isLoginEncrypt() &&
+      configPubStore.getLoginPub() &&
+      data['passwordNew']
+    ) {
+      sm.setPublicKey(configPubStore.getLoginPub());
+      data.passwordNew = sm.encryptHex(data.passwordNew);
+      data['encrypt'] = 'encrypt';
+    }
+    data['confirmPassword'] = '1111111';
+    updatePassword(data).then((d) => {
       setTimeout(() => {
         emit('ok', values);
-        modalApi.setState({ loading: false });
         modalApi.close();
-      }, 500);
+      }, 1500);
     });
   } catch (error) {
     console.error(error);
   } finally {
     modalApi.unlock();
-    modalApi.setState({ loading: false, confirmLoading: false });
   }
 }
 </script>

@@ -3,19 +3,19 @@ import type { VxeGridPropTypes } from 'vxe-table';
 import _XEUtils_ from 'xe-utils';
 
 import { existName, setStateEnableDisable } from './api';
-import {h} from "vue";
+import { h } from 'vue';
 import {
   HttpMethodFormatter,
   RamResourceTypeAttrFormatter,
-  RamResourceTypeFormatter
-} from "@pg/types";
+  RamResourceTypeFormatter,
+} from '@pg/types';
 
 export const columns: VxeGridPropTypes.Columns = [
-  { type: 'checkbox', title: 'ID', width: 120 },
+  { type: 'checkbox', title: '', width: 34 },
   { field: 'name', title: '名称', minWidth: 160, visible: false },
   {
     field: 'nameAll',
-    title: '名称',
+    title: '资源权限',
     slots: { default: 'nameAll' },
   },
   { field: 'path', title: '路径', minWidth: 160, visible: false },
@@ -24,6 +24,7 @@ export const columns: VxeGridPropTypes.Columns = [
     title: '方法',
     width: 80,
     formatter: HttpMethodFormatter,
+    visible: false,
   },
   { field: 'code', title: '资源标识', width: 100, visible: false },
   {
@@ -49,52 +50,7 @@ export const columns: VxeGridPropTypes.Columns = [
       return _XEUtils_.toDateString(cellValue, 'yyyy-MM-dd');
     },
   },
-  { title: '操作', width: 160, field: 'right', slots: { default: 'operate' } },
+  { title: '操作', width: 60, field: 'right', slots: { default: 'operate' } },
 ];
 
-export function useGridFormSchema(): any[] {
-  return [
-    {
-      fieldName: 'typeValue',
-      label: '隐藏',
-      defaultValue: '',
-      component: 'Input',
-      componentProps: {},
-      dependencies: {
-        show: false,
-        triggerFields: ['wd'],
-      },
-    },
-    {
-      fieldName: 'typeCategory',
-      label: '隐藏',
-      defaultValue: 'group',
-      component: 'Input',
-      componentProps: {},
-      dependencies: {
-        show: false,
-        triggerFields: ['wd'],
-      },
-    },
-    {
-      fieldName: 'wd',
-      label: '关键词',
-      component: 'Input',
-      componentProps: { placeholder: '请输入', clearable: true },
-    },
-    {
-      fieldName: 'state',
-      label: '状态',
-      component: 'Select',
-      componentProps: {
-        clearable: true,
-        options: [
-          { label: '停用', value: '2' },
-          { label: '有效', value: '1' },
-          { label: '弃置', value: '12' },
-          { label: '取消', value: '11' },
-        ],
-      },
-    },
-  ];
-}
+export const formSchema = [];

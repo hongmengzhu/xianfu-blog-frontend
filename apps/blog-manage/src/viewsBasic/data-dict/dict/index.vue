@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { Page, useVbenDrawer, VbenButton } from '@vben/common-ui';
 import { Plus } from '@vben/icons';
 
@@ -7,10 +6,9 @@ import { message } from '#/adapter';
 import { useVbenVxeGrid, VbenTableAction } from '#/adapter/vxe-table';
 
 import {
-  batchSelectDelete,
   batchSelectDisable,
   batchSelectEnable,
-  batchSelectPhysicalDeletion,
+  batchSelectDelete,
   batchSelectRecovery,
   deleteIds,
   List,
@@ -299,20 +297,13 @@ function onBatchDelete() {
         >
           批量停用
         </VbenButton>
-        <VbenButton
-          class="ml-2 pg-button-size-small"
-          size="sm"
-          @click="onRecovery"
-        >
-          删除恢复
-        </VbenButton>
-        <VbenButton
-          class="ml-2 pg-button-size-small"
-          size="sm"
-          @click="onPhysicalDeletion"
-        >
-          物理删除
-        </VbenButton>
+        <!--        <VbenButton-->
+        <!--          class="ml-2 pg-button-size-small"-->
+        <!--          size="sm"-->
+        <!--          @click="onRecovery"-->
+        <!--        >-->
+        <!--          删除恢复-->
+        <!--        </VbenButton>-->
         <VbenButton
           class="ml-2 pg-button-size-small"
           danger
