@@ -1,4 +1,4 @@
-import type { TableActionProps } from '@vben/common-ui';
+import type { FormValues, TableActionProps } from '@vben/common-ui';
 import type { VxeTableGridOptions } from '@vben/plugins/vxe-table';
 import type { Recordable } from '@vben/types';
 
@@ -16,14 +16,23 @@ import {
 } from '@vben/plugins/vxe-table';
 import { get, isFunction, isString } from '@vben/utils';
 
+import { ROLE_ADMINISTRATOR } from '@pg/constants';
+import { stateYesNoOptionFormatter } from '@pg/types';
 import { objectOmit } from '@vueuse/core';
-import {NButton, NImage, NImageGroup, NSwitch, NTag, NPopconfirm, useDialog} from 'naive-ui';
+import {
+  NButton,
+  NImage,
+  NImageGroup,
+  NPopconfirm,
+  NSwitch,
+  NTag,
+} from 'naive-ui';
+
 import { dialog } from '#/adapter/naive';
-import { useVbenForm } from './form';
 import { $t } from '#/locales';
 import { updateDetail } from '#/viewsBasic/attachment/api';
-import {stateYesNoOptionFormatter} from "@pg/types";
-import {ROLE_ADMINISTRATOR} from "@pg/constants";
+
+import { useVbenForm } from './form';
 
 setupVbenVxeTable({
   configVxeTable: (vxeUI) => {
@@ -70,7 +79,7 @@ setupVbenVxeTable({
       renderTableDefault(renderOpts, params) {
         const { props } = renderOpts;
         const { column, row } = params;
-        return h(NImage, { lazy:true,src: row[column.field], ...props });
+        return h(NImage, { lazy: true, src: row[column.field], ...props });
       },
     });
 
@@ -93,13 +102,17 @@ setupVbenVxeTable({
         return h(
           defineComponent({
             name: 'CellImageKeyRenderer',
-            props: { fileKey: { default: '' }, imageProps: { default: () => ({}) }, limit: { default: 0 } },
+            props: {
+              fileKey: { default: '' },
+              imageProps: { default: () => ({}) },
+              limit: { default: 0 },
+            },
             setup(props) {
               const imageList = ref<Array<{ name: string; url: string }>>([]);
               watch(
                 () => props.fileKey,
-                (newKey,old) => {
-                  if (newKey&&newKey!=old) {
+                (newKey, old) => {
+                  if (newKey && newKey != old) {
                     updateDetail(newKey).then((res) => {
                       imageList.value = res || [];
                     });
@@ -112,7 +125,10 @@ setupVbenVxeTable({
 
               return () => {
                 if (imageList.value.length === 0) return null;
-                const displayList = props.limit > 0 ? imageList.value.slice(0, props.limit) : imageList.value;
+                const displayList =
+                  props.limit > 0
+                    ? imageList.value.slice(0, props.limit)
+                    : imageList.value;
                 const images = displayList.map((item) =>
                   h(NImage, { lazy: true, src: item.url, ...props.imageProps }),
                 );
@@ -189,77 +205,77 @@ setupVbenVxeTable({
 
     // 开关
     vxeUI.renderer.add('CellSwitchPg', {
-      renderTableDefault({ attrs, props }, { column, row,$table }) {
+      renderTableDefault({ attrs, props }, { column, row, $table }) {
         const finallyProps = {
-          size:'small',
-          inlinePrompt:true,
+          size: 'small',
+          inlinePrompt: true,
           checkedValue: 1,
           uncheckedValue: 2,
           ...props,
           value: row[column.field],
-          onClick: async()=>{
-            let newVal = row[column.field]&&1===row[column.field]?2:1;
+          onClick: async () => {
+            const newVal = row[column.field] && 1 === row[column.field] ? 2 : 1;
             try {
-              const result = await attrs?.beforeChange?.(newVal, row,$table);
+              const result = await attrs?.beforeChange?.(newVal, row, $table);
               if (result !== false) {
                 if ($table) {
                   row[column.field] = newVal;
                   $table.isUpdateByRow(row);
                 }
                 return new Promise((resolve) => {
-                  return resolve(true)
-                })
+                  return resolve(true);
+                });
               }
               return new Promise((resolve) => {
-                return resolve(false)
-              })
-            } catch (e) {
-              console.error(e);
+                return resolve(false);
+              });
+            } catch (error) {
+              console.error(error);
             } finally {
             }
           },
         };
-        return h(NSwitch, finallyProps,{
-          checked:() => '有效',
-          unchecked:() => '停用',
+        return h(NSwitch, finallyProps, {
+          checked: () => '有效',
+          unchecked: () => '停用',
         });
       },
     });
 
     vxeUI.renderer.add('CellSwitchPgYesNo', {
-      renderTableDefault({ attrs, props }, { column, row,$table }) {
+      renderTableDefault({ attrs, props }, { column, row, $table }) {
         const finallyProps = {
-          size:'small',
-          inlinePrompt:true,
+          size: 'small',
+          inlinePrompt: true,
           checkedValue: 1,
           uncheckedValue: 2,
           ...props,
           value: row[column.field],
-          onClick: async()=>{
-            let newVal = row[column.field]&&1===row[column.field]?2:1;
+          onClick: async () => {
+            const newVal = row[column.field] && 1 === row[column.field] ? 2 : 1;
             try {
-              const result = await attrs?.beforeChange?.(newVal, row,$table);
+              const result = await attrs?.beforeChange?.(newVal, row, $table);
               if (result !== false) {
                 if ($table) {
                   row[column.field] = newVal;
                   $table.isUpdateByRow(row);
                 }
                 return new Promise((resolve) => {
-                  return resolve(true)
-                })
+                  return resolve(true);
+                });
               }
               return new Promise((resolve) => {
-                return resolve(false)
-              })
-            } catch (e) {
-              console.error(e);
+                return resolve(false);
+              });
+            } catch (error) {
+              console.error(error);
             } finally {
             }
           },
         };
-        return h(NSwitch, finallyProps,{
-          checked:() => '是',
-          unchecked:() => '否',
+        return h(NSwitch, finallyProps, {
+          checked: () => '是',
+          unchecked: () => '否',
         });
       },
     });
@@ -422,10 +438,26 @@ setupVbenVxeTable({
   useVbenForm,
 });
 
-export const useVbenVxeGrid = <T extends Record<string, any>>(
-  ...rest: Parameters<typeof useGrid<T, ComponentType, ComponentPropsMap>>
-) => useGrid<T, ComponentType, ComponentPropsMap>(...rest);
+export const useVbenVxeGrid = <
+  T extends Record<string, any>,
+  TFormValues extends FormValues = FormValues,
+  TSubmitValues extends FormValues = TFormValues,
+>(
+  ...rest: Parameters<
+    typeof useGrid<
+      T,
+      ComponentType,
+      ComponentPropsMap,
+      TFormValues,
+      TSubmitValues
+    >
+  >
+) =>
+  useGrid<T, ComponentType, ComponentPropsMap, TFormValues, TSubmitValues>(
+    ...rest,
+  );
 
+export type * from '@vben/plugins/vxe-table';
 /**
  * 表格操作按钮组件
  *
@@ -435,7 +467,7 @@ export const useVbenVxeGrid = <T extends Record<string, any>>(
  */
 export const VbenTableAction = defineComponent(
   (props: TableActionProps, { attrs, slots }) => {
-    const { hasAccessByCodes,hasAccessByRoles } = useAccess();
+    const { hasAccessByCodes, hasAccessByRoles } = useAccess();
     function hasPermission(auth?: string | string[]) {
       if (!auth) return true;
       if (hasAccessByRoles([ROLE_ADMINISTRATOR])) return true;
@@ -467,8 +499,8 @@ export function modalConfirm(content: string, title: string) {
   // const dialog = useDialog();
   return new Promise((reslove, reject) => {
     dialog.info({
-      title: title,
-      content: content,
+      title,
+      content,
       positiveText: '确定',
       negativeText: '取消',
       onPositiveClick: () => {
@@ -481,6 +513,9 @@ export function modalConfirm(content: string, title: string) {
   });
 }
 export function confirmSwitch(name: string, state: number) {
-  const status = stateYesNoOptionFormatter({cellValue: state})
-  return modalConfirm(`你要将【${name}】的状态切换为 【${status}】 吗？`, `切换状态`);
+  const status = stateYesNoOptionFormatter({ cellValue: state });
+  return modalConfirm(
+    `你要将【${name}】的状态切换为 【${status}】 吗？`,
+    `切换状态`,
+  );
 }

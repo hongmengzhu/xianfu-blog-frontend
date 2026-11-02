@@ -5,11 +5,7 @@ import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { AuthenticationLoginExpiredModal } from '@vben/common-ui';
-import { VBEN_DOC_URL, VBEN_GITHUB_URL } from '@vben/constants';
 import { useWatermark } from '@vben/hooks';
-import { BookOpenText, CircleHelp, SvgGithubIcon } from '@vben/icons';
-import { MdiLock } from '@pg/icons';
-import WrapPassword from '#/viewsPub/pub/WrapPassword.vue';
 import {
   BasicLayout,
   LockScreen,
@@ -18,11 +14,12 @@ import {
 } from '@vben/layouts';
 import { preferences, usePreferences } from '@vben/preferences';
 import { useAccessStore, useUserStore } from '@vben/stores';
-import { openWindow } from '@vben/utils';
 
-import { $t } from '#/locales';
+import { MdiLock } from '@pg/icons';
+
 import { useAuthStore } from '#/store';
 import LoginForm from '#/views/_core/authentication/login.vue';
+import WrapPassword from '#/viewsPub/pub/WrapPassword.vue';
 
 const notifications = ref<NotificationItem[]>([
   {
@@ -227,41 +224,46 @@ watch(
 
 <template>
   <div>
-  <BasicLayout @clear-preferences-and-logout="handleLogout">
-    <template #user-dropdown>
-      <UserDropdown
-        :avatar
-        :menus
-        :text="userStore.userInfo?.realName"
-        :description="userStore.userInfo?.account"
-        @logout="handleLogout"
-        @clear-preferences-and-logout="handleLogout"
-      />
-    </template>
-    <template #notification>
-      <Notification
-        :dot="showDot"
-        :notifications="notifications"
-        @clear="handleNoticeClear"
-        @read="(item) => item.id && markRead(item.id)"
-        @remove="(item) => item.id && remove(item.id)"
-        @make-all="handleMakeAll"
-        @on-click="handleClick"
-        @view-all="viewAll"
-      />
-    </template>
-    <template #extra>
-      <AuthenticationLoginExpiredModal
-        v-model:open="accessStore.loginExpired"
-        :avatar
-      >
-        <LoginForm />
-      </AuthenticationLoginExpiredModal>
-    </template>
-    <template #lock-screen>
-      <LockScreen :avatar @to-login="handleLogout" />
-    </template>
-  </BasicLayout>
+    <BasicLayout
+      :avatar
+      :text="userStore.userInfo?.account"
+      @clear-preferences-and-logout="handleLogout"
+      @logout="handleLogout"
+    >
+      <template #user-dropdown>
+        <UserDropdown
+          :avatar
+          :menus
+          :text="userStore.userInfo?.realName"
+          :description="userStore.userInfo?.account"
+          @logout="handleLogout"
+          @clear-preferences-and-logout="handleLogout"
+        />
+      </template>
+      <template #notification>
+        <Notification
+          :dot="showDot"
+          :notifications="notifications"
+          @clear="handleNoticeClear"
+          @read="(item) => item.id && markRead(item.id)"
+          @remove="(item) => item.id && remove(item.id)"
+          @make-all="handleMakeAll"
+          @on-click="handleClick"
+          @view-all="viewAll"
+        />
+      </template>
+      <template #extra>
+        <AuthenticationLoginExpiredModal
+          v-model:open="accessStore.loginExpired"
+          :avatar
+        >
+          <LoginForm />
+        </AuthenticationLoginExpiredModal>
+      </template>
+      <template #lock-screen>
+        <LockScreen :avatar @to-login="handleLogout" />
+      </template>
+    </BasicLayout>
     <WrapPassword :action="wrapPasswordAction" />
   </div>
 </template>

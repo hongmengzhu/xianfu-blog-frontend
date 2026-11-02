@@ -3,20 +3,8 @@ import type { StyleValue } from 'vue';
 
 import type { PageProps } from './types';
 
-import {
-  computed,
-  nextTick,
-  onActivated,
-  onMounted,
-  ref,
-  useTemplateRef,
-} from 'vue';
+import { computed } from 'vue';
 
-import {
-  CSS_VARIABLE_LAYOUT_FOOTER_HEIGHT,
-  CSS_VARIABLE_LAYOUT_HEADER_HEIGHT,
-} from '@vben-core/shared/constants';
-import { preferences } from '@vben-core/preferences';
 import { cn } from '@vben-core/shared/utils';
 
 defineOptions({
@@ -29,64 +17,33 @@ const {
   footerFixed = false,
 } = defineProps<PageProps>();
 
-const headerHeight = ref(0);
-const footerHeight = ref(0);
-const shouldAutoHeight = ref(false);
-
-const headerRef = useTemplateRef<HTMLDivElement>('headerRef');
-const footerRef = useTemplateRef<HTMLDivElement>('footerRef');
-
-const footerEnable = preferences.footer.enable;
-
-
-/**
- * 内容区样式计算
- * autoContentHeight 模式下使用 100vh - header高度 - footer高度 计算内容区高度，
- * 仅在 footer 启用时减去 footer 高度，避免依赖不稳定的 --vben-content-height CSS 变量
- */
 const contentStyle = computed<StyleValue>(() => {
-  if (autoContentHeight) {
-    const footerHeightCalc = footerEnable
-      ? `var(${CSS_VARIABLE_LAYOUT_FOOTER_HEIGHT})`
-      : '0px';
-    return {
-      height: `calc(100vh - var(${CSS_VARIABLE_LAYOUT_HEADER_HEIGHT}) - ${footerHeightCalc} - ${headerHeight.value}px - ${footerHeight.value}px - ${typeof heightOffset === 'number' ? `${heightOffset}px` : heightOffset})`,
-      overflowY: shouldAutoHeight.value ? 'auto' : 'unset',
-    };
-  }
-  return {};
-});
-
-/**
- * 计算内容区高度相关状态
- * 读取 header/footer 实际高度，延迟启用滚动条
- */
-async function calcContentHeight() {
   if (!autoContentHeight) {
-    return;
+    return {};
   }
-  shouldAutoHeight.value = false;
-  await nextTick();
-  headerHeight.value = headerRef.value?.offsetHeight || 0;
 
-  footerHeight.value = footerFixed ? 0 : footerRef.value?.offsetHeight || 0;
-
-  setTimeout(() => {
-    shouldAutoHeight.value = true;
-  }, 30);
-}
-
-onMounted(() => {
-  calcContentHeight();
-});
-
-onActivated(() => {
-  calcContentHeight();
+  return {
+    '--page-content-height-offset': `${heightOffset}px`,
+    // In auto-content-height mode the content region manages its own scrolling.
+    // Size containment prevents the inner content's min-content height from
+    // feeding back into the outer flex layout, which would clamp the content
+    // region taller than the available space and push the layout footer below
+    // the viewport (see https://github.com/vbenjs/vue-vben-admin/issues/5677).
+    contain: 'size',
+    marginBlockEnd: 'var(--page-content-height-offset)',
+  };
 });
 </script>
 
 <template>
-  <div class="relative flex h-full flex-col">
+  <div
+    :class="
+      cn(
+        'relative flex h-full min-h-0 flex-col',
+        autoContentHeight && 'overflow-hidden',
+      )
+    "
+  >
     <div
       v-if="
         description ||
@@ -95,10 +52,9 @@ onActivated(() => {
         $slots.title ||
         $slots.extra
       "
-      ref="headerRef"
       :class="
         cn(
-          'relative flex items-end border-b border-border bg-card px-6 py-4',
+          'relative flex shrink-0 items-end border-b border-border bg-card px-6 py-4',
           headerClass,
         )
       "
@@ -123,15 +79,27 @@ onActivated(() => {
     </div>
 
     <div
-      :class="cn(autoContentHeight ? 'h-full' : 'flex-1', 'p-4', contentClass)"
+      data-layout-region="page-content"
+      :class="
+        cn(
+          autoContentHeight ? 'min-h-0 flex-1 overflow-y-auto' : 'flex-1',
+          'p-4',
+          contentClass,
+        )
+      "
       :style="contentStyle"
     >
       <slot></slot>
     </div>
     <div
       v-if="$slots.footer"
-      ref="footerRef"
-      :class="cn('align-center flex bg-card px-6 py-4', footerClass)"
+      :class="
+        cn(
+          'align-center flex bg-card px-6 py-4',
+          footerFixed ? 'mt-auto shrink-0' : 'shrink-0',
+          footerClass,
+        )
+      "
     >
       <slot name="footer"></slot>
     </div>

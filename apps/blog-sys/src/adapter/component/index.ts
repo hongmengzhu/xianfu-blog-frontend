@@ -35,18 +35,18 @@ import { $t } from '@vben/locales';
 
 import {
   PgDatePicker,
+  PgMarkdown,
+  PgMarkdownViewer,
   PgRadioGroup,
   PgSpan,
   PgTree,
   PgTreeSelect,
   PgUploadGroupOwner,
-  PgMarkdown,
-  PgMarkdownViewer,
 } from '@pg/components-n';
-import {getNanoidNo} from "@pg/utils";
+import { getNanoidNo } from '@pg/utils';
 
 import { message } from '#/adapter/naive';
-import {uploadFn, uploadFnByMarkdown} from "#/viewsBasic/attachment/api";
+import { uploadFn, uploadFnByMarkdown } from '#/viewsBasic/attachment/api';
 
 const NButton = defineAsyncComponent(() =>
   import('naive-ui/es/button').then((res) => res.NButton),
@@ -157,9 +157,9 @@ export type ComponentType =
   | 'NDynamicTags'
   | 'NMention'
   | 'NSelect'
-  | 'PgUploadGroupOwner'
   | 'PgMarkdown'
   | 'PgMarkdownViewer'
+  | 'PgUploadGroupOwner'
   | 'Radio'
   | 'RadioGroup'
   | 'Rate'
@@ -319,9 +319,7 @@ async function initComponentAdapter() {
       modelValueProp: 'value',
     }),
     Input: withDefaultPlaceholder(NInput, 'input'),
-    InputNumber: withDefaultPlaceholder(NInputNumber, 'input', {
-      style: { width: '100%' },
-    }),
+    InputNumber: withDefaultPlaceholder(NInputNumber, 'input'),
     RadioGroup: (props, { attrs, slots }) => {
       let defaultSlot;
       if (Reflect.has(slots, 'default')) {
@@ -381,10 +379,10 @@ async function initComponentAdapter() {
         },
       ],
     }),
-    PgMarkdownViewer: PgMarkdownViewer,
+    PgMarkdownViewer,
     PgMarkdown: withDefaultPlaceholder(PgMarkdown, 'input', {
-      params:{
-        fileOwner: 'context-auto-'+getNanoidNo(32),
+      params: {
+        fileOwner: `context-auto-${getNanoidNo(32)}`,
       },
       uploadByMarkdown: uploadFnByMarkdown,
     }),
