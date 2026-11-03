@@ -223,7 +223,7 @@ watch(
 </script>
 
 <template>
-  <div>
+  <div class="h-full">
     <BasicLayout
       :avatar
       :text="userStore.userInfo?.realName"

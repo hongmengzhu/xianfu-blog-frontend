@@ -128,7 +128,7 @@ async function onRefresh() {
 }
 </script>
 <template>
-  <Page content-class="p-2">
+  <Page auto-content-height content-class="p-2">
     <Grid>
       <template #toolbar-actions>
         <VbenButton type="primary" size="sm" @click="onCreate">
