@@ -222,6 +222,8 @@ catalog:
   vuedraggable: ^4.1.0
   xe-utils: ^3.9.1
   nanoid: ^5.1.5
+  '@vee-validate/zod': ^4.15.1
+  vee-validate: ^4.15.1
 
 allowBuilds:
   '@parcel/watcher': true

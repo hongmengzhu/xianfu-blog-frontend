@@ -53,8 +53,8 @@ interface RequestInterceptorConfig {
   fulfilled?: (
     config: ExtendOptions & InternalAxiosRequestConfig,
   ) =>
-    | (ExtendOptions & InternalAxiosRequestConfig<any>)
-    | Promise<ExtendOptions & InternalAxiosRequestConfig<any>>;
+    | (ExtendOptions & InternalAxiosRequestConfig)
+    | Promise<ExtendOptions & InternalAxiosRequestConfig>;
   rejected?: (error: any) => any;
 }
 
@@ -72,7 +72,7 @@ interface HttpResponse<T = any> {
    * 0 表示成功 其他表示失败
    * 0 means success, others means fail
    */
-  code: number | string;
+  code: number;
   data: T;
   message: string;
 }
