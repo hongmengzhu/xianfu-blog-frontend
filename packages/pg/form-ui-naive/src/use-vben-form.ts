@@ -23,12 +23,12 @@ type UseVbenFormReturn<
   ExtendedFormApi<TValues, T, P, TSubmitValues>,
 ];
 
-export function useVbenForm<
+export function usePgForm<
   T extends BaseFormComponentType = BaseFormComponentType,
   P extends Record<string, any> = Record<string, never>,
 >(options: VbenFormProps<T, P>): UseVbenFormReturn<FormValues, T, P>;
 
-export function useVbenForm<
+export function usePgForm<
   TValues extends FormValues,
   T extends BaseFormComponentType = BaseFormComponentType,
   P extends Record<string, any> = Record<string, never>,
@@ -37,7 +37,7 @@ export function useVbenForm<
   options: VbenFormProps<T, P, TValues, TSubmitValues>,
 ): UseVbenFormReturn<TValues, T, P, TSubmitValues>;
 
-export function useVbenForm(
+export function usePgForm(
   options: VbenFormProps<any, any, any, any>,
 ): UseVbenFormReturn<any, any, any, any> {
   const IS_REACTIVE = isReactive(options);

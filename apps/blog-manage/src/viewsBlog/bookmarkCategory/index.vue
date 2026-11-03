@@ -2,8 +2,7 @@
 import { Page, useVbenDrawer, VbenButton } from '@vben/common-ui';
 import { Plus } from '@vben/icons';
 
-import { VbenTableAction } from '#/adapter/vxe-table';
-import { useVbenVxeGrid } from '#/adapter/vxe-table';
+import { useVbenVxeGrid, VbenTableAction } from '#/adapter/vxe-table';
 
 import { deleteIds, queryAll } from './api';
 import DrawerEdit from './components/DrawerEdit.vue';
@@ -129,7 +128,7 @@ async function onRefresh() {
 }
 </script>
 <template>
-  <Page auto-content-height content-class="p-2">
+  <Page content-class="p-2">
     <Grid>
       <template #toolbar-actions>
         <VbenButton type="primary" size="sm" @click="onCreate">

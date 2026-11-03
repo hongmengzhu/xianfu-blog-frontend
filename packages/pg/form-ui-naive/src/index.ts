@@ -1,4 +1,4 @@
-export { setupVbenForm } from './config';
+export { setupVbenForm as setupPgForm } from './config';
 export { FormCodecError } from './form-codec';
 
 export type { FormCodecPhase } from './form-codec';
