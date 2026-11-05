@@ -1,12 +1,12 @@
+
 import type { VbenFormSchema } from '#/adapter/form';
-import type { VxeTableDefines } from 'vxe-table';
+
+import { h } from 'vue';
+
+import { NTag } from 'naive-ui';
 import _XEUtils_ from 'xe-utils';
-import { basicOptionsType } from "@pg/types";
+
 import { z } from '#/adapter/form';
-import {selectNodeAllPublic as selectNodeAllPublicModule} from "#/viewsBasic/module/api";
-import {codeValueAllPublic} from "#/viewsBasic/data-dict/dict/api";
-import {h} from "vue";
-import {NTag} from "naive-ui";
 
 /**
  * 搜索表单 Schema
@@ -55,7 +55,13 @@ export const columns: any[] = [
       return _XEUtils_.toDateString(cellValue, 'yyyy-MM-dd HH:mm:ss');
     },
   },
-  { title: '操作', width: 160, field: 'right', slots: { default: 'operate' }, fixed: 'right' },
+  {
+    title: '操作',
+    width: 160,
+    field: 'right',
+    slots: { default: 'operate' },
+    fixed: 'right',
+  },
 ];
 
 export const formSchema = [
@@ -77,9 +83,12 @@ export const formSchema = [
     componentProps: {
       placeholder: '请输入模型标识',
     },
-    rules: z.string().min(1, { message: '模型英文名称必填' }).regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, {
-      message: '模型英文名称字符格式错误' // 自定义错误提示
-    }),
+    rules: z
+      .string()
+      .min(1, { message: '模型英文名称必填' })
+      .regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, {
+        message: '模型英文名称字符格式错误', // 自定义错误提示
+      }),
     descriptionPg: () =>
       h(
         NTag,
@@ -95,9 +104,12 @@ export const formSchema = [
     componentProps: {
       placeholder: '请输入对应事件名称',
     },
-    rules: z.string().min(1, { message: '事件名称必填' }).regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, {
-      message: '事件名称字符格式错误' // 自定义错误提示
-    }),
+    rules: z
+      .string()
+      .min(1, { message: '事件名称必填' })
+      .regex(/^[a-zA-Z][a-zA-Z0-9_]*$/, {
+        message: '事件名称字符格式错误', // 自定义错误提示
+      }),
     descriptionPg: () =>
       h(
         NTag,
@@ -118,7 +130,7 @@ export const formSchema = [
   {
     fieldName: 'modelNo',
     label: 'ID',
-    defaultValue:  '0',
+    defaultValue: '0',
     component: 'Input',
     dependencies: {
       show: false,
@@ -128,7 +140,7 @@ export const formSchema = [
   {
     fieldName: 'id',
     label: 'ID',
-    defaultValue:  '0',
+    defaultValue: '0',
     component: 'Input',
     dependencies: {
       show: false,
@@ -139,9 +151,19 @@ export const formSchema = [
 
 export const fieldColumns: any[] = [
   { type: 'checkbox', width: 60 },
-  { field: 'id', title: 'id', visible: false},
-  { field: 'name', title: '字段名称', minWidth: 150, editRender: { autoFocus: 'input' } },
-  { field: 'field', title: '字段标识', minWidth: 150, editRender: { autoFocus: 'input' } },
+  { field: 'id', title: 'id', visible: false },
+  {
+    field: 'name',
+    title: '字段名称',
+    minWidth: 150,
+    editRender: { autoFocus: 'input' },
+  },
+  {
+    field: 'field',
+    title: '字段标识',
+    minWidth: 150,
+    editRender: { autoFocus: 'input' },
+  },
   {
     field: 'show',
     title: '显示',
@@ -154,7 +176,12 @@ export const fieldColumns: any[] = [
     width: 100,
     editRender: {},
   },
-  { field: 'defaultValue', title: '默认值', width: 150, editRender: { autoFocus: 'input' } },
+  {
+    field: 'defaultValue',
+    title: '默认值',
+    width: 150,
+    editRender: { autoFocus: 'input' },
+  },
   {
     field: 'valueType',
     title: '值类型',

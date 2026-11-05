@@ -1,16 +1,16 @@
 <script lang="ts" setup>
-import {ref, reactive, h, onMounted} from 'vue';
+import { onMounted, ref } from 'vue';
+
 import { useVbenDrawer } from '@vben/common-ui';
-import { usePgForm } from '#/adapter';
-import {
-  type VxeTableInstance,
-} from 'vxe-table';
-import { saveOrUpdate, detail as getDetail } from '../api';
+
+import { type VxeTableInstance } from 'vxe-table';
+
+import { message, usePgForm } from '#/adapter';
 import { detail as detailModel } from '#/viewsBasic/configModel/api';
-import { formSchema, fieldColumns } from '../data';
-import { message } from '#/adapter';
-import {PgTreeSelect} from "@pg/components-n";
-import {codeValueAllPublic} from "#/viewsBasic/data-dict/dict/api";
+import { codeValueAllPublic } from '#/viewsBasic/data-dict/dict/api';
+
+import { detail as getDetail, saveOrUpdate } from '../api';
+import { fieldColumns, formSchema } from '../data';
 
 const emit = defineEmits(['ok']);
 
@@ -28,7 +28,9 @@ function formatLabel(row: any, col: any) {
   const options = col.params?.options || [];
   if (col.field === 'rules') {
     if (Array.isArray(value)) {
-      return value.map(v => options.find((o: any) => o.value === v)?.label || v).join(',');
+      return value
+        .map((v) => options.find((o: any) => o.value === v)?.label || v)
+        .join(',');
     }
     return value;
   }
@@ -47,7 +49,9 @@ function formatLabel(row: any, col: any) {
     return item ? item.label : value;
   }
   if (col.field === 'parameterSource') {
-    const item = optionsParameterSource.value.find((o: any) => o.value === value);
+    const item = optionsParameterSource.value.find(
+      (o: any) => o.value === value,
+    );
     return item ? item.label : value;
   }
   const item = options.find((o: any) => o.value === value);
@@ -72,44 +76,48 @@ const [Drawer, drawerApi] = useVbenDrawer({
         closeOnClickModal: false, // 点击遮罩关闭弹窗
         destroyOnClose: true, // 关闭时销毁
       });
-      const { values, isUpdate, model } = drawerApi.getData<Record<string, any>>();
+      const { values, isUpdate, model } =
+        drawerApi.getData<Record<string, any>>();
       bodyDelIds.value = [];
       if (isUpdate && values?.id) {
-        getDetail(values.id)
-          .then((res: any) => {
-            if (res) {
-              formApi.setValues(res.header || {});
-              tableData.value = res.body || [];
-            }
-          });
+        getDetail(values.id).then((res: any) => {
+          if (res) {
+            formApi.setValues(res.header || {});
+            tableData.value = res.body || [];
+          }
+        });
       } else {
         formApi.resetForm();
         tableData.value = [];
       }
       if (!isUpdate && model) {
-        detailModel(model.id)
-          .then((res: any) => {
-            if (res) {
-              formApi.setValues({
+        detailModel(model.id).then((res: any) => {
+          if (res) {
+            formApi.setValues(
+              {
                 ...res.header,
-                id:'0',
+                id: '0',
                 field: res.header.model,
                 modelNo: model.no,
-              }|| {});
-              if (res.body) {
-                for (const resKey in res.body) {
-                  tableData.value.push({
-                    ...res.body[resKey],
-                    id: "0",
-                  });
-                }
-              }else {
-                tableData.value = [];
+              } || {},
+            );
+            if (res.body) {
+              for (const resKey in res.body) {
+                tableData.value.push({
+                  ...res.body[resKey],
+                  id: '0',
+                });
               }
+            } else {
+              tableData.value = [];
             }
-          });
+          }
+        });
       }
-      drawerApi.setState({ title: `模型事件配置：${isUpdate ? '编辑' : '新增'}`,loading: false });
+      drawerApi.setState({
+        title: `模型事件配置：${isUpdate ? '编辑' : '新增'}`,
+        loading: false,
+      });
     }
   },
   title: '',
@@ -154,7 +162,7 @@ async function onSubmit() {
   if (!valid) {
     return false;
   }
-  const values = await formApi.getValues<Omit<Record<string, any>,'id'>>();
+  const values = await formApi.getValues<Omit<Record<string, any>, 'id'>>();
   drawerApi.lock();
   try {
     drawerApi.setState({ loading: true, confirmLoading: true });
@@ -178,13 +186,12 @@ async function onSubmit() {
       bodyDelIds: bodyDelIds.value,
     };
 
-    saveOrUpdate(postData, isUpdate)
-      .then(() => {
-        message.success('保存成功');
-        emit('ok');
-        drawerApi.setState({ loading: false });
-        drawerApi.close();
-      });
+    saveOrUpdate(postData, isUpdate).then(() => {
+      message.success('保存成功');
+      emit('ok');
+      drawerApi.setState({ loading: false });
+      drawerApi.close();
+    });
   } catch (error) {
     console.error(error);
   } finally {
@@ -193,27 +200,36 @@ async function onSubmit() {
   }
 }
 
-const loadCodeValueAllPublic = ()=>{
-  codeValueAllPublic({ typeCodeArr:['basicModel:valueType','basicModel:formCode','basicModel:ParameterSource'] }).then(( res) => {
-    if(res) {
-      console.log('codeValueAllPublic',res)
+const loadCodeValueAllPublic = () => {
+  codeValueAllPublic({
+    typeCodeArr: [
+      'basicModel:valueType',
+      'basicModel:formCode',
+      'basicModel:ParameterSource',
+    ],
+  }).then((res) => {
+    if (res) {
+      console.log('codeValueAllPublic', res);
       for (const resKey in res) {
-        if ('basicModel:valueType' === resKey) {
+        if (resKey === 'basicModel:valueType') {
           for (const i in res[resKey]) {
             const item = res[resKey][i];
-            optionsValueType.value.push({value: item.key, label: item.label});
+            optionsValueType.value.push({ value: item.key, label: item.label });
           }
         }
-        if ('basicModel:formCode' === resKey) {
+        if (resKey === 'basicModel:formCode') {
           for (const i in res[resKey]) {
             const item = res[resKey][i];
-            optionsFormCode.value.push({value: item.key, label: item.label});
+            optionsFormCode.value.push({ value: item.key, label: item.label });
           }
         }
-        if ('basicModel:ParameterSource' === resKey) {
+        if (resKey === 'basicModel:ParameterSource') {
           for (const i in res[resKey]) {
             const item = res[resKey][i];
-            optionsParameterSource.value.push({value: item.key, label: item.label});
+            optionsParameterSource.value.push({
+              value: item.key,
+              label: item.label,
+            });
           }
         }
       }
@@ -231,7 +247,9 @@ onMounted(() => {
       <div class="mb-4 font-bold border-l-4 border-primary pl-2">基本信息</div>
       <Form />
 
-      <div class="mt-6 mb-4 flex justify-between items-center border-l-4 border-primary pl-2">
+      <div
+        class="mt-6 mb-4 flex justify-between items-center border-l-4 border-primary pl-2"
+      >
         <span class="font-bold">字段配置</span>
         <vxe-button status="primary" @click="insertEvent">新增字段</vxe-button>
       </div>
@@ -246,10 +264,17 @@ onMounted(() => {
         :edit-config="{ trigger: 'click', mode: 'cell', showStatus: true }"
         :edit-rules="{
           name: [{ required: true, content: '请输入字段名称' }],
-          field: [{ required: true, content: '请输入字段标识' },{ pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/, content: '字段标识格式错误' }]
+          field: [
+            { required: true, content: '请输入字段标识' },
+            { pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/, content: '字段标识格式错误' },
+          ],
         }"
       >
-        <vxe-column v-for="col in fieldColumns" :key="col.field || col.type" v-bind="col">
+        <vxe-column
+          v-for="col in fieldColumns"
+          :key="col.field || col.type"
+          v-bind="col"
+        >
           <!-- 编辑插槽 -->
           <template #edit="{ row }">
             <!-- 显示/二进制 开关 -->
@@ -265,34 +290,64 @@ onMounted(() => {
 
             <!-- 下拉选择 -->
             <template v-else-if="['parameterSource'].includes(col.field)">
-              <vxe-select v-model="row[col.field]" :options="optionsParameterSource" transfer></vxe-select>
+              <vxe-select
+                v-model="row[col.field]"
+                :options="optionsParameterSource"
+                transfer
+              />
             </template>
             <template v-else-if="['valueType'].includes(col.field)">
-              <vxe-select v-model="row[col.field]"
-                          :options="optionsValueType" transfer ></vxe-select>
+              <vxe-select
+                v-model="row[col.field]"
+                :options="optionsValueType"
+                transfer
+              />
             </template>
             <template v-else-if="['formCode'].includes(col.field)">
-              <vxe-select v-model="row[col.field]"
-                          :options="optionsFormCode" transfer ></vxe-select>
+              <vxe-select
+                v-model="row[col.field]"
+                :options="optionsFormCode"
+                transfer
+              />
             </template>
 
             <!-- 下拉多选 (验证规则) -->
             <template v-else-if="col.field === 'rules'">
-              <vxe-select v-model="row.rules" :options="col.params?.options" multiple transfer></vxe-select>
+              <vxe-select
+                v-model="row.rules"
+                :options="col.params?.options"
+                multiple
+                transfer
+              />
             </template>
 
             <!-- 文本输入 (名称, 标识, 默认值) -->
-            <template v-else-if="['name', 'field', 'defaultValue'].includes(col.field)">
-              <vxe-input v-model="row[col.field]"></vxe-input>
+            <template
+              v-else-if="['name', 'field', 'defaultValue'].includes(col.field)"
+            >
+              <vxe-input v-model="row[col.field]" />
             </template>
           </template>
 
           <!-- 默认展示插槽 -->
           <template #default="{ row }">
             <template v-if="col.slots?.default === 'operate'">
-              <vxe-button status="danger" mode="text" @click="removeEvent(row)">删除</vxe-button>
+              <vxe-button status="danger" mode="text" @click="removeEvent(row)">
+删除
+</vxe-button>
             </template>
-            <template v-else-if="['show', 'binary', 'valueType', 'formCode', 'parameterSource', 'rules'].includes(col.field)">
+            <template
+              v-else-if="
+                [
+                  'show',
+                  'binary',
+                  'valueType',
+                  'formCode',
+                  'parameterSource',
+                  'rules',
+                ].includes(col.field)
+              "
+            >
               <span>{{ formatLabel(row, col) }}</span>
             </template>
             <template v-else>

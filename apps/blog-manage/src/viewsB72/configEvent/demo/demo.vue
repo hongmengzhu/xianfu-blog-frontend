@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { usePgForm } from '#/adapter';
 import type { VbenFormSchema } from '#/adapter/form';
+
+import { onMounted, ref } from 'vue';
+
+import { usePgForm } from '#/adapter';
 import { modelForm } from '#/viewsBasic/configEvent/event/api';
 
 interface FormItem {
@@ -57,21 +59,25 @@ function getComponentProps(item: FormItem): Record<string, any> {
   };
 
   switch (item.formCode) {
-    case 'InputNumber':
+    case 'InputNumber': {
       props.placeholder = `请输入${item.name}`;
       props.style = { width: '100%' };
       break;
-    case 'Select':
+    }
+    case 'Select': {
       props.placeholder = `请选择${item.name}`;
       props.options = [];
       break;
-    case 'DatePicker':
+    }
+    case 'DatePicker': {
       props.placeholder = `请选择${item.name}`;
       props.type = 'date';
       props.style = { width: '100%' };
       break;
-    default:
+    }
+    default: {
       break;
+    }
   }
 
   return props;
@@ -97,5 +103,4 @@ onMounted(async () => {
   </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

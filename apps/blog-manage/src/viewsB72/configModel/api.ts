@@ -2,25 +2,25 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  createUpdate = '/xianfu/manage/basic/config-model/createUpdate',
-  delete = '/xianfu/manage/basic/config-model/delete',
-  detail = '/xianfu/manage/basic/config-model/detail/',
-  disable = '/xianfu/manage/basic/config-model/disable',
-  enable = '/xianfu/manage/basic/config-model/enable',
-  existCode = '/xianfu/manage/basic/config-model/existCode',
-  existModel = '/xianfu/manage/basic/config-model/existModel',
-  existName = '/xianfu/manage/basic/config-model/existName',
-  list = '/xianfu/manage/basic/config-model/query',
-  physicalDeletion = '/xianfu/manage/basic/config-model/physicalDeletion',
-  recovery = '/xianfu/manage/basic/config-model/recovery',
-  selectNodeAllPublic = '/xianfu/manage/basic/config-model/selectNodeAllPublic',
-  state = '/xianfu/manage/basic/config-model/state',
+  createUpdate = '/xianfu/manage/b72/config-model/createUpdate',
+  delete = '/xianfu/manage/b72/config-model/delete',
+  detail = '/xianfu/manage/b72/config-model/detail/',
+  disable = '/xianfu/manage/b72/config-model/disable',
+  enable = '/xianfu/manage/b72/config-model/enable',
+  existCode = '/xianfu/manage/b72/config-model/existCode',
+  existModel = '/xianfu/manage/b72/config-model/existModel',
+  existName = '/xianfu/manage/b72/config-model/existName',
+  list = '/xianfu/manage/b72/config-model/query',
+  physicalDeletion = '/xianfu/manage/b72/config-model/physicalDeletion',
+  recovery = '/xianfu/manage/b72/config-model/recovery',
+  selectNodeAllPublic = '/xianfu/manage/b72/config-model/selectNodeAllPublic',
+  state = '/xianfu/manage/b72/config-model/state',
   // 配置分类（设计器选择配置分类编号）
-  configCategoryList = '/xianfu/manage/basic/config-category/query',
+  configCategoryList = '/xianfu/manage/b72/config-category/query',
   // 按模型读取配置值（设计器生成的配置行）
-  allByModel = '/xianfu/manage/basic/config/allByModel',
+  allByModel = '/xianfu/manage/b72/config/allByModel',
   // 按模型批量保存配置值
-  updateValues = '/xianfu/manage/basic/config/updateValues',
+  updateValues = '/xianfu/manage/b72/config/updateValues',
 }
 
 /**

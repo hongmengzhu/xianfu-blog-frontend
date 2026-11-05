@@ -2,22 +2,22 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  allByModel = '/xianfu/manage/basic/config/allByModel',
-  cacheOverride = '/xianfu/manage/basic/config/cacheOverride',
-  createUpdate = '/xianfu/manage/basic/config/createUpdate',
-  delete = '/xianfu/manage/basic/config/delete',
-  detail = '/xianfu/manage/basic/config/detail/',
-  disable = '/xianfu/manage/basic/config/disable',
-  enable = '/xianfu/manage/basic/config/enable',
-  existName = '/xianfu/manage/basic/config/existName',
-  list = '/xianfu/manage/basic/config/query',
-  physicalDeletion = '/xianfu/manage/basic/config/physicalDeletion',
-  recovery = '/xianfu/manage/basic/config/recovery',
-  state = '/xianfu/manage/basic/config/state',
-  updateValues = '/xianfu/manage/basic/config/updateValues',
+  allByModel = '/xianfu/manage/b72/config/allByModel',
+  cacheOverride = '/xianfu/manage/b72/config/cacheOverride',
+  createUpdate = '/xianfu/manage/b72/config/createUpdate',
+  delete = '/xianfu/manage/b72/config/delete',
+  detail = '/xianfu/manage/b72/config/detail/',
+  disable = '/xianfu/manage/b72/config/disable',
+  enable = '/xianfu/manage/b72/config/enable',
+  existName = '/xianfu/manage/b72/config/existName',
+  list = '/xianfu/manage/b72/config/query',
+  physicalDeletion = '/xianfu/manage/b72/config/physicalDeletion',
+  recovery = '/xianfu/manage/b72/config/recovery',
+  state = '/xianfu/manage/b72/config/state',
+  updateValues = '/xianfu/manage/b72/config/updateValues',
   // 关联接口
-  categoryList = '/xianfu/manage/basic/config-category/query',
-  modelList = '/xianfu/manage/basic/config-model/query',
+  categoryList = '/xianfu/manage/b72/config-category/query',
+  modelList = '/xianfu/manage/b72/config-model/query',
 }
 
 /**

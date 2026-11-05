@@ -12,7 +12,6 @@ import {
   batchSelectEnable,
   batchSelectPhysicalDeletion,
   batchSelectRecovery,
-  deleteIds,
   List,
 } from '../api';
 import { columns, useGridFormSchema } from './data';

@@ -1,21 +1,26 @@
 <script setup lang="ts">
-import {ref, reactive, h, onMounted, watch, nextTick } from 'vue';
-import {
-  type VxeTableInstance,
-  VXETable,
-} from 'vxe-table';
-import { message } from '#/adapter';
+import type { VxeTableInstance } from 'vxe-table';
+
+import { nextTick, onMounted, ref, watch } from 'vue';
+
 import { useVbenDrawer } from '@vben/common-ui';
+
+import { PgTreeSelect } from '@pg/components-n';
+import { NAlert } from 'naive-ui';
+
+import { message } from '#/adapter';
+import { allByEventNo, saveOrUpdate } from '#/viewsBasic/configEvent/field/api';
 import {
-  allByEventNo,
-  saveOrUpdate,
-} from '#/viewsBasic/configEvent/field/api';
-import { fieldColumns } from './data';
-import {codeValueAllPublic, selectNodeAllPublic as selectDictNodeAllPublic} from "#/viewsBasic/data-dict/dict/api";
-import { allByValueNo as getRuleFields, deleteIds } from '#/viewsBasic/modelRules/api';
+  codeValueAllPublic,
+  selectNodeAllPublic as selectDictNodeAllPublic,
+} from '#/viewsBasic/data-dict/dict/api';
+import {
+  deleteIds,
+  allByValueNo as getRuleFields,
+} from '#/viewsBasic/modelRules/api';
 import DrawerEditTpl from '#/viewsBasic/modelRules/components/DrawerEdit.vue';
-import {NAlert} from 'naive-ui';
-import {PgTreeSelect} from "@pg/components-n";
+
+import { fieldColumns } from './data';
 
 // 接收父组件传递的 event 对象
 const props = defineProps<{
@@ -105,7 +110,7 @@ function formatRuleMode(value: string) {
 async function insertEvent() {
   const $table = xTable.value;
   if ($table) {
-   const { row } = await $table.insert({
+    const { row } = await $table.insert({
       show: 1,
       binary: 2,
       valueType: 'varchar',
@@ -127,7 +132,7 @@ async function removeSelectedEvent() {
       return;
     }
     await $table.remove(selectedRows);
-    selectedRows.forEach(row => {
+    selectedRows.forEach((row) => {
       if (row.id && row.id !== '0') {
         bodyDelIds.value.push(row.id);
       }
@@ -166,9 +171,9 @@ async function saveTableEvent() {
 watch(
   () => props.eventData,
   async (newVal) => {
-   console.log('newVal', newVal);
-   if (newVal && newVal.no) {
-     await loadData(newVal.no);
+    console.log('newVal', newVal);
+    if (newVal && newVal.no) {
+      await loadData(newVal.no);
     } else {
       tableData.value = [];
       bodyDelIds.value = [];
@@ -176,15 +181,15 @@ watch(
       selectedRuleFieldRow.value = null;
     }
   },
-  { immediate: true }
+  { immediate: true },
 );
 
 // 加载数据 模型
 async function loadData(eventNo: string) {
   try {
-   const res = await allByEventNo({ eventNo:eventNo });
+    const res = await allByEventNo({ eventNo });
     if (res) {
-     console.log('allByEventNo', res);
+      console.log('allByEventNo', res);
       tableData.value = res.map((item: any) => ({
         ...item,
         id: item.id || '0',
@@ -197,38 +202,48 @@ async function loadData(eventNo: string) {
       });
     }
   } catch (error) {
-   console.error('Failed to load fields data:', error);
+    console.error('Failed to load fields data:', error);
     message.error('加载字段数据失败');
   }
 }
 
 // 加载码值数据
 const loadCodeValueAllPublic = () => {
-  codeValueAllPublic({ typeCodeArr: ['basicModel:valueType', 'basicModel:formCode', 'basicModel:ParameterSource', 'basicModel:ruleMode'] }).then((res) => {
+  codeValueAllPublic({
+    typeCodeArr: [
+      'basicModel:valueType',
+      'basicModel:formCode',
+      'basicModel:ParameterSource',
+      'basicModel:ruleMode',
+    ],
+  }).then((res) => {
     if (res) {
-     console.log('codeValueAllPublic', res);
+      console.log('codeValueAllPublic', res);
       for (const resKey in res) {
-        if ('basicModel:valueType' === resKey) {
+        if (resKey === 'basicModel:valueType') {
           for (const i in res[resKey]) {
-           const item = res[resKey][i];
+            const item = res[resKey][i];
             optionsValueType.value.push({ value: item.key, label: item.label });
           }
         }
-        if ('basicModel:formCode' === resKey) {
+        if (resKey === 'basicModel:formCode') {
           for (const i in res[resKey]) {
-           const item = res[resKey][i];
+            const item = res[resKey][i];
             optionsFormCode.value.push({ value: item.key, label: item.label });
           }
         }
-        if ('basicModel:ParameterSource' === resKey) {
+        if (resKey === 'basicModel:ParameterSource') {
           for (const i in res[resKey]) {
-           const item = res[resKey][i];
-            optionsParameterSource.value.push({ value: item.key, label: item.label });
+            const item = res[resKey][i];
+            optionsParameterSource.value.push({
+              value: item.key,
+              label: item.label,
+            });
           }
         }
-        if ('basicModel:ruleMode' === resKey) {
+        if (resKey === 'basicModel:ruleMode') {
           for (const i in res[resKey]) {
-           const item = res[resKey][i];
+            const item = res[resKey][i];
             optionsRuleMode.value.push({ value: item.key, label: item.label });
           }
         }
@@ -241,7 +256,7 @@ const loadCodeValueAllPublic = () => {
 async function loadRuleFieldsData(eventNo: string) {
   try {
     ruleFieldsLoading.value = true;
-    const res = await getRuleFields({ valueNo:eventNo });
+    const res = await getRuleFields({ valueNo: eventNo });
     if (res) {
       ruleFieldsData.value = res;
     }
@@ -273,8 +288,8 @@ onMounted(() => {
 
 // 暴露刷新方法给父组件
 defineExpose({
- reloadTable: () => {
-   if (props.eventData?.no) {
+  reloadTable: () => {
+    if (props.eventData?.no) {
       loadData(props.eventData.no);
       loadRuleFieldsData(props.eventData.no);
     }
@@ -328,9 +343,9 @@ async function deleteRuleField(row: any) {
     return;
   }
   try {
-    await deleteIds([row.id],selectedRuleFieldRow.value.no);
+    await deleteIds([row.id], selectedRuleFieldRow.value.no);
     message.success('删除成功');
-  } catch (error) {
+  } catch {
     message.error('删除失败');
   }
 }
@@ -338,7 +353,7 @@ async function deleteRuleField(row: any) {
 function cellClickEvent({ row }: any) {
   selectedRuleFieldRow.value = row;
   isRuleFieldNewRow.value = !row.id || row.id === '0';
-  console.log('cellClickEvent', row)
+  console.log('cellClickEvent', row);
   if (row?.no) {
     loadRuleFieldsData(row?.no);
   }
@@ -351,13 +366,21 @@ function reloadFieldRule(opt) {
 </script>
 
 <template>
-  <div :class="['h-full p-2 bg-white', isFullscreen ? 'fullscreen-wrapper' : '']">
+  <div
+    class="h-full p-2 bg-white" :class="[isFullscreen ? 'fullscreen-wrapper' : '']"
+  >
     <div class="mb-2 flex justify-between items-center">
       <span class="font-bold">字段配置</span>
       <div class="flex items-center gap-2">
-        <vxe-button size="small" status="primary" @click="saveTableEvent">保存</vxe-button>
-        <vxe-button size="small" status="danger" @click="removeSelectedEvent">批量删除</vxe-button>
-        <vxe-button size="small" status="primary" @click="insertEvent">新增字段</vxe-button>
+        <vxe-button size="small" status="primary" @click="saveTableEvent">
+保存
+</vxe-button>
+        <vxe-button size="small" status="danger" @click="removeSelectedEvent">
+批量删除
+</vxe-button>
+        <vxe-button size="small" status="primary" @click="insertEvent">
+新增字段
+</vxe-button>
         <vxe-button
           size="small"
           :icon="isFullscreen ? 'vxe-icon-shrink' : 'vxe-icon-fullscreen'"
@@ -367,7 +390,7 @@ function reloadFieldRule(opt) {
       </div>
     </div>
     <vxe-table
-   ref="xTable"
+      ref="xTable"
       border
       show-overflow
       keep-source
@@ -377,11 +400,18 @@ function reloadFieldRule(opt) {
       :edit-config="{ trigger: 'click', mode: 'cell', showStatus: true }"
       :edit-rules="{
         name: [{ required: true, content: '请输入字段名称' }],
-        field: [{ required: true, content: '请输入字段标识' }, { pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/, content: '字段标识格式错误' }]
+        field: [
+          { required: true, content: '请输入字段标识' },
+          { pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/, content: '字段标识格式错误' },
+        ],
       }"
       @cell-click="cellClickEvent"
     >
-      <vxe-column v-for="col in fieldColumns" :key="col.field || col.type" v-bind="col">
+      <vxe-column
+        v-for="col in fieldColumns"
+        :key="col.field || col.type"
+        v-bind="col"
+      >
         <!-- 编辑插槽 -->
         <template #edit="{ row }">
           <!-- 显示/二进制 开关 -->
@@ -390,61 +420,107 @@ function reloadFieldRule(opt) {
               v-model="row[col.field]"
               :open-value="1"
               :close-value="2"
-              :open-label="'是'"
-              :close-label="'否'"
+              open-label="是"
+              close-label="否"
             />
           </template>
           <!-- 文本输入 (名称，标识) -->
           <template v-else-if="['name', 'field'].includes(col.field)">
-            <vxe-input v-model="row[col.field]"></vxe-input>
+            <vxe-input v-model="row[col.field]" />
           </template>
         </template>
 
         <template #content="{ row }">
-          <div style="min-height: 300px" class="p-4" @click="cellClickEvent({ row })">
+          <div
+            style="min-height: 300px"
+            class="p-4"
+            @click="cellClickEvent({ row })"
+          >
             <vxe-form
               title-align="left"
-              :data="row" :rules="formRules" @submit="submitEvent" @reset="resetEvent">
-              <vxe-form-item title="默认值" field="defaultValue" :item-render="{}" :span="8">
+              :data="row"
+              :rules="formRules"
+              @submit="submitEvent"
+              @reset="resetEvent"
+            >
+              <vxe-form-item
+                title="默认值"
+                field="defaultValue"
+                :item-render="{}"
+                :span="8"
+              >
                 <template #default>
-                  <vxe-input v-model="row.defaultValue"></vxe-input>
+                  <vxe-input v-model="row.defaultValue" />
                 </template>
               </vxe-form-item>
-              <vxe-form-item title="值类型" field="valueType" :item-render="{}" :span="12">
+              <vxe-form-item
+                title="值类型"
+                field="valueType"
+                :item-render="{}"
+                :span="12"
+              >
                 <template #default>
-                  <vxe-select v-model="row.valueType" :options="optionsValueType"
-                              transfer></vxe-select>
+                  <vxe-select
+                    v-model="row.valueType"
+                    :options="optionsValueType"
+                    transfer
+                  />
                 </template>
               </vxe-form-item>
-                <vxe-form-item title="表单类型" field="formCode" :item-render="{}" :span="8">
-                  <template #default>
-                    <vxe-select v-model="row.formCode" :options="optionsFormCode"
-                                transfer></vxe-select>
-                  </template>
-                </vxe-form-item>
-                <vxe-form-item title="参数源" field="parameterSource" :item-render="{}" :span="12">
-                  <template #default>
-                    <vxe-select v-model="row.parameterSource" :options="optionsParameterSource"
-                                transfer clearable></vxe-select>
-                  </template>
-                </vxe-form-item>
-                <vxe-form-item title="参数源配置" field="parameterConfigDataDictionary" :item-render="{}" :span="12" v-if="row.formCode === 'Select' && row.parameterSource === 'dataDictionary'">
-                  <template #default>
-                    <PgTreeSelect
-                      :api="selectDictNodeAllPublic"
-                      :convertNode="true"
-                      v-model:value="row.parameterConfigDataDictionary"
-                    />
-                  </template>
-                </vxe-form-item>
+              <vxe-form-item
+                title="表单类型"
+                field="formCode"
+                :item-render="{}"
+                :span="8"
+              >
+                <template #default>
+                  <vxe-select
+                    v-model="row.formCode"
+                    :options="optionsFormCode"
+                    transfer
+                  />
+                </template>
+              </vxe-form-item>
+              <vxe-form-item
+                title="参数源"
+                field="parameterSource"
+                :item-render="{}"
+                :span="12"
+              >
+                <template #default>
+                  <vxe-select
+                    v-model="row.parameterSource"
+                    :options="optionsParameterSource"
+                    transfer
+                    clearable
+                  />
+                </template>
+              </vxe-form-item>
+              <vxe-form-item
+                title="参数源配置"
+                field="parameterConfigDataDictionary"
+                :item-render="{}"
+                :span="12"
+                v-if="
+                  row.formCode === 'Select' &&
+                  row.parameterSource === 'dataDictionary'
+                "
+              >
+                <template #default>
+                  <PgTreeSelect
+                    :api="selectDictNodeAllPublic"
+                    :convert-node="true"
+                    v-model:value="row.parameterConfigDataDictionary"
+                  />
+                </template>
+              </vxe-form-item>
 
-<!--                <vxe-form-item title="验证规则" field="rules" :item-render="{}" :span="8">-->
-<!--                  <template #default>-->
-<!--                    <vxe-select v-model="row.rules" :options="ruleOptions" multiple-->
-<!--                                transfer></vxe-select>-->
-<!--                  </template>-->
-<!--                </vxe-form-item>-->
-
+              <!--                <vxe-form-item title="验证规则" field="rules" :item-render="{}" :span="8">-->
+              <!--                  <template #default>-->
+              <!--                    <vxe-select v-model="row.rules" :options="ruleOptions" multiple-->
+              <!--                                transfer></vxe-select>-->
+              <!--                  </template>-->
+              <!--                </vxe-form-item>-->
             </vxe-form>
           </div>
         </template>
@@ -463,7 +539,9 @@ function reloadFieldRule(opt) {
     <div class="mt-4">
       <div class="mb-2 flex justify-between items-center">
         <span class="font-bold">验证模式字段配置</span>
-        <vxe-button size="small" status="primary" @click="addRuleField">新增</vxe-button>
+        <vxe-button size="small" status="primary" @click="addRuleField">
+新增
+</vxe-button>
       </div>
       <template v-if="selectedRuleFieldRow">
         <template v-if="!isRuleFieldNewRow">
@@ -473,14 +551,32 @@ function reloadFieldRule(opt) {
             :loading="ruleFieldsLoading"
             :data="ruleFieldsData"
           >
-            <vxe-column v-for="col in ruleFieldsColumns" :key="col.field || col.type" v-bind="col">
+            <vxe-column
+              v-for="col in ruleFieldsColumns"
+              :key="col.field || col.type"
+              v-bind="col"
+            >
               <template #default="{ row }">
                 <template v-if="col.field === 'ruleMode'">
                   <span>{{ formatRuleMode(row[col.field]) }}</span>
                 </template>
                 <template v-else-if="col.field === 'action'">
-                  <vxe-button type="text" status="primary" size="small" @click="editRuleField(row)">修改</vxe-button>
-                  <vxe-button type="text" status="danger" size="small" @click="deleteRuleField(row)">删除</vxe-button>
+                  <vxe-button
+                    type="text"
+                    status="primary"
+                    size="small"
+                    @click="editRuleField(row)"
+                    >
+修改
+</vxe-button>
+                  <vxe-button
+                    type="text"
+                    status="danger"
+                    size="small"
+                    @click="deleteRuleField(row)"
+                    >
+删除
+</vxe-button>
                 </template>
                 <template v-else>
                   <span>{{ row[col.field] }}</span>
@@ -490,18 +586,18 @@ function reloadFieldRule(opt) {
           </vxe-table>
         </template>
         <template v-else>
-          <NAlert type="warning" show-icon >
+          <NAlert type="warning" show-icon>
             只有字段保存到数据库后，才能操作
           </NAlert>
         </template>
       </template>
       <template v-else>
-        <NAlert type="info" show-icon >
+        <NAlert type="info" show-icon>
           请先点击上方表格中的某一行来显示验证模式字段配置
         </NAlert>
       </template>
     </div>
-    <Drawer @ok="reloadFieldRule"/>
+    <Drawer @ok="reloadFieldRule" />
   </div>
 </template>
 
@@ -513,13 +609,10 @@ function reloadFieldRule(opt) {
 /* 全屏样式 */
 .fullscreen-wrapper {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   z-index: 2100;
-  background-color: white;
   padding: 16px;
+  background-color: white;
 }
 </style>
 

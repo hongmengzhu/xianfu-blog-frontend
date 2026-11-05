@@ -25,15 +25,6 @@ const routes: RouteRecordRaw[] = [
       // },
       {
         meta: {
-          title: '配置列表',
-          icon: 'mdi:account-multiple',
-        },
-        name: 'basic-config',
-        path: '/lq2/basic/config',
-        component: () => import('#/viewsBasic/config/list/index.vue'),
-      },
-      {
-        meta: {
           title: '省市区',
           icon: 'mdi:account-multiple',
         },
@@ -78,33 +69,7 @@ const routes: RouteRecordRaw[] = [
         component: () =>
           import('#/viewsBasic/data-snapshot/snapshot/index.vue'),
       },
-      {
-        meta: {
-          title: '模型',
-          icon: 'mdi:account-key',
-        },
-        name: 'basic-model',
-        path: '/lq2/basic/model',
-        component: () => import('#/viewsBasic/configModel/index.vue'),
-      },
-      {
-        meta: {
-          title: '模型事件页面',
-          icon: 'mdi:account-key',
-        },
-        name: 'basic-event',
-        path: '/lq2/basic/event',
-        component: () => import('#/viewsBasic/configEvent/event/index.vue'),
-      },
-      {
-        meta: {
-          title: '事件-demo',
-          icon: 'mdi:account-key',
-        },
-        name: 'basic-event-demo',
-        path: '/lq2/basic/event-demo',
-        component: () => import('#/viewsBasic/configEvent/demo/demo.vue'),
-      },
+
       {
         meta: {
           title: '模块',

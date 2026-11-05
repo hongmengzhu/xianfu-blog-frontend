@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { h } from 'vue';
 
-import { useVbenModal, VbenButton, z } from '@vben/common-ui';
+import { useVbenModal, z } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 
 import { usePgForm } from '#/adapter';
@@ -12,9 +11,7 @@ const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
   tabs: {
     active: 'home',
-    group: [
-      { value: 'home', label: '复制' },
-    ],
+    group: [{ value: 'home', label: '复制' }],
   },
   schema: [
     {
@@ -54,7 +51,9 @@ const [Modal, modalApi] = useVbenModal({
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
       const { values } = modalApi.getData<Record<string, any>>();
-      modalApi.setState({ title: `事件复制：${values.account} (${values.phone})  ${values.id}` });
+      modalApi.setState({
+        title: `事件复制：${values.account} (${values.phone})  ${values.id}`,
+      });
     }
   },
 });
@@ -66,7 +65,7 @@ async function onSubmit() {
   if (!valid) {
     return false;
   }
-  const values = await formApi.getValues<Omit<Record<string, any>,'id'>>();
+  const values = await formApi.getValues<Omit<Record<string, any>, 'id'>>();
   modalApi.lock();
   try {
     modalApi.setState({ loading: true, confirmLoading: true });

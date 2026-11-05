@@ -1,8 +1,8 @@
-import type { VbenFormSchema } from '#/adapter/form';
 import type { VxeGridPropTypes } from 'vxe-table';
 
-import _XEUtils_ from 'xe-utils';
+import type { VbenFormSchema } from '#/adapter/form';
 
+import _XEUtils_ from 'xe-utils';
 
 /**
  * 搜索表单 Schema
@@ -47,8 +47,7 @@ export const columns: VxeGridPropTypes.Columns = [
     width: 90,
     cellRender: {
       name: 'PgState',
-      events: {
-      },
+      events: {},
     },
   },
   {

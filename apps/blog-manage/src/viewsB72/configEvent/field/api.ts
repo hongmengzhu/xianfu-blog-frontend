@@ -2,25 +2,25 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  allByEventNo = '/xianfu/manage/basic/configEventFields/allByEventNo',
-  create = '/xianfu/manage/basic/configEventFields/create',
-  createUpdate = '/xianfu/manage/basic/configEventFields/createUpdate',
-  delete = '/xianfu/manage/basic/configEventFields/delete',
-  detail = '/xianfu/manage/basic/configEventFields/detail/',
-  disable = '/xianfu/manage/basic/configEventFields/disable',
-  enable = '/xianfu/manage/basic/configEventFields/enable',
-  existName = '/xianfu/manage/basic/configEventFields/existName',
-  existCode = '/xianfu/manage/basic/configEventFields/existCode',
-  existValue = '/xianfu/manage/basic/configEventFields/existValue',
-  exportExcel = '/xianfu/manage/basic/configEventFields/exportExcel',
-  list = '/xianfu/manage/basic/configEventFields/query',
-  physicalDeletion = '/xianfu/manage/basic/configEventFields/physicalDeletion',
-  recovery = '/xianfu/manage/basic/configEventFields/recovery',
-  selectNodeAllPublic = '/xianfu/manage/basic/configEventFields/selectNodeAllPublic',
-  selectNodePublic = '/xianfu/manage/basic/configEventFields/selectNodePublic',
-  selectPublic = '/xianfu/manage/basic/configEventFields/selectPublic',
-  state = '/xianfu/manage/basic/configEventFields/state',
-  update = '/xianfu/manage/basic/configEventFields/update',
+  allByEventNo = '/xianfu/manage/b72/configEventFields/allByEventNo',
+  create = '/xianfu/manage/b72/configEventFields/create',
+  createUpdate = '/xianfu/manage/b72/configEventFields/createUpdate',
+  delete = '/xianfu/manage/b72/configEventFields/delete',
+  detail = '/xianfu/manage/b72/configEventFields/detail/',
+  disable = '/xianfu/manage/b72/configEventFields/disable',
+  enable = '/xianfu/manage/b72/configEventFields/enable',
+  existName = '/xianfu/manage/b72/configEventFields/existName',
+  existCode = '/xianfu/manage/b72/configEventFields/existCode',
+  existValue = '/xianfu/manage/b72/configEventFields/existValue',
+  exportExcel = '/xianfu/manage/b72/configEventFields/exportExcel',
+  list = '/xianfu/manage/b72/configEventFields/query',
+  physicalDeletion = '/xianfu/manage/b72/configEventFields/physicalDeletion',
+  recovery = '/xianfu/manage/b72/configEventFields/recovery',
+  selectNodeAllPublic = '/xianfu/manage/b72/configEventFields/selectNodeAllPublic',
+  selectNodePublic = '/xianfu/manage/b72/configEventFields/selectNodePublic',
+  selectPublic = '/xianfu/manage/b72/configEventFields/selectPublic',
+  state = '/xianfu/manage/b72/configEventFields/state',
+  update = '/xianfu/manage/b72/configEventFields/update',
 }
 
 /**
@@ -88,7 +88,8 @@ export const saveOrUpdate = (data: any, isUpdate: boolean) => {
  */
 export const deleteIds = (params: any) => {
   return requestClient.post(Api.delete, {
-    ids: params });
+    ids: params,
+  });
 };
 
 /**

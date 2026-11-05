@@ -6,9 +6,7 @@ import { useVbenModal } from '@vben/common-ui';
 import { message } from '#/adapter';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
 
-import {
-  List,
-} from '../api';
+import { List } from '../api';
 import { columns, useGridFormSchema } from './data';
 
 const emit = defineEmits(['ok']);
@@ -84,12 +82,12 @@ const [ModalList, modalApiList] = useVbenModal({
     if ($grid) {
       const selectRecords = $grid.getCheckboxRecords();
       console.log('selectRecords', selectRecords);
-      if(selectRecords.length > currenNum.value) {
-        message.warning('请选择小于等于 '+currenNum.value+' 条数据');
+      if (selectRecords.length > currenNum.value) {
+        message.warning(`请选择小于等于 ${currenNum.value} 条数据`);
         return;
       }
 
-      emit('ok',{data: selectRecords,num: currenNum.value});
+      emit('ok', { data: selectRecords, num: currenNum.value });
 
       modalApiList.close();
     }
