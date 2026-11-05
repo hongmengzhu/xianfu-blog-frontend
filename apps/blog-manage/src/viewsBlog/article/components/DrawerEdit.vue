@@ -3,10 +3,6 @@ import { h, ref } from 'vue';
 
 import { useVbenDrawer, useVbenModal, VbenButton } from '@vben/common-ui';
 
-import { usePgForm } from '#/adapter';
-
-import { useAccessStore } from '@vben/stores';
-
 import { stateYesNoOption } from '@pg/types';
 import {
   TypeContentOptions,
@@ -14,10 +10,10 @@ import {
   TypeReadingOptions,
   TypeSourceOptions,
 } from '@pg/types/src/blog/type';
-import {PgMarkdown} from '@pg/components-n';
-import dayjs from "dayjs";
+import dayjs from 'dayjs';
 import { NTag } from 'naive-ui';
 
+import { usePgForm } from '#/adapter';
 import ModalTagTpl from '#/viewsBasic/tags/relation/invoke/ModalTag.vue';
 import TopicTable from '#/viewsBlog/article/components/TopicTable.vue';
 import { selectNodeAllPublic as selectNodeAllPublicCategory } from '#/viewsBlog/articleCategory/api';
@@ -27,8 +23,9 @@ import { detail, existCode, existName, saveOrUpdate } from '../api';
 const emit = defineEmits(['ok']);
 const currentData = ref({});
 const optionsTags = ref({});
-const showTopic = ref(false);
 const selectData = ref([]);
+// TopicTable 只在数据准备完成后再挂载：它在 onMounted 中按 data 填充表格
+const topicReady = ref(false);
 const contentData = ref({
   value: '',
   valueHtml: '',
@@ -93,28 +90,11 @@ const renderTag = (tag: string, index: number) => {
 const [Form, formApi] = usePgForm({
   // 按下回车健时提交表单
   submitOnEnter: false,
-  tabs: {
-    active: 'home',
-    group: [
-      { value: 'home', label: '基本' },
-      { value: 'source', label: '来源' },
-      { value: 'seo', label: 'Seo' },
-      { value: 'other', label: '其他' },
-      { value: 'topic', label: '话题' },
-    ],
-    props: {
-      onUpdateValue: (value) => {
-        if (value === 'topic') {
-          showTopic.value = true;
-        } else {
-          showTopic.value = false;
-        }
-      },
-    },
-  },
+  // 通过 schema 的 type: 'group' 把字段组织成可折叠的分组，
+  // 分组本身不是字段，不参与取值与校验；分组默认展开（不折叠）
   schema: [
+    // 以下三个字段不放入分组，始终展示在表单顶部
     {
-      tabGroup: '_no_tabs',
       fieldName: 'name',
       label: '名称',
       component: 'Input',
@@ -143,7 +123,6 @@ const [Form, formApi] = usePgForm({
         ),
     },
     {
-      tabGroup: '_no_tabs',
       fieldName: 'categoryNo',
       label: '分类',
       component: 'PgTreeSelect',
@@ -157,7 +136,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: '_no_tabs',
       fieldName: 'tags',
       label: '标签',
       defaultValue: [],
@@ -197,292 +175,305 @@ const [Form, formApi] = usePgForm({
         ),
     },
     {
-      tabGroup: 'other',
-      fieldName: 'nameFl',
-      label: '名称英文',
-      component: 'Input',
-      defaultValue: '',
-      componentProps: {
-        placeholder: '请输入',
-      },
+      type: 'group',
+      name: 'basic',
+      title: '基本',
+      // 分组默认展开
+      defaultCollapsed: false,
+      children: [
+        {
+          fieldName: 'typeContent',
+          label: '内容类型',
+          defaultValue: 'original',
+          component: 'PgRadioGroup',
+          componentProps: {
+            type: 'button',
+            options: TypeContentOptions,
+          },
+          rules: 'required',
+        },
+        {
+          fieldName: 'typeSource',
+          label: '源类型',
+          defaultValue: 'handwritten',
+          component: 'PgRadioGroup',
+          componentProps: {
+            type: 'button',
+            options: TypeSourceOptions,
+          },
+          rules: 'required',
+        },
+        {
+          fieldName: 'typeReading',
+          label: '阅读',
+          defaultValue: 'unread',
+          component: 'PgRadioGroup',
+          componentProps: {
+            type: 'button',
+            options: TypeReadingOptions,
+          },
+          rules: 'required',
+        },
+        {
+          fieldName: 'state',
+          label: '状态',
+          defaultValue: 1,
+          component: 'PgRadioGroup',
+          componentProps: {
+            type: 'button',
+            options: stateYesNoOption,
+          },
+          rules: 'required',
+        },
+        {
+          fieldName: 'typeComment',
+          label: '允许评论',
+          defaultValue: 'yes',
+          component: 'Switch',
+          componentProps: {
+            class: 'w-auto',
+            checkedValue: 'yes',
+            uncheckedValue: 'no',
+          },
+        },
+        {
+          fieldName: 'operationTime',
+          label: '操作时间',
+          component: 'PgDatePicker',
+          componentProps: {
+            isTimestamp: false,
+            type: 'datetime',
+            format: 'yyyy-MM-dd HH:mm:ss',
+            valueFormat: 'yyyy-MM-dd HH:mm:ss',
+            // formattedValue:'2022-11-10 11:11:11',
+            // defaultValue:'2022-11-10 11:11:11',
+            shortcuts: {
+              昨天: () => Date.now() - 24 * 60 * 60 * 1000,
+            },
+            // onUpdateValue: (value, formattedValue) => {
+            //     console.log('OnUpdateValue', value, formattedValue)
+            // }
+          },
+          rules: 'required',
+        },
+        {
+          fieldName: 'attachment',
+          label: '图集',
+          defaultValue: {},
+          component: 'PgUploadGroupOwner',
+          componentProps: {
+            isStandalone: false,
+            group: [
+              {
+                name: '主图',
+                key: 'main',
+                // description: '其他说明 图片大小：宽 500px ,高 400px,图片大小：宽 500px ,高 400px',
+                headerExtra: ',图片大小：宽 500px ,高 400px',
+                width: '500px',
+                height: '400px',
+                maxNumber: 1,
+                maxSize: 30,
+              },
+              {
+                name: '列表图',
+                key: 'list',
+                description: '其他说明 图片大小：宽 500px ,高 400px',
+                headerExtra: ',图片大小：宽 500px ,高 400px',
+                width: '500px',
+                height: '400px',
+                maxNumber: 1,
+                maxSize: 30,
+              },
+              {
+                name: '轮播图',
+                key: 'carousel',
+                description: '其他说明 图片大小：宽 500px ,高 400px',
+                descriptionIsHtml: false,
+                headerExtra: ',图片大小：宽 500px ,高 400px',
+                width: '500px',
+                height: '400px',
+                maxNumber: 21,
+                maxSize: 30,
+              },
+            ],
+          },
+        },
+        {
+          fieldName: 'description',
+          label: '描述',
+          component: 'Textarea',
+          componentProps: {
+            type: 'textarea',
+            placeholder: '描述',
+          },
+        },
+        {
+          fieldName: 'content',
+          label: '内容',
+          component: 'PgMarkdown',
+        },
+      ],
     },
     {
-      tabGroup: 'other',
-      fieldName: 'code',
-      label: '标记',
-      defaultValue: '系统自动建立',
-      component: 'Input',
-      componentProps: {
-        placeholder: '请输入',
-        onBlur: async (e) => {
-          const values = await formApi.getValues();
-          if (!values.nameFl) {
-            formApi.setFieldValue('nameFl', e.target.value);
-          }
-        },
-      },
-      suffix: () =>
-        h(
-          VbenButton,
-          {
-            class: 'pg-button-size-small',
+      type: 'group',
+      name: 'source',
+      title: '来源',
+      // 分组默认展开
+      defaultCollapsed: false,
+      children: [
+        {
+          fieldName: 'typeDataSource',
+          label: '数据源类型',
+          defaultValue: 'platform',
+          component: 'PgRadioGroup',
+          componentProps: {
             type: 'button',
-            onClick: async (e) => {
+            options: TypeDataSourceOptions,
+          },
+          rules: 'required',
+        },
+        {
+          fieldName: 'author',
+          label: '作者',
+          component: 'Input',
+          defaultValue: '风.foxwho',
+          componentProps: {
+            placeholder: '请输入',
+          },
+          rules: 'required',
+        },
+        {
+          fieldName: 'source',
+          label: '来源平台',
+          component: 'Input',
+          defaultValue: '',
+          componentProps: {
+            placeholder: '请输入',
+          },
+        },
+        {
+          fieldName: 'urlSource',
+          label: '来源地址',
+          component: 'Input',
+          defaultValue: '',
+          componentProps: {
+            placeholder: '请输入',
+          },
+        },
+        {
+          fieldName: 'jump',
+          label: '跳转',
+          defaultValue: 2,
+          component: 'Switch',
+          componentProps: {
+            class: 'w-auto',
+            checkedValue: 1,
+            uncheckedValue: 2,
+          },
+        },
+        {
+          fieldName: 'urlRewriting',
+          label: '自定义伪静态',
+          component: 'Input',
+          defaultValue: '',
+          componentProps: {
+            placeholder: '请输入',
+          },
+        },
+      ],
+    },
+    {
+      type: 'group',
+      name: 'seo',
+      title: 'Seo',
+      // 分组默认展开
+      defaultCollapsed: false,
+      children: [
+        {
+          fieldName: 'pageTitle',
+          label: 'seo网页标题',
+          component: 'Input',
+          componentProps: {},
+        },
+        {
+          fieldName: 'seoKeywords',
+          label: 'seo关键词',
+          component: 'Input',
+          componentProps: {},
+        },
+        {
+          fieldName: 'seoDescription',
+          label: 'seo网站说明',
+          component: 'Textarea',
+          componentProps: {
+            type: 'textarea',
+            placeholder: '描述',
+          },
+        },
+        {
+          fieldName: 'read',
+          label: '访问数',
+          component: 'PgSpan',
+          componentProps: {},
+        },
+        {
+          fieldName: 'comment',
+          label: '评论数',
+          component: 'PgSpan',
+          componentProps: {},
+        },
+      ],
+    },
+    {
+      type: 'group',
+      name: 'other',
+      title: '其他',
+      // 分组默认展开
+      defaultCollapsed: false,
+      children: [
+        {
+          fieldName: 'nameFl',
+          label: '名称英文',
+          component: 'Input',
+          defaultValue: '',
+          componentProps: {
+            placeholder: '请输入',
+          },
+        },
+        {
+          fieldName: 'code',
+          label: '标记',
+          defaultValue: '系统自动建立',
+          component: 'Input',
+          componentProps: {
+            placeholder: '请输入',
+            onBlur: async (e) => {
               const values = await formApi.getValues();
-              existCode(values.code, values.id);
+              if (!values.nameFl) {
+                formApi.setFieldValue('nameFl', e.target.value);
+              }
             },
           },
-          () => h('span', { class: 'font-normal' }, '查重'),
-        ),
-    },
-    {
-      tabGroup: 'other',
-      fieldName: 'nameFull',
-      label: '全称',
-      component: 'Input',
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'typeContent',
-      label: '内容类型',
-      defaultValue: 'original',
-      component: 'PgRadioGroup',
-      componentProps: {
-        type: 'button',
-        options: TypeContentOptions,
-      },
-      rules: 'required',
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'typeSource',
-      label: '源类型',
-      defaultValue: 'handwritten',
-      component: 'PgRadioGroup',
-      componentProps: {
-        type: 'button',
-        options: TypeSourceOptions,
-      },
-      rules: 'required',
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'typeReading',
-      label: '阅读',
-      defaultValue: 'unread',
-      component: 'PgRadioGroup',
-      componentProps: {
-        type: 'button',
-        options: TypeReadingOptions,
-      },
-      rules: 'required',
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'state',
-      label: '状态',
-      defaultValue: 1,
-      component: 'PgRadioGroup',
-      componentProps: {
-        type: 'button',
-        options: stateYesNoOption,
-      },
-      rules: 'required',
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'typeComment',
-      label: '允许评论',
-      defaultValue: 'yes',
-      component: 'Switch',
-      componentProps: {
-        class: 'w-auto',
-        checkedValue: 'yes',
-        uncheckedValue: 'no',
-      },
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'operationTime',
-      label: '操作时间',
-      component: 'PgDatePicker',
-      componentProps: {
-        isTimestamp: false,
-        type: 'datetime',
-        format: 'yyyy-MM-dd HH:mm:ss',
-        valueFormat: 'yyyy-MM-dd HH:mm:ss',
-        // formattedValue:'2022-11-10 11:11:11',
-        // defaultValue:'2022-11-10 11:11:11',
-        shortcuts: {
-          昨天: () => Date.now() - 24 * 60 * 60 * 1000,
+          suffix: () =>
+            h(
+              VbenButton,
+              {
+                class: 'pg-button-size-small',
+                type: 'button',
+                onClick: async (e) => {
+                  const values = await formApi.getValues();
+                  existCode(values.code, values.id);
+                },
+              },
+              () => h('span', { class: 'font-normal' }, '查重'),
+            ),
         },
-        // onUpdateValue: (value, formattedValue) => {
-        //     console.log('OnUpdateValue', value, formattedValue)
-        // }
-      },
-      rules: 'required',
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'attachment',
-      label: '图集',
-      defaultValue: {},
-      component: 'PgUploadGroupOwner',
-      componentProps: {
-        isStandalone: false,
-        group: [
-          {
-            name: '主图',
-            key: 'main',
-            // description: '其他说明 图片大小：宽 500px ,高 400px,图片大小：宽 500px ,高 400px',
-            headerExtra: ',图片大小：宽 500px ,高 400px',
-            width: '500px',
-            height: '400px',
-            maxNumber: 1,
-            maxSize: 30,
-          },
-          {
-            name: '列表图',
-            key: 'list',
-            description: '其他说明 图片大小：宽 500px ,高 400px',
-            headerExtra: ',图片大小：宽 500px ,高 400px',
-            width: '500px',
-            height: '400px',
-            maxNumber: 1,
-            maxSize: 30,
-          },
-          {
-            name: '轮播图',
-            key: 'carousel',
-            description: '其他说明 图片大小：宽 500px ,高 400px',
-            descriptionIsHtml: false,
-            headerExtra: ',图片大小：宽 500px ,高 400px',
-            width: '500px',
-            height: '400px',
-            maxNumber: 21,
-            maxSize: 30,
-          },
-        ],
-      }
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'description',
-      label: '描述',
-      component: 'Textarea',
-      componentProps: {
-        type: 'textarea',
-        placeholder: '描述',
-      },
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'content',
-      label: '内容',
-      component: 'PgMarkdown',
-    },
-    {
-      tabGroup: 'source',
-      fieldName: 'typeDataSource',
-      label: '数据源类型',
-      defaultValue: 'platform',
-      component: 'PgRadioGroup',
-      componentProps: {
-        type: 'button',
-        options: TypeDataSourceOptions,
-      },
-      rules: 'required',
-    },
-    {
-      tabGroup: 'source',
-      fieldName: 'author',
-      label: '作者',
-      component: 'Input',
-      defaultValue: '风.foxwho',
-      componentProps: {
-        placeholder: '请输入',
-      },
-      rules: 'required',
-    },
-    {
-      tabGroup: 'source',
-      fieldName: 'source',
-      label: '来源平台',
-      component: 'Input',
-      defaultValue: '',
-      componentProps: {
-        placeholder: '请输入',
-      },
-    },
-    {
-      tabGroup: 'source',
-      fieldName: 'urlSource',
-      label: '来源地址',
-      component: 'Input',
-      defaultValue: '',
-      componentProps: {
-        placeholder: '请输入',
-      },
-    },
-    {
-      tabGroup: 'source',
-      fieldName: 'jump',
-      label: '跳转',
-      defaultValue: 2,
-      component: 'Switch',
-      componentProps: {
-        class: 'w-auto',
-        checkedValue: 1,
-        uncheckedValue: 2,
-      },
-    },
-    {
-      tabGroup: 'source',
-      fieldName: 'urlRewriting',
-      label: '自定义伪静态',
-      component: 'Input',
-      defaultValue: '',
-      componentProps: {
-        placeholder: '请输入',
-      },
-    },
-    {
-      tabGroup: 'seo',
-      fieldName: 'pageTitle',
-      label: 'seo网页标题',
-      component: 'Input',
-      componentProps: {},
-    },
-    {
-      tabGroup: 'seo',
-      fieldName: 'seoKeywords',
-      label: 'seo关键词',
-      component: 'Input',
-      componentProps: {},
-    },
-    {
-      tabGroup: 'seo',
-      fieldName: 'seoDescription',
-      label: 'seo网站说明',
-      component: 'Textarea',
-      componentProps: {
-        type: 'textarea',
-        placeholder: '描述',
-      },
-    },
-    {
-      tabGroup: 'seo',
-      fieldName: 'read',
-      label: '访问数',
-      component: 'PgSpan',
-      componentProps: {},
-    },
-    {
-      tabGroup: 'seo',
-      fieldName: 'comment',
-      label: '评论数',
-      component: 'PgSpan',
-      componentProps: {},
+        {
+          fieldName: 'nameFull',
+          label: '全称',
+          component: 'Input',
+        },
+      ],
     },
     {
       fieldName: 'id',
@@ -506,6 +497,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
   onConfirm: onSubmit,
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
+      topicReady.value = false;
       drawerApi.setState({
         loading: true,
         confirmLoading: false,
@@ -544,13 +536,22 @@ const [Drawer, drawerApi] = useVbenDrawer({
             }
           }
           formApi.setValues(data);
+          // 数据准备完成后再挂载话题表格
+          topicReady.value = true;
           //
         });
       } else {
-        formApi.setFieldValue('operationTime',dayjs().format('YYYY-MM-DD HH:mm:ss'))
+        formApi.setFieldValue(
+          'operationTime',
+          dayjs().format('YYYY-MM-DD HH:mm:ss'),
+        );
+        topicReady.value = true;
       }
 
-      drawerApi.setState({ title: `文章：${isUpdate ? '编辑' : '新增'}`, loading: false });
+      drawerApi.setState({
+        title: `文章：${isUpdate ? '编辑' : '新增'}`,
+        loading: false,
+      });
     }
   },
   title: '：',
@@ -590,23 +591,21 @@ async function onSubmit() {
     }
     console.log('contentData.value', contentData.value);
     //
-    saveOrUpdate(data, isUpdate)
-      .then((d) => {
-        setTimeout(() => {
-          emit('ok', data);
-          drawerApi.setState({ loading: false });
-          drawerApi.close();
-        }, 900);
-      });
+    saveOrUpdate(data, isUpdate).then((d) => {
+      setTimeout(() => {
+        emit('ok', data);
+        drawerApi.setState({ loading: false });
+        drawerApi.close();
+      }, 900);
+    });
   } catch (error) {
     console.error(error);
-    drawerApi.setState({confirmLoading: false});
+    drawerApi.setState({ confirmLoading: false });
   } finally {
     drawerApi.unlock();
-    drawerApi.setState({loading: false});
+    drawerApi.setState({ loading: false });
   }
 }
-
 
 function okSelectData(opt) {
   console.log('opt', opt);
@@ -634,7 +633,7 @@ async function modalOkTags(e) {
       if (!get) {
         optionsTags.value[obj.tagNo] = tag;
       }
-      if (-1 === tagsQuery.indexOf(obj.tagNo)) {
+      if (tagsQuery.indexOf(obj.tagNo) === -1) {
         tagsQuery.push(obj.tagNo);
       }
     }
@@ -654,12 +653,11 @@ async function handleEnter(sub, e) {
       tagsQuery.push(values.tags[i]);
     }
   }
-  if (-1 === tagsQuery.indexOf(val)) {
+  if (tagsQuery.indexOf(val) === -1) {
     tagsQuery.push(val);
     formApi.setFieldValue('tags', tagsQuery);
   }
 }
-
 </script>
 <template>
   <Drawer class="w-[1200px]">
@@ -676,7 +674,7 @@ async function handleEnter(sub, e) {
         </n-dynamic-tags>
       </template>
     </Form>
-    <TopicTable v-if="showTopic" @ok="okSelectData" :data="selectData" />
+    <TopicTable v-if="topicReady" @ok="okSelectData" :data="selectData" />
     <ModalTag @ok="modalOkTags" />
   </Drawer>
 </template>
