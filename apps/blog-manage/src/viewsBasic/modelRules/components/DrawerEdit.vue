@@ -1,113 +1,114 @@
 <script lang="ts" setup>
-import {h, ref} from 'vue';
+import { h, ref } from 'vue';
 
-import { useVbenDrawer } from '@vben/common-ui';
+import { useVbenDrawer, VbenButton } from '@vben/common-ui';
 
-import { VbenButton } from '@vben/common-ui';
-
-import { useVbenForm, usePgForm } from '#/adapter';
+import { usePgForm } from '#/adapter';
+import { codeValueAllPublic } from '#/viewsBasic/data-dict/dict/api';
 
 import { existName, saveOrUpdate } from '../api';
-import {codeValueAllPublic} from "#/viewsBasic/data-dict/dict/api";
-const fieldData = ref(null);
 const emit = defineEmits(['ok']);
+const fieldData = ref(null);
 const [Form, formApi] = usePgForm({
-  tabs: {
-    active: 'home',
-    group: [
-      { value: 'home', label: '基本' },
-      { value: 'other', label: '其他' },
-    ],
-  },
+  // 通过 schema 的 type: 'group' 把字段组织成可折叠的分组，分组默认展开
   schema: [
     {
-      tabGroup: 'home',
-      fieldName: 'ruleMode',
-      label: '验证模式类型',
-      component: 'PgTreeSelect',
-      componentProps: {
-        api: codeValueAllPublic,
-        params: { typeCode: 'basicModel:ruleMode' },
-        props: {
-          placeholder: '请选择',
-        },
-        onOk: async (e) => {
-          const values = await formApi.getValues();
-          if (values.ruleMode === 'required') {
-            formApi.setFieldValue('name', '不为空');
-          }
-        },
-      },
-      rules: 'required',
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'name',
-      label: '名称',
-      component: 'Input',
-      rules: 'required',
-      componentProps: {
-        placeholder: '请输入',
-        onBlur: async (e) => {
-          const values = await formApi.getValues();
-          if (!values.nameFull) {
-            formApi.setFieldValue('nameFull', e.target.value);
-          }
-        },
-      },
-      suffix: () =>
-        h(
-          VbenButton,
-          {
-            class: 'pg-button-size-small',
-            onClick: async (e) => {
+      type: 'group',
+      name: 'home',
+      title: '基本',
+      defaultCollapsed: false,
+      children: [
+        {
+          fieldName: 'ruleMode',
+          label: '验证模式类型',
+          component: 'PgTreeSelect',
+          componentProps: {
+            api: codeValueAllPublic,
+            params: { typeCode: 'basicModel:ruleMode' },
+            props: {
+              placeholder: '请选择',
+            },
+            onOk: async (e) => {
               const values = await formApi.getValues();
-              existName(values.name, values.id);
+              if (values.ruleMode === 'required') {
+                formApi.setFieldValue('name', '不为空');
+              }
             },
           },
-          () => h('span', { class: 'font-normal' }, '查重'),
-        ),
+          rules: 'required',
+        },
+        {
+          fieldName: 'name',
+          label: '名称',
+          component: 'Input',
+          rules: 'required',
+          componentProps: {
+            placeholder: '请输入',
+            onBlur: async (e) => {
+              const values = await formApi.getValues();
+              if (!values.nameFull) {
+                formApi.setFieldValue('nameFull', e.target.value);
+              }
+            },
+          },
+          suffix: () =>
+            h(
+              VbenButton,
+              {
+                class: 'pg-button-size-small',
+                onClick: async (e) => {
+                  const values = await formApi.getValues();
+                  existName(values.name, values.id);
+                },
+              },
+              () => h('span', { class: 'font-normal' }, '查重'),
+            ),
+        },
+        {
+          fieldName: 'coding',
+          label: '代码',
+          component: 'Textarea',
+          componentProps: {
+            type: 'textarea',
+            placeholder: '代码',
+          },
+        },
+        {
+          fieldName: 'condition',
+          label: '条件',
+          component: 'Textarea',
+          componentProps: {
+            type: 'textarea',
+            placeholder: '条件',
+          },
+        },
+        {
+          fieldName: 'description',
+          label: '描述',
+          component: 'Textarea',
+          componentProps: {
+            type: 'textarea',
+            placeholder: '描述',
+          },
+        },
+      ],
     },
     {
-      tabGroup: 'other',
-      fieldName: 'sharedRuleNo',
-      label: '共享规则编号',
-      component: 'Input',
-      defaultValue: '',
-      componentProps: {
-        placeholder: '请输入',
-      },
-    },
-
-    {
-      tabGroup: 'home',
-      fieldName: 'coding',
-      label: '代码',
-      component: 'Textarea',
-      componentProps: {
-        type: 'textarea',
-        placeholder: '代码',
-      },
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'condition',
-      label: '条件',
-      component: 'Textarea',
-      componentProps: {
-        type: 'textarea',
-        placeholder: '条件',
-      },
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'description',
-      label: '描述',
-      component: 'Textarea',
-      componentProps: {
-        type: 'textarea',
-        placeholder: '描述',
-      },
+      type: 'group',
+      name: 'other',
+      title: '其他',
+      defaultCollapsed: false,
+      children: [
+        {
+          fieldName: 'sharedRuleNo',
+          label: '共享规则编号',
+          component: 'Input',
+          defaultValue: '',
+          componentProps: {
+            placeholder: '请输入',
+          },
+        },
+      ],
     },
     {
       fieldName: 'id',
@@ -137,7 +138,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
         closeOnClickModal: false, // 点击遮罩关闭弹窗
         destroyOnClose: true, // 关闭时销毁
       });
-      const { values, isUpdate, field } = drawerApi.getData<Record<string, any>>();
+      const { values, isUpdate, field } =
+        drawerApi.getData<Record<string, any>>();
       if (field) {
         fieldData.value = field;
         console.log('field', field);
@@ -147,10 +149,10 @@ const [Drawer, drawerApi] = useVbenDrawer({
       }
       let title = `字段规则：${isUpdate ? '编辑' : '新增'}`;
       if (fieldData.value) {
-        title = title + ` [所属字段：${fieldData.value.name}(${fieldData.value.field})]`;
+        title = `${title} [所属字段：${fieldData.value.name}(${fieldData.value.field})]`;
       }
       drawerApi.setState({
-        title: title,
+        title,
         loading: false,
       });
     }
@@ -175,7 +177,7 @@ async function onSubmit() {
       ...values,
     };
     if (fieldData.value) {
-      data['fieldNo'] = fieldData.value.no;
+      data.fieldNo = fieldData.value.no;
     }
     saveOrUpdate(data, isUpdate).then((d) => {
       setTimeout(() => {

@@ -37,7 +37,6 @@ function transformToSchema(items: FormItem[]): VbenFormSchema[] {
     .filter((item) => item.show === 1)
     .map((item) => {
       const schemaItem: VbenFormSchema = {
-        tabGroup: 'home',
         fieldName: item.field,
         label: item.name,
         component: item.formCode,

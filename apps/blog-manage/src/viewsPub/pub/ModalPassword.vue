@@ -1,27 +1,21 @@
 <script setup lang="ts">
-import { h } from 'vue';
 
-import { useVbenModal, VbenButton, z } from '@vben/common-ui';
+import { useVbenModal, z } from '@vben/common-ui';
 import { $t } from '@vben/locales';
+import { useUserStore } from '@vben/stores';
 
 import { usePgForm } from '#/adapter';
+import { useConfigPubStore } from '#/store';
+import { SmUtil } from '#/tools/smUtil';
 
 import { updatePassword } from './api';
-import { useUserStore } from '@vben/stores';
-import {useConfigPubStore} from '#/store';
-import { SmUtil } from '#/tools/smUtil';
+const emit = defineEmits(['ok']);
 const userStore = useUserStore();
 const configPubStore = useConfigPubStore();
 const sm = new SmUtil();
-const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
-  tabs: {
-    active: 'home',
-    group: [{ value: 'home', label: '修改密码' }],
-  },
   schema: [
     {
-      tabGroup: 'home',
       fieldName: 'passwordNew',
       label: '新密码',
       component: 'VbenInputPassword',
@@ -32,7 +26,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'confirmPassword',
       label: '确认密码',
       component: 'VbenInputPassword',
@@ -82,7 +75,7 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      console.log('userStore=',userStore)
+      console.log('userStore=', userStore);
       modalApi.setState({
         title: `修改密码：${userStore.userInfo.account} (${userStore.userInfo.phone})  ${userStore.userInfo.realName}`,
         destroyOnClose: true,
@@ -103,11 +96,11 @@ function onSubmit(values: Record<string, any>) {
     if (
       configPubStore.isLoginEncrypt() &&
       configPubStore.getLoginPub() &&
-      data['passwordNew']
+      data.passwordNew
     ) {
       sm.setPublicKey(configPubStore.getLoginPub());
       data.passwordNew = sm.encryptHex(data.passwordNew);
-      data['encrypt'] = 'encrypt';
+      data.encrypt = 'encrypt';
     }
     updatePassword(data)
       .then((d) => {

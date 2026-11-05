@@ -3,31 +3,22 @@ import { h } from 'vue';
 
 import { useVbenModal, VbenButton } from '@vben/common-ui';
 
-import { usePgForm } from '#/adapter';
+import { getNanoidNumber } from '@pg/utils';
 import dayjs from 'dayjs';
+
+import { usePgForm } from '#/adapter';
 
 import {
   existAccount,
-  saveOrUpdate,
-  existPhone,
-  existMail,
-  saveOrUpdateAccount,
   existCode,
+  existMail,
+  existPhone,
+  saveOrUpdateAccount,
 } from '../api';
-import { selectNodePublicCountryCode } from '#/viewsBasic/country/api';
-import { getNanoidNumber } from '@pg/utils';
 const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
-  tabs: {
-    active: 'home',
-    group: [
-      { value: 'home', label: '基本' },
-      { value: 'other', label: '其他' },
-    ],
-  },
   schema: [
     {
-      tabGroup: 'home',
       fieldName: 'account',
       label: '账号',
       component: 'Input',
@@ -64,7 +55,6 @@ const [Form, formApi] = usePgForm({
     //   },
     // },
     {
-      tabGroup: 'home',
       fieldName: 'phone',
       label: '手机号',
       rules: 'required',
@@ -104,7 +94,6 @@ const [Form, formApi] = usePgForm({
         ),
     },
     {
-      tabGroup: 'home',
       fieldName: 'mail',
       label: '邮箱',
       rules: 'required',
@@ -123,7 +112,6 @@ const [Form, formApi] = usePgForm({
         ),
     },
     {
-      tabGroup: 'home',
       fieldName: 'code',
       label: '码值',
       rules: 'required',
@@ -142,7 +130,6 @@ const [Form, formApi] = usePgForm({
         ),
     },
     {
-      tabGroup: 'home',
       fieldName: 'registerTime',
       label: '注册时间',
       component: 'PgDatePicker',
@@ -228,7 +215,7 @@ function onSubmit(values: Record<string, any>) {
     const { isUpdate } = modalApi.getData<Record<string, any>>();
     const data = { ...values };
     if (!isUpdate) {
-      data['id'] = '0';
+      data.id = '0';
     }
     saveOrUpdateAccount(data).then((d) => {
       setTimeout(() => {

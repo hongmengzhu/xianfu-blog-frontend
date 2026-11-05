@@ -1,111 +1,112 @@
 <script lang="ts" setup>
-import { h, watch, ref } from 'vue';
+import { h } from 'vue';
 
-import { useVbenDrawer } from '@vben/common-ui';
-
-import { PgTreeSelect } from '@pg/components-n';
-import { VbenButton } from '@vben/common-ui';
+import { useVbenDrawer, VbenButton } from '@vben/common-ui';
 
 import { usePgForm } from '#/adapter';
 
 import { existName, saveOrUpdate, selectNodeAll } from '../api';
 const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
-  tabs: {
-    active: 'home',
-    group: [
-      { value: 'home', label: '基本' },
-      { value: 'other', label: '其他' },
-    ],
-  },
+  // 通过 schema 的 type: 'group' 把字段组织成可折叠的分组，分组默认展开
   schema: [
     {
-      tabGroup: 'home',
-      fieldName: 'parentNo',
-      label: '上级',
-      defaultValue: '',
-      component: 'PgTreeSelect',
-      componentProps: {
-        api: selectNodeAll,
-        params: { by: 'no' },
-        filterQueryAsync: true,
-        props: {
-          filterable: true,
-          placeholder: '如果为空,则是一级',
-        },
-      },
-      // rules: 'required',
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'name',
-      label: '名称',
-      component: 'Input',
-      rules: 'required',
-      componentProps: {
-        placeholder: '请输入',
-        onBlur: async (e) => {
-          const values = await formApi.getValues();
-          if (!values.nameFull) {
-            formApi.setFieldValue('nameFull', e.target.value);
-          }
-        },
-      },
-      suffix: () =>
-        h(
-          VbenButton,
-          {
-            class: 'pg-button-size-small',
-            onClick: async (e) => {
-              const values = await formApi.getValues();
-              existName(values.name, values.id);
+      type: 'group',
+      name: 'home',
+      title: '基本',
+      defaultCollapsed: false,
+      children: [
+        {
+          fieldName: 'parentNo',
+          label: '上级',
+          defaultValue: '',
+          component: 'PgTreeSelect',
+          componentProps: {
+            api: selectNodeAll,
+            params: { by: 'no' },
+            filterQueryAsync: true,
+            props: {
+              filterable: true,
+              placeholder: '如果为空,则是一级',
             },
           },
-          () => h('span', { class: 'font-normal' }, '查重'),
-        ),
-    },
-    {
-      tabGroup: 'other',
-      fieldName: 'nameFl',
-      label: '名称英文',
-      component: 'Input',
-      defaultValue: '',
-      componentProps: {
-        placeholder: '请输入',
-      },
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'code',
-      label: '码值',
-      defaultValue: '系统自动建立',
-      rules: 'required',
-      component: 'Input',
-      componentProps: {
-        placeholder: '请输入',
-        onBlur: async (e) => {
-          const values = await formApi.getValues();
-          if (!values.nameFl) {
-            formApi.setFieldValue('nameFl', e.target.value);
-          }
+          // rules: 'required',
         },
-      },
+        {
+          fieldName: 'name',
+          label: '名称',
+          component: 'Input',
+          rules: 'required',
+          componentProps: {
+            placeholder: '请输入',
+            onBlur: async (e) => {
+              const values = await formApi.getValues();
+              if (!values.nameFull) {
+                formApi.setFieldValue('nameFull', e.target.value);
+              }
+            },
+          },
+          suffix: () =>
+            h(
+              VbenButton,
+              {
+                class: 'pg-button-size-small',
+                onClick: async (e) => {
+                  const values = await formApi.getValues();
+                  existName(values.name, values.id);
+                },
+              },
+              () => h('span', { class: 'font-normal' }, '查重'),
+            ),
+        },
+        {
+          fieldName: 'code',
+          label: '码值',
+          defaultValue: '系统自动建立',
+          rules: 'required',
+          component: 'Input',
+          componentProps: {
+            placeholder: '请输入',
+            onBlur: async (e) => {
+              const values = await formApi.getValues();
+              if (!values.nameFl) {
+                formApi.setFieldValue('nameFl', e.target.value);
+              }
+            },
+          },
+        },
+        {
+          fieldName: 'description',
+          label: '描述',
+          component: 'Textarea',
+          componentProps: {
+            type: 'textarea',
+            placeholder: '描述',
+          },
+        },
+      ],
     },
     {
-      tabGroup: 'other',
-      fieldName: 'nameFull',
-      label: '全称',
-      component: 'Input',
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'description',
-      label: '描述',
-      component: 'Textarea',
-      componentProps: {
-        type: 'textarea',
-        placeholder: '描述',
-      },
+      type: 'group',
+      name: 'other',
+      title: '其他',
+      defaultCollapsed: false,
+      children: [
+        {
+          fieldName: 'nameFl',
+          label: '名称英文',
+          component: 'Input',
+          defaultValue: '',
+          componentProps: {
+            placeholder: '请输入',
+          },
+        },
+        {
+          fieldName: 'nameFull',
+          label: '全称',
+          component: 'Input',
+        },
+      ],
     },
     {
       fieldName: 'id',
@@ -185,6 +186,6 @@ async function onSubmit() {
 </script>
 <template>
   <Drawer>
-    <Form> </Form>
+    <Form />
   </Drawer>
 </template>

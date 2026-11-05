@@ -1,32 +1,18 @@
 <script lang="ts" setup>
-import { h, ref } from 'vue';
+import { ref } from 'vue';
 
-import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
-import { VbenButton } from '@vben/common-ui';
+import { useVbenModal } from '@vben/common-ui';
 
-import { YesNoOptions } from '@pg/types';
-
-import { useVbenForm, usePgForm, notification } from '#/adapter';
-
-import { existName, saveOrUpdate, addByTopic } from '../api';
+import { notification, usePgForm } from '#/adapter';
 import ArticleTable from '#/viewsBlog/topicRelation/invoke/articleTable.vue';
+
+import { addByTopic } from '../api';
+const emit = defineEmits(['ok']);
 const showArticle = ref(true);
 const selectData = ref([]);
-const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
-  tabs: {
-    hide: true,
-    active: 'home',
-    group: [{ value: 'home', label: '基本' }],
-    props: {
-      onUpdateValue: (value) => {
-        console.log('value', value);
-      },
-    },
-  },
   schema: [
     {
-      tabGroup: 'home',
       fieldName: 'topicNo',
       label: '话题编号',
       component: 'Input',
@@ -37,7 +23,6 @@ const [Form, formApi] = usePgForm({
       rules: 'required',
     },
     {
-      tabGroup: 'home',
       fieldName: 'topicName',
       label: '话题',
       component: 'PgSpan',
@@ -121,10 +106,10 @@ const [Modal, modalApi] = useVbenModal({
       };
       console.log('modalData=>', modalData);
       if (modalData.topic) {
-        data['topicNo'] = modalData.topic.no;
-        data['topicName'] = modalData.topic.name;
+        data.topicNo = modalData.topic.no;
+        data.topicName = modalData.topic.name;
 
-        options.title = options.title + '::' + modalData.topic.name;
+        options.title = `${options.title}::${modalData.topic.name}`;
       }
       formApi.setValues(data);
 
@@ -165,14 +150,13 @@ async function onSubmit() {
       });
       return false;
     }
-    addByTopic(data)
-      .then((d) => {
-        setTimeout(() => {
-          emit('ok', values);
-          modalApi.setState({ loading: false });
-          modalApi.close();
-        }, 900);
-      });
+    addByTopic(data).then((d) => {
+      setTimeout(() => {
+        emit('ok', values);
+        modalApi.setState({ loading: false });
+        modalApi.close();
+      }, 900);
+    });
   } catch (error) {
     console.error(error);
   } finally {
@@ -188,6 +172,6 @@ function okSelectData(opt) {
 <template>
   <Modal class="w-[1000px]">
     <Form />
-    <ArticleTable v-if="showArticle" @ok="okSelectData"></ArticleTable>
+    <ArticleTable v-if="showArticle" @ok="okSelectData" />
   </Modal>
 </template>

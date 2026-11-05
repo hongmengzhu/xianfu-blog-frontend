@@ -1,4 +1,3 @@
-
 import type { VbenFormSchema } from '#/adapter/form';
 
 import { h } from 'vue';
@@ -66,7 +65,6 @@ export const columns: any[] = [
 
 export const formSchema = [
   {
-    tabGroup: 'home',
     fieldName: 'name',
     label: '名称',
     component: 'Input',
@@ -76,7 +74,6 @@ export const formSchema = [
     },
   },
   {
-    tabGroup: 'home',
     fieldName: 'model',
     label: '模型英文名称',
     component: 'Input',
@@ -97,7 +94,6 @@ export const formSchema = [
       ),
   },
   {
-    tabGroup: 'home',
     fieldName: 'field',
     label: '事件名称',
     component: 'Input',
@@ -118,7 +114,6 @@ export const formSchema = [
       ),
   },
   {
-    tabGroup: 'home',
     fieldName: 'description',
     label: '描述',
     component: 'Textarea',

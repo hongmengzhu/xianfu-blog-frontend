@@ -3,30 +3,22 @@ import { h } from 'vue';
 
 import { useVbenModal, VbenButton } from '@vben/common-ui';
 
-import { usePgForm } from '#/adapter';
+import { getNanoidNumber } from '@pg/utils';
 import dayjs from 'dayjs';
+
+import { usePgForm } from '#/adapter';
 
 import {
   existAccount,
-  saveOrUpdate,
-  existPhone,
+  existCode,
   existMail,
-  saveOrUpdateAccount, existCode,
+  existPhone,
+  saveOrUpdateAccount,
 } from '../api';
-import {selectNodePublicCountryCode} from "#/viewsBasic/country/api";
-import {getNanoidNumber} from "@pg/utils";
 const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
-  tabs: {
-    active: 'home',
-    group: [
-      { value: 'home', label: '基本' },
-      { value: 'other', label: '其他' },
-    ],
-  },
   schema: [
     {
-      tabGroup: 'home',
       fieldName: 'account',
       label: '账号',
       component: 'Input',
@@ -38,7 +30,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formApi.getValues();
               existAccount(values.account, values.id);
@@ -63,7 +55,6 @@ const [Form, formApi] = usePgForm({
     //   },
     // },
     {
-      tabGroup: 'home',
       fieldName: 'phone',
       label: '手机号',
       rules: 'required',
@@ -72,7 +63,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formApi.getValues();
               existPhone(values.phone, values.id);
@@ -85,17 +76,17 @@ const [Form, formApi] = usePgForm({
           VbenButton,
           {
             variant: 'link',
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formApi.getValues();
-              const str = getNanoidNumber(10)
+              const str = getNanoidNumber(10);
               const phone = `1${str}`;
-              formApi.setFieldValue('phone',phone)
-              if(!values.mail){
-                formApi.setFieldValue('mail',phone+'@ajs.com')
+              formApi.setFieldValue('phone', phone);
+              if (!values.mail) {
+                formApi.setFieldValue('mail', `${phone}@ajs.com`);
               }
-              if(!values.code){
-                formApi.setFieldValue('code',phone)
+              if (!values.code) {
+                formApi.setFieldValue('code', phone);
               }
             },
           },
@@ -103,7 +94,6 @@ const [Form, formApi] = usePgForm({
         ),
     },
     {
-      tabGroup: 'home',
       fieldName: 'mail',
       label: '邮箱',
       rules: 'required',
@@ -112,7 +102,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formApi.getValues();
               existMail(values.mail, values.id);
@@ -122,7 +112,6 @@ const [Form, formApi] = usePgForm({
         ),
     },
     {
-      tabGroup: 'home',
       fieldName: 'code',
       label: '码值',
       rules: 'required',
@@ -131,7 +120,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formApi.getValues();
               existCode(values.code, values.id);
@@ -141,7 +130,6 @@ const [Form, formApi] = usePgForm({
         ),
     },
     {
-      tabGroup: 'home',
       fieldName: 'registerTime',
       label: '注册时间',
       component: 'PgDatePicker',
@@ -163,9 +151,12 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             onClick: async (e) => {
-              formApi.setFieldValue('registerTime',dayjs().format('YYYY-MM-DD HH:mm:ss'))
+              formApi.setFieldValue(
+                'registerTime',
+                dayjs().format('YYYY-MM-DD HH:mm:ss'),
+              );
             },
           },
           () => h('span', { class: 'font-normal' }, '此刻'),
@@ -207,7 +198,10 @@ const [Modal, modalApi] = useVbenModal({
           ...values,
         });
       } else {
-        formApi.setFieldValue('registerTime',dayjs().format('YYYY-MM-DD HH:mm:ss'))
+        formApi.setFieldValue(
+          'registerTime',
+          dayjs().format('YYYY-MM-DD HH:mm:ss'),
+        );
       }
       modalApi.setState({ title: `账号：${isUpdate ? '编辑' : '新增'}` });
     }
@@ -219,9 +213,9 @@ const [Modal, modalApi] = useVbenModal({
 function onSubmit(values: Record<string, any>) {
   try {
     const { isUpdate } = modalApi.getData<Record<string, any>>();
-    let data = {...values};
-    if(!isUpdate) {
-      data['id'] ='0';
+    let data = { ...values };
+    if (!isUpdate) {
+      data.id = '0';
     }
     saveOrUpdateAccount(data).then((d) => {
       setTimeout(() => {

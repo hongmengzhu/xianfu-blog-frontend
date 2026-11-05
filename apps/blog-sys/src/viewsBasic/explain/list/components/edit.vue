@@ -1,120 +1,122 @@
 <script lang="ts" setup>
 import { h } from 'vue';
 
-import { useVbenDrawer } from '@vben/common-ui';
-import { VbenButton } from '@vben/common-ui';
+import { useVbenDrawer, VbenButton } from '@vben/common-ui';
 
-import { usePgForm, useVbenForm } from '#/adapter';
+import { usePgForm } from '#/adapter';
 
-import { existName, saveOrUpdate } from '../api';
 import { selectNodeAllPublic } from '../../category/api';
+import { existName, saveOrUpdate } from '../api';
 
 const [Form, formApi] = usePgForm({
-  tabs: {
-    active: 'home',
-    group: [
-      { value: 'home', label: '基本' },
-      { value: 'other', label: '其他' },
-    ],
-  },
+  // 通过 schema 的 type: 'group' 把字段组织成可折叠的分组，分组默认展开
   schema: [
     {
-      tabGroup: 'home',
-      fieldName: 'categoryId',
-      label: '分类',
-      rules: 'required',
-      component: 'PgTreeSelect',
-      componentProps: {
-        api: selectNodeAllPublic,
-        params: {},
-        props: {
-          placeholder: '如果为空,则是一级',
-          filterable: true,
-        },
-      },
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'name',
-      label: '名称',
-      component: 'Input',
-      defaultValue: '',
-      componentProps: {
-        placeholder: '请输入',
-        onBlur: async (e) => {
-          const values = await formApi.getValues();
-          if (!values.nameFull) {
-            formApi.setFieldValue('nameFull', e.target.value);
-          }
-        },
-      },
-      rules: 'required',
-      suffix: () =>
-        h(
-          VbenButton,
-          {
-            class:'pg-button-size-small',
-            onClick: async (e) => {
-              const values = await formApi.getValues();
-              existName(values.name, values.id);
+      type: 'group',
+      name: 'home',
+      title: '基本',
+      defaultCollapsed: false,
+      children: [
+        {
+          fieldName: 'categoryId',
+          label: '分类',
+          rules: 'required',
+          component: 'PgTreeSelect',
+          componentProps: {
+            api: selectNodeAllPublic,
+            params: {},
+            props: {
+              placeholder: '如果为空,则是一级',
+              filterable: true,
             },
           },
-          () => h('span', { class: 'font-normal' }, '查重'),
-        ),
-    },
-    {
-      tabGroup: 'other',
-      fieldName: 'nameFl',
-      label: '名称英文',
-      component: 'Input',
-      componentProps: {
-        placeholder: '请输入',
-      },
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'code',
-      label: '标识',
-      rules: 'required',
-      component: 'Input',
-      componentProps: {
-        placeholder: '请输入',
-        onBlur: async (e) => {
-          const values = await formApi.getValues();
-          if (!values.nameFl) {
-            formApi.setFieldValue('nameFl', e.target.value);
-          }
-          if (!values.path) {
-            formApi.setFieldValue('path', e.target.value);
-          }
         },
-      },
+        {
+          fieldName: 'name',
+          label: '名称',
+          component: 'Input',
+          defaultValue: '',
+          componentProps: {
+            placeholder: '请输入',
+            onBlur: async (e) => {
+              const values = await formApi.getValues();
+              if (!values.nameFull) {
+                formApi.setFieldValue('nameFull', e.target.value);
+              }
+            },
+          },
+          rules: 'required',
+          suffix: () =>
+            h(
+              VbenButton,
+              {
+                class: 'pg-button-size-small',
+                onClick: async (e) => {
+                  const values = await formApi.getValues();
+                  existName(values.name, values.id);
+                },
+              },
+              () => h('span', { class: 'font-normal' }, '查重'),
+            ),
+        },
+        {
+          fieldName: 'code',
+          label: '标识',
+          rules: 'required',
+          component: 'Input',
+          componentProps: {
+            placeholder: '请输入',
+            onBlur: async (e) => {
+              const values = await formApi.getValues();
+              if (!values.nameFl) {
+                formApi.setFieldValue('nameFl', e.target.value);
+              }
+              if (!values.path) {
+                formApi.setFieldValue('path', e.target.value);
+              }
+            },
+          },
+        },
+        {
+          fieldName: 'description',
+          label: '描述',
+          component: 'Textarea',
+          componentProps: {
+            type: 'textarea',
+            placeholder: '描述',
+          },
+        },
+        {
+          fieldName: 'content',
+          label: '内容',
+          component: 'Textarea',
+          componentProps: {
+            type: 'textarea',
+            placeholder: '内容',
+          },
+        },
+      ],
     },
     {
-      tabGroup: 'other',
-      fieldName: 'nameFull',
-      label: '全称',
-      component: 'Input',
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'description',
-      label: '描述',
-      component: 'Textarea',
-      componentProps: {
-        type: 'textarea',
-        placeholder: '描述',
-      },
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'content',
-      label: '内容',
-      component: 'Textarea',
-      componentProps: {
-        type: 'textarea',
-        placeholder: '内容',
-      },
+      type: 'group',
+      name: 'other',
+      title: '其他',
+      defaultCollapsed: false,
+      children: [
+        {
+          fieldName: 'nameFl',
+          label: '名称英文',
+          component: 'Input',
+          componentProps: {
+            placeholder: '请输入',
+          },
+        },
+        {
+          fieldName: 'nameFull',
+          label: '全称',
+          component: 'Input',
+        },
+      ],
     },
     {
       fieldName: 'id',
@@ -140,7 +142,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const { values, isUpdate, parent } = drawerApi.getData<Record<string, any>>();
+      const { values, isUpdate, parent } =
+        drawerApi.getData<Record<string, any>>();
       if (values) {
         // console.log('values',values)
         // console.log('values.parent',parent)
@@ -148,8 +151,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
           values.categoryId = parent.id;
         }
         formApi.setValues(values);
-      }else if(parent){
-        formApi.setValues({ categoryId: parent.id});
+      } else if (parent) {
+        formApi.setValues({ categoryId: parent.id });
       }
 
       drawerApi.setState({ title: `说明：${isUpdate ? '编辑' : '新增'}` });
@@ -163,7 +166,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
  */
 function onSubmit(values: Record<string, any>) {
   try {
-    console.log('values',values)
+    console.log('values', values);
     const { isUpdate } = drawerApi.getData<Record<string, any>>();
     saveOrUpdate(values, isUpdate).then((d) => {
       setTimeout(() => {

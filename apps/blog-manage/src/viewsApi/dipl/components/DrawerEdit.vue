@@ -5,124 +5,124 @@ import { useVbenDrawer, VbenButton } from '@vben/common-ui';
 
 import {
   basicOptionsType,
-  HttpMethod,
-  RamResourceType,
-  RamResourceTypeAttr,
 } from '@pg/types';
 
 import { usePgForm } from '#/adapter';
-
-import { existName, saveOrUpdate, selectNodeAllPublic } from '../api';
 import { selectNodeAllPublic as selectNodeAllPublicCategory } from '#/viewsApi/diplCategory/api';
+
+import { existName, saveOrUpdate } from '../api';
 const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
-  tabs: {
-    active: 'home',
-    group: [
-      { value: 'home', label: '基本' },
-      { value: 'other', label: '其他' },
-    ],
-  },
+  // 通过 schema 的 type: 'group' 把字段组织成可折叠的分组，分组默认展开
   schema: [
     {
-      tabGroup: 'home',
-      fieldName: 'categoryNo',
-      label: '分类',
-      component: 'PgTreeSelect',
-      componentProps: {
-        api: selectNodeAllPublicCategory,
-        params: { by: 'no' },
-        props: {
-          placeholder: '如果为空,则是一级',
-          filterable: true,
-        },
-      },
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'typeSys',
-      label: '类型',
-      defaultValue: 'general',
-      component: 'PgRadioGroup',
-      componentProps: {
-        type: 'button',
-        options: basicOptionsType,
-      },
-      rules: 'required',
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'name',
-      label: '名称',
-      component: 'Input',
-      defaultValue: '',
-      componentProps: {
-        placeholder: '请输入',
-        onBlur: async (e) => {
-          const values = await formApi.getValues();
-          if (!values.nameFull) {
-            formApi.setFieldValue('nameFull', e.target.value);
-          }
-        },
-      },
-      rules: 'required',
-      suffix: () =>
-        h(
-          VbenButton,
-          {
-            class: 'pg-button-size-small',
-            onClick: async (e) => {
-              const values = await formApi.getValues();
-              existName(values.name, values.id);
+      type: 'group',
+      name: 'home',
+      title: '基本',
+      defaultCollapsed: false,
+      children: [
+        {
+          fieldName: 'categoryNo',
+          label: '分类',
+          component: 'PgTreeSelect',
+          componentProps: {
+            api: selectNodeAllPublicCategory,
+            params: { by: 'no' },
+            props: {
+              placeholder: '如果为空,则是一级',
+              filterable: true,
             },
           },
-          () => h('span', { class: 'font-normal' }, '查重'),
-        ),
-    },
-    {
-      tabGroup: 'other',
-      fieldName: 'nameFl',
-      label: '名称英文',
-      component: 'Input',
-      componentProps: {
-        placeholder: '请输入',
-      },
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'code',
-      label: '标记',
-      defaultValue: '系统自动建立',
-      rules: 'required',
-      component: 'Input',
-      componentProps: {
-        placeholder: '请输入',
-        onBlur: async (e) => {
-          const values = await formApi.getValues();
-          if (!values.nameFl) {
-            formApi.setFieldValue('nameFl', e.target.value);
-          }
-          if (!values.path) {
-            formApi.setFieldValue('path', e.target.value);
-          }
         },
-      },
+        {
+          fieldName: 'typeSys',
+          label: '类型',
+          defaultValue: 'general',
+          component: 'PgRadioGroup',
+          componentProps: {
+            type: 'button',
+            options: basicOptionsType,
+          },
+          rules: 'required',
+        },
+        {
+          fieldName: 'name',
+          label: '名称',
+          component: 'Input',
+          defaultValue: '',
+          componentProps: {
+            placeholder: '请输入',
+            onBlur: async (e) => {
+              const values = await formApi.getValues();
+              if (!values.nameFull) {
+                formApi.setFieldValue('nameFull', e.target.value);
+              }
+            },
+          },
+          rules: 'required',
+          suffix: () =>
+            h(
+              VbenButton,
+              {
+                class: 'pg-button-size-small',
+                onClick: async (e) => {
+                  const values = await formApi.getValues();
+                  existName(values.name, values.id);
+                },
+              },
+              () => h('span', { class: 'font-normal' }, '查重'),
+            ),
+        },
+        {
+          fieldName: 'code',
+          label: '标记',
+          defaultValue: '系统自动建立',
+          rules: 'required',
+          component: 'Input',
+          componentProps: {
+            placeholder: '请输入',
+            onBlur: async (e) => {
+              const values = await formApi.getValues();
+              if (!values.nameFl) {
+                formApi.setFieldValue('nameFl', e.target.value);
+              }
+              if (!values.path) {
+                formApi.setFieldValue('path', e.target.value);
+              }
+            },
+          },
+        },
+        {
+          fieldName: 'description',
+          label: '描述',
+          component: 'Textarea',
+          componentProps: {
+            type: 'textarea',
+            placeholder: '描述',
+          },
+        },
+      ],
     },
     {
-      tabGroup: 'other',
-      fieldName: 'nameFull',
-      label: '全称',
-      component: 'Input',
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'description',
-      label: '描述',
-      component: 'Textarea',
-      componentProps: {
-        type: 'textarea',
-        placeholder: '描述',
-      },
+      type: 'group',
+      name: 'other',
+      title: '其他',
+      defaultCollapsed: false,
+      children: [
+        {
+          fieldName: 'nameFl',
+          label: '名称英文',
+          component: 'Input',
+          componentProps: {
+            placeholder: '请输入',
+          },
+        },
+        {
+          fieldName: 'nameFull',
+          label: '全称',
+          component: 'Input',
+        },
+      ],
     },
     {
       fieldName: 'id',

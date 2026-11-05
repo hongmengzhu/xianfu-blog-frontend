@@ -1,27 +1,16 @@
 <script lang="ts" setup>
 import { h } from 'vue';
 
-import { useVbenDrawer } from '@vben/common-ui';
-import { VbenButton } from '@vben/common-ui';
+import { useVbenDrawer, VbenButton } from '@vben/common-ui';
 
-import { YesNoOptions } from '@pg/types';
+import { usePgForm } from '#/adapter';
 
-import { useVbenForm, usePgForm } from '#/adapter';
-
-import { existName, saveOrUpdate, existCountryCode } from '../api';
+import { existName, saveOrUpdate } from '../api';
 
 const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
-  tabs: {
-    active: 'home',
-    group: [
-      { value: 'home', label: '基本' },
-      { value: 'other', label: '其他' },
-    ],
-  },
   schema: [
     {
-      tabGroup: 'home',
       fieldName: 'topicNo',
       label: '话题编号',
       component: 'Input',
@@ -31,14 +20,12 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'topicName',
       label: '话题',
       component: 'PgSpan',
       componentProps: {},
     },
     {
-      tabGroup: 'home',
       fieldName: 'articleNo',
       label: '文章编号',
       component: 'Input',
@@ -53,14 +40,13 @@ const [Form, formApi] = usePgForm({
             class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formApi.getValues();
-              //existName(values.name, values.id);
+              // existName(values.name, values.id);
             },
           },
           () => h('span', { class: 'font-normal' }, '选择文章'),
         ),
     },
     {
-      tabGroup: 'home',
       fieldName: 'name',
       label: '文章名称',
       component: 'Input',
@@ -88,7 +74,6 @@ const [Form, formApi] = usePgForm({
         ),
     },
     {
-      tabGroup: 'home',
       fieldName: 'description',
       label: '文章描述',
       component: 'Textarea',
@@ -153,14 +138,13 @@ async function onSubmit() {
   try {
     drawerApi.setState({ loading: true, confirmLoading: true });
     const { isUpdate } = drawerApi.getData<Record<string, any>>();
-    saveOrUpdate(values, isUpdate)
-      .then((d) => {
-        setTimeout(() => {
-          emit('ok', values);
-          drawerApi.setState({ loading: false });
-          drawerApi.close();
-        }, 500);
-      });
+    saveOrUpdate(values, isUpdate).then((d) => {
+      setTimeout(() => {
+        emit('ok', values);
+        drawerApi.setState({ loading: false });
+        drawerApi.close();
+      }, 500);
+    });
   } catch (error) {
     console.error(error);
   } finally {

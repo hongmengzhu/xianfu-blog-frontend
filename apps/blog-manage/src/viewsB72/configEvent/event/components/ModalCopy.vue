@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { useVbenModal, z } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 
@@ -9,13 +8,8 @@ import { copy } from '../api';
 
 const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
-  tabs: {
-    active: 'home',
-    group: [{ value: 'home', label: '复制' }],
-  },
   schema: [
     {
-      tabGroup: 'home',
       fieldName: 'passwordNew',
       label: '新密码',
       component: 'VbenInputPassword',

@@ -9,6 +9,7 @@ import type {
 import type { Recordable } from '@vben-core/typings';
 
 import { computed, onMounted, reactive, ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 import { useVbenDrawer, useVbenModal } from '@vben-core/popup-ui';
 
@@ -45,7 +46,6 @@ import DrawerEditTpl from './components/DrawerEdit.vue';
 import ModalAccountTpl from './components/ModalAccount.vue';
 import ModalPasswordTpl from './components/ModalPassword.vue';
 import { columns } from './data';
-import { useRouter } from 'vue-router';
 
 const currenRecord = ref(false);
 const currenData = ref<Recordable<any>>({});
@@ -91,17 +91,11 @@ const [ModalPassword, modalApiPassword] = useVbenModal({
 const menuDropdownOptions = [];
 
 const [Form, formApi] = usePgForm({
-  tabs: {
-    hide: true,
-    active: 'home',
-    group: [{ value: 'home', label: '基础信息' }],
-  },
   // 大屏一行显示3个，中屏一行显示2个，小屏一行显示1个
   wrapperClass: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4',
   actionWrapperClass: 'text-center',
   schema: [
     {
-      tabGroup: 'home',
       fieldName: 'wd',
       label: '关键词',
       component: 'Input',
@@ -111,7 +105,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'account',
       label: '账号',
       component: 'Input',
@@ -121,7 +114,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'mail',
       label: '邮箱',
       component: 'Input',
@@ -131,7 +123,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'phone',
       label: '手机号',
       component: 'Input',
@@ -141,7 +132,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'tenantNo',
       label: '租户编号',
       component: 'Input',
@@ -151,7 +141,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'code',
       label: '编号',
       component: 'Input',
@@ -161,7 +150,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'departments',
       label: '部门',
       component: 'PgTreeSelect',
@@ -175,7 +163,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'roles',
       label: '角色',
       component: 'PgTreeSelect',
@@ -189,7 +176,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'levels',
       label: '级别',
       component: 'PgTreeSelect',
@@ -203,7 +189,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'groups',
       label: '分组',
       component: 'PgTreeSelect',
@@ -216,9 +201,7 @@ const [Form, formApi] = usePgForm({
         },
       },
     },
-
     {
-      tabGroup: 'home',
       fieldName: 'teams',
       label: '团队',
       component: 'PgTreeSelect',
@@ -232,7 +215,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'position',
       fieldName: 'job',
       label: '职位',
       component: 'PgTreeSelect',
@@ -245,7 +227,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'state',
       label: '状态',
       component: 'Select',
@@ -256,7 +237,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'position',
       label: '职务',
       component: 'PgTreeSelect',
@@ -269,7 +249,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'job',
       label: '职位',
       component: 'PgTreeSelect',
@@ -282,19 +261,16 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'jobTitle',
       label: '职衔',
       component: 'Input',
     },
     {
-      tabGroup: 'home',
       fieldName: 'jobRank',
       label: '职级',
       component: 'Input',
     },
     {
-      tabGroup: 'home',
       fieldName: 'registerTimeRange',
       label: '注册时间',
       component: 'PgDatePicker',
@@ -317,7 +293,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'loginTimeRange',
       label: '登陆时间',
       component: 'PgDatePicker',
@@ -340,7 +315,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'birthdayRange',
       label: '生日',
       component: 'PgDatePicker',

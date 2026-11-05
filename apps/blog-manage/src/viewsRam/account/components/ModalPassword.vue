@@ -1,27 +1,22 @@
 <script setup lang="ts">
-import { h, ref } from 'vue';
+import { ref } from 'vue';
 
-import { useVbenModal, VbenButton, z } from '@vben/common-ui';
+import { useVbenModal, z } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 
 import { usePgForm } from '#/adapter';
-
-import { updatePassword } from '../api';
 import { useConfigPubStore } from '#/store';
 import { SmUtil } from '#/tools/smUtil';
 
+import { updatePassword } from '../api';
+
+const emit = defineEmits(['ok']);
 const configPubStore = useConfigPubStore();
 const sm = new SmUtil();
 const currentData = ref({});
-const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
-  tabs: {
-    active: 'home',
-    group: [{ value: 'home', label: '修改密码' }],
-  },
   schema: [
     {
-      tabGroup: 'home',
       fieldName: 'passwordNew',
       label: '新密码',
       component: 'VbenInputPassword',
@@ -32,7 +27,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'confirmPassword',
       label: '确认密码',
       component: 'VbenInputPassword',
@@ -106,13 +100,13 @@ async function onSubmit() {
     if (
       configPubStore.isLoginEncrypt() &&
       configPubStore.getLoginPub() &&
-      data['passwordNew']
+      data.passwordNew
     ) {
       sm.setPublicKey(configPubStore.getLoginPub());
       data.passwordNew = sm.encryptHex(data.passwordNew);
-      data['encrypt'] = 'encrypt';
+      data.encrypt = 'encrypt';
     }
-    data['confirmPassword'] = '1111111';
+    data.confirmPassword = '1111111';
     updatePassword(data).then((d) => {
       setTimeout(() => {
         emit('ok', values);

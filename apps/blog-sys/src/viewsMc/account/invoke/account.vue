@@ -6,25 +6,17 @@ import { useVbenModal, VbenButton } from '@vben/common-ui';
 import { usePgForm } from '#/adapter';
 
 import {
-  existAccount,
-  existPhone,
-  existMail,
-  saveOrUpdateAccount,
   detail,
+  existAccount,
+  existMail,
+  existPhone,
+  saveOrUpdateAccount,
 } from '../api';
-const parentData = ref({});
 const emit = defineEmits(['ok']);
+const parentData = ref({});
 const [Form, formApi] = usePgForm({
-  tabs: {
-    active: 'home',
-    group: [
-      { value: 'home', label: '基本' },
-      { value: 'other', label: '其他' },
-    ],
-  },
   schema: [
     {
-      tabGroup: 'home',
       fieldName: 'merchantIdName',
       label: '商户',
       component: 'Input',
@@ -35,7 +27,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'account',
       label: '账号',
       component: 'Input',
@@ -47,7 +38,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             size: 'medium',
             onClick: async (e) => {
               const values = await formApi.getValues();
@@ -58,7 +49,6 @@ const [Form, formApi] = usePgForm({
         ),
     },
     {
-      tabGroup: 'home',
       fieldName: 'phone',
       label: '手机号',
       rules: 'required',
@@ -67,7 +57,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             size: 'medium',
             onClick: async (e) => {
               const values = await formApi.getValues();
@@ -78,7 +68,6 @@ const [Form, formApi] = usePgForm({
         ),
     },
     {
-      tabGroup: 'home',
       fieldName: 'mail',
       label: '邮箱',
       rules: 'required',
@@ -87,7 +76,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             size: 'medium',
             onClick: async (e) => {
               const values = await formApi.getValues();
@@ -98,14 +87,12 @@ const [Form, formApi] = usePgForm({
         ),
     },
     {
-      tabGroup: 'home',
       fieldName: 'code',
       label: '编号',
       rules: 'required',
       component: 'Input',
     },
     {
-      tabGroup: 'home',
       fieldName: 'realName',
       label: '真实姓名',
       rules: 'required',
@@ -121,14 +108,12 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'name',
       label: '名称/昵称',
       rules: 'required',
       component: 'Input',
     },
     {
-      tabGroup: 'home',
       fieldName: 'registerTime',
       label: '注册时间',
       component: 'PgDatePicker',
@@ -148,7 +133,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'description',
       label: '描述',
       component: 'Textarea',
@@ -197,7 +181,8 @@ const [Modal, modalApi] = useVbenModal({
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      const { values, isUpdate, parent } = modalApi.getData<Record<string, any>>();
+      const { values, isUpdate, parent } =
+        modalApi.getData<Record<string, any>>();
       console.log('parent', parent);
       console.log('values', values);
       let data = { merchantIdName: '', merchantId: '' };
@@ -213,7 +198,9 @@ const [Modal, modalApi] = useVbenModal({
       } else {
         formApi.setValues({ ...data });
       }
-      modalApi.setState({ title: `商户[${parentData.value.name}]创始人账号：${isUpdate ? '编辑' : '新增'}` });
+      modalApi.setState({
+        title: `商户[${parentData.value.name}]创始人账号：${isUpdate ? '编辑' : '新增'}`,
+      });
     }
   },
 });

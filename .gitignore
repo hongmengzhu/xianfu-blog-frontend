@@ -28,6 +28,7 @@ package-lock.json
 .env.local
 .env.*.local
 .eslintcache
+.tmp*
 
 logs
 *.log

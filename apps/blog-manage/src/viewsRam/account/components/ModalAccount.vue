@@ -7,22 +7,14 @@ import { usePgForm } from '#/adapter';
 
 import {
   existAccount,
-  saveOrUpdateAccount,
-  existPhone,
   existMail,
+  existPhone,
+  saveOrUpdateAccount,
 } from '../api';
 const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
-  tabs: {
-    active: 'home',
-    group: [
-      { value: 'home', label: '基本' },
-      { value: 'other', label: '其他' },
-    ],
-  },
   schema: [
     {
-      tabGroup: 'home',
       fieldName: 'account',
       label: '账号',
       component: 'Input',
@@ -34,7 +26,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formApi.getValues();
               existAccount(values.account, values.id);
@@ -44,7 +36,6 @@ const [Form, formApi] = usePgForm({
         ),
     },
     {
-      tabGroup: 'home',
       fieldName: 'countryCode',
       label: '国际区号',
       component: 'Input',
@@ -54,7 +45,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      tabGroup: 'home',
       fieldName: 'phone',
       label: '手机号',
       rules: 'required',
@@ -63,7 +53,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formApi.getValues();
               existPhone(values.phone, values.id);
@@ -73,7 +63,6 @@ const [Form, formApi] = usePgForm({
         ),
     },
     {
-      tabGroup: 'home',
       fieldName: 'mail',
       label: '邮箱',
       rules: 'required',
@@ -82,7 +71,7 @@ const [Form, formApi] = usePgForm({
         h(
           VbenButton,
           {
-            class:'pg-button-size-small',
+            class: 'pg-button-size-small',
             onClick: async (e) => {
               const values = await formApi.getValues();
               existMail(values.mail, values.id);
@@ -92,14 +81,12 @@ const [Form, formApi] = usePgForm({
         ),
     },
     {
-      tabGroup: 'home',
       fieldName: 'code',
       label: '编号',
       rules: 'required',
       component: 'Input',
     },
     {
-      tabGroup: 'home',
       fieldName: 'registerTime',
       label: '注册时间',
       component: 'PgDatePicker',
@@ -149,7 +136,10 @@ const [Modal, modalApi] = useVbenModal({
         formApi.setValues(values);
       }
 
-      modalApi.setState({ title: `账号：${isUpdate ? '编辑' : '新增'}`, loading: false });
+      modalApi.setState({
+        title: `账号：${isUpdate ? '编辑' : '新增'}`,
+        loading: false,
+      });
     }
   },
 });
@@ -161,19 +151,18 @@ async function onSubmit() {
   if (!valid) {
     return false;
   }
-  const values = await formApi.getValues<Omit<Record<string, any>,'id'>>();
+  const values = await formApi.getValues<Omit<Record<string, any>, 'id'>>();
   modalApi.lock();
   try {
     modalApi.setState({ loading: true, confirmLoading: true });
     const { isUpdate } = modalApi.getData<Record<string, any>>();
-    saveOrUpdateAccount(values, isUpdate)
-      .then((d) => {
-        setTimeout(() => {
-          emit('ok', values);
-          modalApi.setState({ loading: false });
-          modalApi.close();
-        }, 500);
-      });
+    saveOrUpdateAccount(values, isUpdate).then((d) => {
+      setTimeout(() => {
+        emit('ok', values);
+        modalApi.setState({ loading: false });
+        modalApi.close();
+      }, 500);
+    });
   } catch (error) {
     console.error(error);
   } finally {

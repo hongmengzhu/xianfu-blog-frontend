@@ -1,16 +1,16 @@
 <script lang="ts" setup>
-import { h, computed } from 'vue';
+import { computed, h } from 'vue';
 
 import { useVbenDrawer, VbenButton } from '@vben/common-ui';
-import { usePgForm } from '#/adapter';
 
+import { usePgForm } from '#/adapter';
 import { selectNodeAllPublic as selectNodeAllPublicTagsCategory } from '#/viewsBasic/tags/category/api';
 import {
+  existCode,
   existName,
   saveOrUpdate,
-  selectNodeAllPublic,
-  existCode,
 } from '#/viewsBasic/tags/relation/api';
+const emit = defineEmits(['ok']);
 const titleRef = defineModel('title', {
   default: () => '',
   type: [String],
@@ -23,212 +23,208 @@ const data = defineModel('data', {
   default: () => [],
   type: [Object, Number, String, Array],
 });
-const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
-  tabs: {
-    active: 'home',
-    group: [
-      { value: 'home', label: '基本' },
-      { value: 'other', label: '其他' },
-    ],
-  },
+  // 通过 schema 的 type: 'group' 把字段组织成可折叠的分组，分组默认展开
   schema: [
     {
-      tabGroup: 'home',
-      fieldName: 'category',
-      label: '分类',
-      component: 'PgTreeSelect',
-      componentProps: {
-        api: selectNodeAllPublicTagsCategory,
-        convertNodeField: {
-          keyField: 'extend.code',
-          parentField: 'extend.parentCode',
-        },
-        props: {
-          placeholder: '',
-          filterable: true,
-          disabled: true,
-        },
-      },
-      rules: 'required',
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'name',
-      label: '显示名称',
-      component: 'Input',
-      defaultValue: '',
-      componentProps: {
-        placeholder: '请输入',
-        onBlur: async (e) => {
-          const values = await formApi.getValues();
-          if (!values.nameFull) {
-            formApi.setFieldValue('nameFull', e.target.value);
-          }
-          if (!values.code) {
-            formApi.setFieldValue('code', e.target.value);
-          }
-          if (!values.nameFl) {
-            formApi.setFieldValue('nameFl', e.target.value);
-          }
-          if (!values.nameShort) {
-            formApi.setFieldValue('nameShort', e.target.value);
-          }
-        },
-      },
-      rules: 'required',
-      suffix: () =>
-        h(
-          VbenButton,
-          {
-            class: 'pg-button-size-small',
-            onClick: async (e) => {
-              const values = await formApi.getValues();
-              existName(values.name, values.id);
+      type: 'group',
+      name: 'home',
+      title: '基本',
+      defaultCollapsed: false,
+      children: [
+        {
+          fieldName: 'category',
+          label: '分类',
+          component: 'PgTreeSelect',
+          componentProps: {
+            api: selectNodeAllPublicTagsCategory,
+            convertNodeField: {
+              keyField: 'extend.code',
+              parentField: 'extend.parentCode',
+            },
+            props: {
+              placeholder: '',
+              filterable: true,
+              disabled: true,
             },
           },
-          () => h('span', { class: 'font-normal' }, '查重'),
-        ),
-    },
-    {
-      tabGroup: 'other',
-      fieldName: 'nameFl',
-      label: '名称英文',
-      component: 'Input',
-      componentProps: {
-        placeholder: '请输入',
-      },
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'code',
-      label: '标签',
-      rules: 'required',
-      component: 'Input',
-      componentProps: {
-        placeholder: '请输入',
-        onBlur: async (e) => {
-          const values = await formApi.getValues();
-          if (!values.nameFl) {
-            formApi.setFieldValue('nameFl', e.target.value);
-          }
-          if (!values.nameFull) {
-            formApi.setFieldValue('nameFull', e.target.value);
-          }
+          rules: 'required',
         },
-      },
-      suffix: () =>
-        h(
-          VbenButton,
-          {
-            class: 'pg-button-size-small',
-            onClick: async (e) => {
+        {
+          fieldName: 'name',
+          label: '显示名称',
+          component: 'Input',
+          defaultValue: '',
+          componentProps: {
+            placeholder: '请输入',
+            onBlur: async (e) => {
               const values = await formApi.getValues();
-              existCode(values.code, values.id);
+              if (!values.nameFull) {
+                formApi.setFieldValue('nameFull', e.target.value);
+              }
+              if (!values.code) {
+                formApi.setFieldValue('code', e.target.value);
+              }
+              if (!values.nameFl) {
+                formApi.setFieldValue('nameFl', e.target.value);
+              }
+              if (!values.nameShort) {
+                formApi.setFieldValue('nameShort', e.target.value);
+              }
             },
           },
-          () => h('span', { class: 'font-normal' }, '查重'),
-        ),
+          rules: 'required',
+          suffix: () =>
+            h(
+              VbenButton,
+              {
+                class: 'pg-button-size-small',
+                onClick: async (e) => {
+                  const values = await formApi.getValues();
+                  existName(values.name, values.id);
+                },
+              },
+              () => h('span', { class: 'font-normal' }, '查重'),
+            ),
+        },
+        {
+          fieldName: 'code',
+          label: '标签',
+          rules: 'required',
+          component: 'Input',
+          componentProps: {
+            placeholder: '请输入',
+            onBlur: async (e) => {
+              const values = await formApi.getValues();
+              if (!values.nameFl) {
+                formApi.setFieldValue('nameFl', e.target.value);
+              }
+              if (!values.nameFull) {
+                formApi.setFieldValue('nameFull', e.target.value);
+              }
+            },
+          },
+          suffix: () =>
+            h(
+              VbenButton,
+              {
+                class: 'pg-button-size-small',
+                onClick: async (e) => {
+                  const values = await formApi.getValues();
+                  existCode(values.code, values.id);
+                },
+              },
+              () => h('span', { class: 'font-normal' }, '查重'),
+            ),
+        },
+        {
+          fieldName: 'nameShort',
+          label: '简称',
+          component: 'Input',
+        },
+        {
+          fieldName: 'description',
+          label: '描述',
+          component: 'Textarea',
+          componentProps: {
+            type: 'textarea',
+            placeholder: '描述',
+          },
+        },
+        {
+          fieldName: 'show',
+          label: '',
+          component: '',
+        },
+        {
+          fieldName: 'attributeMap.type',
+          label: '快速颜色类型',
+          defaultValue: 'info',
+          component: 'PgRadioGroup',
+          componentProps: {
+            type: 'button',
+            options: [
+              { label: '默认', value: 'default' },
+              // {label: '中', value: 'primary'},
+              { label: '蓝色', value: 'info' },
+              { label: '绿色', value: 'success' },
+              { label: '橘黄', value: 'warning' },
+              { label: '红色', value: 'error' },
+            ],
+          },
+          rules: 'required',
+        },
+        {
+          fieldName: 'attributeMap.bordered',
+          label: '是否有边框',
+          defaultValue: true,
+          component: 'RadioGroup',
+          componentProps: {
+            options: [
+              { label: '是', value: true },
+              { label: '否', value: false },
+            ],
+          },
+          rules: 'required',
+        },
+        {
+          fieldName: 'description',
+          label: '描述',
+          component: 'Textarea',
+          componentProps: {
+            type: 'textarea',
+            placeholder: '标签颜色，设置该项后　type 无效',
+          },
+        },
+        {
+          fieldName: 'attributeMap.size',
+          label: '尺寸',
+          defaultValue: 'medium',
+          component: 'RadioGroup',
+          componentProps: {
+            options: [
+              { label: '小', value: 'small' },
+              { label: '中', value: 'medium' },
+              { label: '大', value: 'large' },
+            ],
+          },
+          rules: 'required',
+        },
+        {
+          fieldName: 'attributeMap.round',
+          label: '圆角',
+          defaultValue: false,
+          component: 'RadioGroup',
+          componentProps: {
+            options: [
+              { label: '否', value: false },
+              { label: '是', value: true },
+            ],
+          },
+          rules: 'required',
+        },
+      ],
     },
     {
-      tabGroup: 'home',
-      fieldName: 'nameShort',
-      label: '简称',
-      component: 'Input',
-    },
-    {
-      tabGroup: 'other',
-      fieldName: 'nameFull',
-      label: '全称',
-      component: 'Input',
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'description',
-      label: '描述',
-      component: 'Textarea',
-      componentProps: {
-        type: 'textarea',
-        placeholder: '描述',
-      },
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'show',
-      label: '',
-      component: '',
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'attributeMap.type',
-      label: '快速颜色类型',
-      defaultValue: 'info',
-      component: 'PgRadioGroup',
-      componentProps: {
-        type: 'button',
-        options: [
-          { label: '默认', value: 'default' },
-          // {label: '中', value: 'primary'},
-          { label: '蓝色', value: 'info' },
-          { label: '绿色', value: 'success' },
-          { label: '橘黄', value: 'warning' },
-          { label: '红色', value: 'error' },
-        ],
-      },
-      rules: 'required',
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'attributeMap.bordered',
-      label: '是否有边框',
-      defaultValue: true,
-      component: 'RadioGroup',
-      componentProps: {
-        options: [
-          { label: '是', value: true },
-          { label: '否', value: false },
-        ],
-      },
-      rules: 'required',
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'description',
-      label: '描述',
-      component: 'Textarea',
-      componentProps: {
-        type: 'textarea',
-        placeholder: '标签颜色，设置该项后　type 无效',
-      },
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'attributeMap.size',
-      label: '尺寸',
-      defaultValue: 'medium',
-      component: 'RadioGroup',
-      componentProps: {
-        options: [
-          { label: '小', value: 'small' },
-          { label: '中', value: 'medium' },
-          { label: '大', value: 'large' },
-        ],
-      },
-      rules: 'required',
-    },
-    {
-      tabGroup: 'home',
-      fieldName: 'attributeMap.round',
-      label: '圆角',
-      defaultValue: false,
-      component: 'RadioGroup',
-      componentProps: {
-        options: [
-          { label: '否', value: false },
-          { label: '是', value: true },
-        ],
-      },
-      rules: 'required',
+      type: 'group',
+      name: 'other',
+      title: '其他',
+      defaultCollapsed: false,
+      children: [
+        {
+          fieldName: 'nameFl',
+          label: '名称英文',
+          component: 'Input',
+          componentProps: {
+            placeholder: '请输入',
+          },
+        },
+        {
+          fieldName: 'nameFull',
+          label: '全称',
+          component: 'Input',
+        },
+      ],
     },
     {
       fieldName: 'id',
@@ -267,7 +263,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
         formApi.setValues({
           ...values,
         });
-        //console.log('formApi......',formApi.getValues());
+        // console.log('formApi......',formApi.getValues());
       }
 
       drawerApi.setState({
@@ -321,7 +317,7 @@ async function onSubmit() {
 
 function jsonColorCov(row) {
   console.log('obj', row);
-  if ('{}' == row) {
+  if (row == '{}') {
     return undefined;
   }
   if (!row) {
@@ -333,8 +329,8 @@ function jsonColorCov(row) {
   try {
     let obj = JSON.parse(row);
     return obj;
-  } catch (e) {
-    console.error(e);
+  } catch (error) {
+    console.error(error);
   }
   return undefined;
 }
