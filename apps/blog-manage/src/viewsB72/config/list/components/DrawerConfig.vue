@@ -588,14 +588,17 @@ async function onSubmit() {
     message.warning('没有可保存的字段');
     return false;
   }
-  drawerApi.setState({ confirmLoading: true });
+  drawerApi.setState({ loading: true, confirmLoading: true });
   drawerApi.lock();
   try {
-    await configUpdate({ data, eventNo: eventNo.value });
+    await configUpdate({ data, eventNo: eventNo.value }).then((d) => {
+      setTimeout(() => {
+        emit('ok', d);
+        drawerApi.setState({ loading: false });
+        drawerApi.close();
+      }, 500);
+    });
     message.success('保存成功');
-    emit('ok');
-    drawerApi.setState({ confirmLoading: false });
-    drawerApi.close();
   } catch (error) {
     console.error(error);
   } finally {
@@ -622,9 +625,7 @@ async function onSubmit() {
       </div>
       <div v-if="entries.length > 0" class="mt-2 text-xs text-gray-400">
         共
-        {{
-          entries.length
-        }}
+        {{ entries.length }}
         个字段；保存时后端按模型字段规则校验，并写入配置值与配置列表 content。
       </div>
     </div>
