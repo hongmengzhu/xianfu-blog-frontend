@@ -2,28 +2,26 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  create = '/xianfu/manage/basic/config-list/create',
-  delete = '/xianfu/manage/basic/config-list/delete',
-  detail = '/xianfu/manage/basic/config-list/detail/',
-  disable = '/xianfu/manage/basic/config-list/disable',
-  enable = '/xianfu/manage/basic/config-list/enable',
-  existName = '/xianfu/manage/basic/config-list/existName',
-  exportExcel = '/xianfu/manage/basic/config-list/exportExcel',
-  list = '/xianfu/manage/basic/config-list/query',
-  physicalDeletion = '/xianfu/manage/basic/config-list/physicalDeletion',
-  recovery = '/xianfu/manage/basic/config-list/recovery',
-  selectNodeAllPublic = '/xianfu/manage/basic/config-list/selectNodeAllPublic',
-  selectNodePublic = '/xianfu/manage/basic/config-list/selectNodePublic',
-  selectPublic = '/xianfu/manage/basic/config-list/selectPublic',
-  state = '/xianfu/manage/basic/config-list/state',
-  update = '/xianfu/manage/basic/config-list/update',
-  detailForm = '/xianfu/manage/basic/config-list/detailForm',
-  configUpdate = '/xianfu/manage/basic/config-list/configUpdate',
+  allByModel = '/xianfu/manage/basic/config/allByModel',
+  cacheOverride = '/xianfu/manage/basic/config/cacheOverride',
+  createUpdate = '/xianfu/manage/basic/config/createUpdate',
+  delete = '/xianfu/manage/basic/config/delete',
+  detail = '/xianfu/manage/basic/config/detail/',
+  disable = '/xianfu/manage/basic/config/disable',
+  enable = '/xianfu/manage/basic/config/enable',
+  existName = '/xianfu/manage/basic/config/existName',
+  list = '/xianfu/manage/basic/config/query',
+  physicalDeletion = '/xianfu/manage/basic/config/physicalDeletion',
+  recovery = '/xianfu/manage/basic/config/recovery',
+  state = '/xianfu/manage/basic/config/state',
+  updateValues = '/xianfu/manage/basic/config/updateValues',
+  // 关联接口
+  categoryList = '/xianfu/manage/basic/config-category/query',
+  modelList = '/xianfu/manage/basic/config-model/query',
 }
 
 /**
- * 列表
- * @constructor
+ * 列表（按租户分页查询配置行）
  * @param data
  */
 export async function List(data?: any) {
@@ -31,61 +29,19 @@ export async function List(data?: any) {
 }
 
 /**
- * 公共列表展示
- * @param data
- */
-export const selectPublic = (data?: any) => {
-  return requestClient.post(Api.selectPublic, data);
-};
-
-/**
- * 公共树展示
- * @param data
- */
-export const selectNodePublic = (data?: any) => {
-  return requestClient.post(Api.selectNodePublic, data);
-};
-
-/**
- * 公共树展示
- * @param data
- */
-export const selectNodeAllPublic = (data?: any) => {
-  return requestClient.post(Api.selectNodeAllPublic, data);
-};
-/**
- * 公共树展示
- * @param data
- */
-export const detailForm = (data?: any) => {
-  return requestClient.post(Api.detailForm, data);
-};
-/**
  * 详情
- * @param data
+ * @param id
  */
-export const detail = (data?: any) => {
-  return requestClient.get(Api.detail + data);
+export const detail = (id?: any) => {
+  return requestClient.get(Api.detail + id);
 };
 
 /**
- * 保存或者更新
+ * 新增/更新单条配置（id 为空为新增）
  * @param data
- * @param isUpdate
  */
-export const saveOrUpdate = (data: any, isUpdate: boolean) => {
-  return requestClient.post(isUpdate ? Api.update : Api.create, data, {
-    errorMessageMode: 'message',
-    successMessageMode: 'notification',
-  });
-};
-/**
- * 保存或者更新
- * @param data
- * @param isUpdate
- */
-export const configUpdate = (data: any) => {
-  return requestClient.post(Api.configUpdate, data, {
+export const saveOrUpdate = (data: any) => {
+  return requestClient.post(Api.createUpdate, data, {
     errorMessageMode: 'message',
     successMessageMode: 'notification',
   });
@@ -110,6 +66,7 @@ export const deleteIds = (params: any) => {
 /**
  * 批量选中-删除
  * @param params
+ * @param handleSuccess
  */
 export const batchSelectDelete = (params, handleSuccess) => {
   dialog.warning({
@@ -137,6 +94,7 @@ export const batchSelectDelete = (params, handleSuccess) => {
 /**
  * 批量选中-启用
  * @param params
+ * @param handleSuccess
  */
 export const batchSelectEnable = (params, handleSuccess) => {
   dialog.warning({
@@ -164,6 +122,7 @@ export const batchSelectEnable = (params, handleSuccess) => {
 /**
  * 批量选中-禁用
  * @param params
+ * @param handleSuccess
  */
 export const batchSelectDisable = (params, handleSuccess) => {
   dialog.warning({
@@ -191,6 +150,7 @@ export const batchSelectDisable = (params, handleSuccess) => {
 /**
  * 批量选中-恢复
  * @param params
+ * @param handleSuccess
  */
 export const batchSelectRecovery = (params, handleSuccess) => {
   dialog.warning({
@@ -218,6 +178,7 @@ export const batchSelectRecovery = (params, handleSuccess) => {
 /**
  * 批量选中-物理删除
  * @param params
+ * @param handleSuccess
  */
 export const batchSelectPhysicalDeletion = (params, handleSuccess) => {
   dialog.warning({
@@ -243,11 +204,11 @@ export const batchSelectPhysicalDeletion = (params, handleSuccess) => {
 };
 
 /**
- * 批量-设置状态
+ * 设置有效/停用
  * @param id
  * @param status 1 有效 2 停用
  */
-export const setStateEnableDisable = (id: number, status: number) =>
+export const setStateEnableDisable = (id: any, status: number) =>
   requestClient.post(
     Api.state,
     { ids: [id], state: status },
@@ -255,13 +216,9 @@ export const setStateEnableDisable = (id: number, status: number) =>
   );
 
 /**
- * 导出excel url地址
- */
-export const exportExcelUrl = Api.exportExcel;
-
-/**
- * 查询名称是否存在
- * @param params
+ * 名称查重
+ * @param wd
+ * @param id
  */
 export const existName = (wd, id?) => {
   id = id || '0';
@@ -270,4 +227,87 @@ export const existName = (wd, id?) => {
     { wd, id },
     { errorMessageMode: 'message', successMessageMode: 'notification' },
   );
+};
+
+/**
+ * 按 model（或 modelNo）读取配置（走缓存）
+ * @param data { model } 或 { modelNo }
+ */
+export const allByModel = (data: any) => {
+  return requestClient.post(Api.allByModel, data);
+};
+
+/**
+ * 按模型批量保存字段值（按字段规则校验）
+ * @param data { model, data: { field: value } }
+ */
+export const updateValues = (data: any) => {
+  return requestClient.post(Api.updateValues, data, {
+    errorMessageMode: 'message',
+    successMessageMode: 'notification',
+  });
+};
+
+/**
+ * 从数据库全量重建配置缓存
+ */
+export const cacheOverride = () => {
+  return requestClient.post(
+    Api.cacheOverride,
+    {},
+    {
+      errorMessageMode: 'message',
+      successMessageMode: 'notification',
+    },
+  );
+};
+
+/**
+ * 模型下拉（当前租户有效模型）
+ */
+export const modelOptions = async () => {
+  const res: any = await requestClient.post(Api.modelList, {
+    pageSize: 1000,
+    pageNum: 1,
+    state: 1,
+  });
+  const rows = res?.data || res || [];
+  return rows.map((item: any) => ({
+    label: `${item.name}（${item.model}）`,
+    value: item.model,
+    name: item.name,
+    model: item.model,
+    no: item.no,
+  }));
+};
+
+/**
+ * 配置分类下拉
+ */
+export const categoryOptions = async () => {
+  const res: any = await requestClient.post(Api.categoryList, {
+    pageSize: 1000,
+    pageNum: 1,
+  });
+  const rows = res?.data || res || [];
+  return rows.map((item: any) => ({
+    label: item.name,
+    value: item.code || item.no,
+  }));
+};
+
+/**
+ * 模型字段下拉（字段已在设计器保存，配置行由设计器自动生成）
+ */
+export const fieldOptions = async (model: string) => {
+  if (!model) {
+    return [];
+  }
+  const res: any = await allByModel({ model });
+  const rows = Array.isArray(res) ? res : res?.data || [];
+  return rows.map((item: any) => ({
+    label: `${item.name}（${item.field}）`,
+    value: item.field,
+    raw: item,
+  }));
 };

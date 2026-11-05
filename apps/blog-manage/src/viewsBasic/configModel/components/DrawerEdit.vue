@@ -1,61 +1,45 @@
 <script lang="ts" setup>
-import {ref, reactive, h, onMounted} from 'vue';
-import { useVbenDrawer } from '@vben/common-ui';
-import { usePgForm } from '#/adapter';
+import { ref } from 'vue';
+
+import { useVbenDrawer, useVbenModal } from '@vben/common-ui';
+
+import { message, usePgForm } from '#/adapter';
+
 import {
-  type VxeTableInstance,
-} from 'vxe-table';
-import { saveOrUpdate, detail as getDetail } from '../api';
-import { formSchema, fieldColumns } from '../data';
-import { message } from '#/adapter';
-import {PgTreeSelect} from "@pg/components-n";
-import {codeValueAllPublic} from "#/viewsBasic/data-dict/dict/api";
+  existModel,
+  existName,
+  detail as getDetail,
+  saveOrUpdate,
+} from '../api';
+import { buildHeaderFormSchema, fieldColumns } from '../data';
+import FieldEditModal from './FieldEditModal.vue';
+import RuleEditor from './RuleEditor.vue';
 
 const emit = defineEmits(['ok']);
 
-const xTable = ref<VxeTableInstance>();
-const bodyDelIds = ref<string[]>([]);
 const tableData = ref<any[]>([]);
-const optionsValueType = ref([]);
-const optionsFormCode = ref([]);
-const optionsParameterSource = ref([]);
-/**
- * 格式化下拉框显示文字
- */
-function formatLabel(row: any, col: any) {
-  const value = row[col.field];
-  const options = col.params?.options || [];
-  if (col.field === 'rules') {
-    if (Array.isArray(value)) {
-      return value.map(v => options.find((o: any) => o.value === v)?.label || v).join(',');
-    }
-    return value;
-  }
-  if (col.field === 'show') {
-    return value === 1 ? '显示' : '隐藏';
-  }
-  if (col.field === 'binary') {
-    return value === 1 ? '是' : '否';
-  }
-  if (col.field === 'valueType') {
-    const item = optionsValueType.value.find((o: any) => o.value === value);
-    return item ? item.label : value;
-  }
-  if (col.field === 'formCode') {
-    const item = optionsFormCode.value.find((o: any) => o.value === value);
-    return item ? item.label : value;
-  }
-  if (col.field === 'parameterSource') {
-    const item = optionsParameterSource.value.find((o: any) => o.value === value);
-    return item ? item.label : value;
-  }
-  const item = options.find((o: any) => o.value === value);
-  return item ? item.label : value;
-}
+const bodyDelIds = ref<string[]>([]);
+const modelRuleItems = ref<any[]>([]);
+const editingIndex = ref<number>(-1);
 
 const [Form, formApi] = usePgForm({
-  schema: formSchema,
+  schema: buildHeaderFormSchema({
+    onExistName: async () => {
+      const values = await formApi.getValues();
+      await existName(values.name, values.id);
+    },
+    onExistModel: async () => {
+      const values = await formApi.getValues();
+      await existModel(values.model, values.id);
+    },
+  }),
   showDefaultActions: false,
+  wrapperClass: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+});
+
+const [FieldModal, fieldModalApi] = useVbenModal({
+  connectedComponent: FieldEditModal,
+  destroyOnClose: true,
 });
 
 const [Drawer, drawerApi] = useVbenDrawer({
@@ -65,106 +49,188 @@ const [Drawer, drawerApi] = useVbenDrawer({
   onConfirm: onSubmit,
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
-      drawerApi.setState({
-        loading: true,
-        confirmLoading: false,
-        closeOnClickModal: false, // 点击遮罩关闭弹窗
-        destroyOnClose: true, // 关闭时销毁
-      });
-      const { values, isUpdate } = drawerApi.getData<Record<string, any>>();
-      bodyDelIds.value = [];
-      if (isUpdate && values?.id) {
-        getDetail(values.id)
-          .then((res: any) => {
-            if (res) {
-              formApi.setValues(res.header || {});
-              tableData.value = res.body || [];
-            }
-          })
-          .finally(() => {
-            drawerApi.setState({ loading: false });
-          });
-      } else {
-        formApi.resetForm();
-        tableData.value = [];
-      }
-      let title = `字段规则：${isUpdate ? '编辑' : '新增'}`;
-      drawerApi.setState({ title: title,loading: false });
+      initDrawer();
     }
   },
-  title: '',
+  title: '模型设计器',
 });
 
-/**
- * 添加行
- */
-async function insertEvent() {
-  const $table = xTable.value;
-  if ($table) {
-    const { row } = await $table.insert({
-      show: 1,
-      binary: 2,
-      valueType: 'varchar',
-      formCode: 'Input',
-      parameterSource: 'manual',
-      rules: [],
-    });
-    await $table.setEditRow(row);
-  }
-}
+async function initDrawer() {
+  drawerApi.setState({
+    loading: true,
+    confirmLoading: false,
+    closeOnClickModal: false,
+    destroyOnClose: true,
+  });
+  const { values, isUpdate } = drawerApi.getData<Record<string, any>>() || {};
+  bodyDelIds.value = [];
+  tableData.value = [];
+  modelRuleItems.value = [];
+  editingIndex.value = -1;
+  formApi.reset();
 
-/**
- * 删除行
- */
-async function removeEvent(row: any) {
-  const $table = xTable.value;
-  if ($table) {
-    await $table.remove(row);
-    if (row.id) {
-      bodyDelIds.value.push(row.id);
+  try {
+    if (isUpdate && values?.id) {
+      const res: any = await getDetail(values.id);
+      if (res) {
+        formApi.setValues({
+          ...res.header,
+          tags: Array.isArray(res.header?.tags) ? res.header.tags : [],
+        });
+        tableData.value = res.body || [];
+        modelRuleItems.value = [...(res.header?.ruleItems || [])];
+      }
     }
+  } finally {
+    drawerApi.setState({
+      title: `模型设计器：${isUpdate ? '编辑' : '新增'}`,
+      loading: false,
+    });
   }
 }
 
 /**
- * 提交
+ * 新增字段
+ */
+function onAddField() {
+  editingIndex.value = -1;
+  fieldModalApi
+    .setData({
+      field: {
+        show: 1,
+        binary: 2,
+        independent: 2,
+        valueAttr: 'single',
+        valueType: 'string',
+        formCode: 'PgInput',
+        sort: tableData.value.length,
+      },
+      isUpdate: false,
+    })
+    .open();
+}
+
+/**
+ * 编辑字段
+ */
+function onEditField(row: any, index: number) {
+  editingIndex.value = index;
+  fieldModalApi.setData({ field: row, isUpdate: true }).open();
+}
+
+/**
+ * 字段弹窗保存后回写表格
+ */
+function onFieldSaved(field: any) {
+  if (editingIndex.value >= 0 && editingIndex.value < tableData.value.length) {
+    tableData.value.splice(editingIndex.value, 1, field);
+  } else {
+    tableData.value.push(field);
+  }
+  editingIndex.value = -1;
+}
+
+/**
+ * 删除字段
+ */
+function onDeleteField(row: any, index: number) {
+  tableData.value.splice(index, 1);
+  if (row?.id && Number(row.id) > 0) {
+    bodyDelIds.value.push(String(row.id));
+  }
+}
+
+function normalizeRule(rule: any) {
+  return {
+    id: rule.id ?? 0,
+    name: rule.name ?? '',
+    ruleMode: rule.ruleMode,
+    coding: rule.coding ?? '',
+    condition: rule.condition ?? '',
+    errorMessage: rule.errorMessage ?? '',
+    structure: rule.structure ?? '',
+    ruleTarget: rule.ruleTarget || [],
+    show: Number(rule.show) === 2 ? 2 : 1,
+    sort: String(rule.sort ?? 0),
+    extraData: rule.extraData ?? null,
+  };
+}
+
+function normalizeField(field: any, index: number) {
+  const ruleItems = (field.ruleItems || []).map(normalizeRule);
+  return {
+    id: field.id ?? 0,
+    no: field.no ?? '',
+    name: field.name,
+    field: field.field,
+    fieldPath: field.fieldPath || field.field,
+    description: field.description ?? '',
+    show: Number(field.show) === 2 ? 2 : 1,
+    independent: Number(field.independent) === 1 ? 1 : 2,
+    binary: Number(field.binary) === 1 ? 1 : 2,
+    defaultValue: field.defaultValue ?? '',
+    value: field.value ?? '',
+    valueBinary: field.valueBinary ?? '',
+    valueType: field.valueType || 'string',
+    valueAttr: field.valueAttr || 'single',
+    formCode: field.formCode || 'PgInput',
+    formAttr: field.formAttr ?? null,
+    formGroup: field.formGroup ?? '',
+    sharedScope: field.sharedScope || [],
+    sharedFieldNo: field.sharedFieldNo ?? '',
+    parameterSource: field.parameterSource ?? '',
+    parameterContent: field.parameterContent ?? '',
+    parameterConfig: field.parameterConfig ?? '',
+    sort: String(field.sort ?? index),
+    rules: ruleItems.map((rule: any) => rule.ruleMode),
+    ruleItems,
+  };
+}
+
+/**
+ * 提交：保存模型头 + 字段 + 规则，并自动生成/同步配置行
  */
 async function onSubmit() {
   const { valid } = await formApi.validate();
   if (!valid) {
     return false;
   }
-  const values = await formApi.getValues<Omit<Record<string, any>,'id'>>();
+  const fieldMap = new Map<string, number>();
+  for (const field of tableData.value) {
+    const key = String(field.field || '').trim();
+    if (!key) {
+      message.error('字段标识不能为空');
+      return false;
+    }
+    if (fieldMap.has(key)) {
+      message.error(`字段标识重复：${key}`);
+      return false;
+    }
+    fieldMap.set(key, 1);
+  }
+
+  drawerApi.setState({ confirmLoading: true });
   drawerApi.lock();
   try {
-    drawerApi.setState({ loading: true, confirmLoading: true });
-    const $table = xTable.value;
-    if (!$table) return;
-
-    const { fullData } = $table.getTableData();
-
-    // 校验表格
-    const errMap = await $table.validate(true);
-    if (errMap) {
-      message.error('表格校验失败，请检查必填项');
-      return;
-    }
-
-    const { isUpdate } = drawerApi.getData<Record<string, any>>();
-
+    const values: any = await formApi.getValues();
     const postData = {
-      header: values,
-      body: fullData,
+      header: {
+        ...values,
+        tags: Array.isArray(values.tags) ? values.tags : [],
+        rules: modelRuleItems.value.map((rule: any) => rule.ruleMode),
+        ruleItems: modelRuleItems.value.map(normalizeRule),
+      },
+      body: tableData.value.map((field: any, index: number) =>
+        normalizeField(field, index),
+      ),
       bodyDelIds: bodyDelIds.value,
     };
-
-    saveOrUpdate(postData, isUpdate)
-      .then(() => {
-        message.success('保存成功');
-        emit('ok');
-        drawerApi.setState({ loading: false });
-        drawerApi.close();
-      });
+    saveOrUpdate(postData).then(() => {
+      message.success('保存成功');
+      emit('ok');
+      drawerApi.setState({ confirmLoading: false });
+      drawerApi.close();
+    });
   } catch (error) {
     console.error(error);
   } finally {
@@ -172,128 +238,74 @@ async function onSubmit() {
     drawerApi.setState({ loading: false, confirmLoading: false });
   }
 }
-
-const loadCodeValueAllPublic = ()=>{
-  codeValueAllPublic({ typeCodeArr:['basicModel:valueType','basicModel:formCode','basicModel:ParameterSource'] }).then(( res) => {
-    if(res) {
-      console.log('codeValueAllPublic',res)
-      for (const resKey in res) {
-        if ('basicModel:valueType' === resKey) {
-          for (const i in res[resKey]) {
-            const item = res[resKey][i];
-            optionsValueType.value.push({value: item.key, label: item.label});
-          }
-        }
-        if ('basicModel:formCode' === resKey) {
-          for (const i in res[resKey]) {
-            const item = res[resKey][i];
-            optionsFormCode.value.push({value: item.key, label: item.label});
-          }
-        }
-        if ('basicModel:ParameterSource' === resKey) {
-          for (const i in res[resKey]) {
-            const item = res[resKey][i];
-            optionsParameterSource.value.push({value: item.key, label: item.label});
-          }
-        }
-      }
-    }
-  });
-};
-onMounted(() => {
-  loadCodeValueAllPublic();
-});
 </script>
 
 <template>
-  <Drawer class="w-auto">
+  <Drawer class="w-[1200px] max-w-[96vw]">
     <div class="p-4">
-      <div class="mb-4 font-bold border-l-4 border-primary pl-2">基本信息</div>
+      <div class="mb-4 border-l-4 border-primary pl-2 font-bold">模型信息</div>
       <Form />
 
-      <div class="mt-6 mb-4 flex justify-between items-center border-l-4 border-primary pl-2">
+      <div class="mt-6">
+        <RuleEditor v-model="modelRuleItems" title="模型验证规则" />
+      </div>
+
+      <div
+        class="mt-6 mb-4 flex items-center justify-between border-l-4 border-primary pl-2"
+      >
         <span class="font-bold">字段配置</span>
-        <vxe-button status="primary" @click="insertEvent">新增字段</vxe-button>
+        <vxe-button status="primary" @click="onAddField">新增字段</vxe-button>
       </div>
 
       <vxe-table
-        ref="xTable"
         border
         show-overflow
         keep-source
-        max-height="500"
+        max-height="520"
+        empty-text="暂无字段，请点击【新增字段】"
         :data="tableData"
-        :edit-config="{ trigger: 'click', mode: 'cell', showStatus: true }"
-        :edit-rules="{
-          name: [{ required: true, content: '请输入字段名称' }],
-          field: [{ required: true, content: '请输入字段标识' },{ pattern: /^[a-zA-Z][a-zA-Z0-9_]*$/, content: '字段标识格式错误' }]
-        }"
       >
-        <vxe-column v-for="col in fieldColumns" :key="col.field || col.type" v-bind="col">
-          <!-- 编辑插槽 -->
-          <template #edit="{ row }">
-            <!-- 显示/二进制 开关 -->
-            <template v-if="['show', 'binary'].includes(col.field)">
-              <vxe-switch
-                v-model="row[col.field]"
-                :open-value="1"
-                :close-value="2"
-                :open-label="col.field === 'show' ? '显示' : '是'"
-                :close-label="col.field === 'show' ? '隐藏' : '否'"
-              />
-            </template>
-
-            <!-- 下拉选择 -->
-            <template v-else-if="['parameterSource'].includes(col.field)">
-              <vxe-select v-model="row[col.field]" :options="optionsParameterSource" transfer></vxe-select>
-            </template>
-            <template v-else-if="['valueType'].includes(col.field)">
-              <vxe-select v-model="row[col.field]"
-                          :options="optionsValueType" transfer ></vxe-select>
-            </template>
-            <template v-else-if="['formCode'].includes(col.field)">
-              <vxe-select v-model="row[col.field]"
-                          :options="optionsFormCode" transfer ></vxe-select>
-            </template>
-
-            <!-- 下拉多选 (验证规则) -->
-            <template v-else-if="col.field === 'rules'">
-              <vxe-select v-model="row.rules" :options="col.params?.options" multiple transfer></vxe-select>
-            </template>
-
-            <!-- 文本输入 (名称, 标识, 默认值) -->
-            <template v-else-if="['name', 'field', 'defaultValue'].includes(col.field)">
-              <vxe-input v-model="row[col.field]"></vxe-input>
-            </template>
-          </template>
-
-          <!-- 默认展示插槽 -->
-          <template #default="{ row }">
+        <vxe-column
+          v-for="col in fieldColumns"
+          :key="col.field || col.type"
+          v-bind="col"
+        >
+          <template #default="{ row, $rowIndex }">
             <template v-if="col.slots?.default === 'operate'">
-              <vxe-button status="danger" mode="text" @click="removeEvent(row)">删除</vxe-button>
+              <vxe-button
+                mode="text"
+                status="primary"
+                @click="onEditField(row, $rowIndex)"
+              >
+                编辑
+              </vxe-button>
+              <vxe-button
+                mode="text"
+                status="danger"
+                @click="onDeleteField(row, $rowIndex)"
+              >
+                删除
+              </vxe-button>
             </template>
-            <template v-else-if="['show', 'binary', 'valueType', 'formCode', 'parameterSource', 'rules'].includes(col.field)">
-              <span>{{ formatLabel(row, col) }}</span>
+            <template v-else-if="col.type === 'seq'">
+              {{ $rowIndex + 1 }}
             </template>
-            <template v-else>
-              <span>{{ row[col.field] }}</span>
+            <template v-else-if="col.formatter">
+              {{
+                col.formatter({
+                  row,
+                  cellValue: row[col.field],
+                  $rowIndex,
+                })
+              }}
             </template>
+            <template v-else>{{ row[col.field] }}</template>
           </template>
         </vxe-column>
       </vxe-table>
     </div>
   </Drawer>
+  <FieldModal @ok="onFieldSaved" />
 </template>
 
-<style scoped>
-:deep(.vxe-table) {
-  margin-top: 10px;
-}
-</style>
-
-<style>
-/* 覆盖 vxe-select 下拉面板的层级，确保在抽屉之上 */
-.vxe-select--panel {
-  z-index: 2307 !important;
-}
-</style>
+<style scoped></style>

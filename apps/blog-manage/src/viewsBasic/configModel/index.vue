@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { Page, useVbenDrawer, VbenButton } from '@vben/common-ui';
 import { Plus } from '@vben/icons';
 
@@ -36,6 +35,9 @@ const [Grid, gridApi] = useVbenVxeGrid({
       keyField: 'id',
       isHover: true,
       isCurrent: true,
+    },
+    checkboxConfig: {
+      highlight: true,
     },
     pagerConfig: {
       pageSize: 20,
@@ -279,7 +281,7 @@ function onBatchDelete() {
         <VbenTableAction
           :actions="[
             {
-              text: '编辑',
+              text: '设计器',
               onClick: () => onEdit(row),
             },
             {

@@ -4,7 +4,7 @@ import { requestClient } from '#/api/request';
 enum Api {
   create = '/xianfu/manage/basic/dataDictionary/create',
   createUpdate = '/xianfu/manage/basic/dataDictionary/createUpdate',
-  codeValueAllPublic = '/xianfu/manage/basic/dataDictionary/codeValueAllPublic',
+  codeValueAllPublic = '/xianfu/manage/basic/data-dictionary/codeValueAllPublic',
   delete = '/xianfu/manage/basic/dataDictionary/delete',
   detail = '/xianfu/manage/basic/dataDictionary/detail/',
   disable = '/xianfu/manage/basic/dataDictionary/disable',

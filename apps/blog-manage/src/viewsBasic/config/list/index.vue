@@ -1,9 +1,8 @@
 <script setup lang="ts">
-
 import { Page, useVbenDrawer, VbenButton } from '@vben/common-ui';
 import { Plus } from '@vben/icons';
 
-import { message } from '#/adapter';
+import { dialog, message } from '#/adapter';
 import { useVbenVxeGrid, VbenTableAction } from '#/adapter/vxe-table';
 
 import {
@@ -12,19 +11,21 @@ import {
   batchSelectEnable,
   batchSelectPhysicalDeletion,
   batchSelectRecovery,
+  cacheOverride,
   deleteIds,
   List,
 } from './api';
 import DrawerEditTpl from './components/DrawerEdit.vue';
-import DrawerDetailFormTpl from './components/DrawerDetailForm.vue';
+import DrawerModelValuesTpl from './components/DrawerModelValues.vue';
 import { columns, useGridFormSchema } from './data';
 
 const [Drawer, drawerApi] = useVbenDrawer({
   connectedComponent: DrawerEditTpl,
   destroyOnClose: true,
 });
-const [DrawerDetail, drawerDetailApi] = useVbenDrawer({
-  connectedComponent: DrawerDetailFormTpl,
+const [DrawerValues, drawerValuesApi] = useVbenDrawer({
+  connectedComponent: DrawerModelValuesTpl,
+  destroyOnClose: true,
 });
 
 const [Grid, gridApi] = useVbenVxeGrid({
@@ -54,6 +55,9 @@ const [Grid, gridApi] = useVbenVxeGrid({
     rowConfig: {
       keyField: 'id',
       isHover: true,
+    },
+    checkboxConfig: {
+      highlight: true,
     },
     toolbarConfig: {
       custom: true,
@@ -108,14 +112,32 @@ function onEdit(row: any) {
 }
 
 /**
- * 配置
+ * 按模型批量修改配置值
  * @param row 行数据
  */
-function onDetail(row: any) {
-  drawerDetailApi.setData({
-    row: row,
-    isUpdate: true,
-  }).open();
+function onValues(row?: any) {
+  drawerValuesApi.setData({ model: row?.model || '' }).open();
+}
+
+/**
+ * 从数据库全量重建配置缓存
+ */
+function onCacheOverride() {
+  dialog.warning({
+    title: '确认重建缓存',
+    content: '是否从数据库全量重建配置缓存？',
+    positiveText: '确认',
+    negativeText: '取消',
+    onPositiveClick: () => {
+      return cacheOverride()
+        .then(() => {
+          message.success('重建成功');
+        })
+        .catch(() => {
+          message.warning('操作失败');
+        });
+    },
+  });
 }
 
 /**
@@ -273,7 +295,7 @@ function onBatchDelete() {
 <template>
   <Page auto-content-height content-class="p-2">
     <Drawer @ok="onRefresh" />
-    <DrawerDetail />
+    <DrawerValues @ok="onRefresh" />
     <Grid>
       <template #toolbar-actions>
         <VbenButton
@@ -283,6 +305,20 @@ function onBatchDelete() {
         >
           <Plus class="size-5" />
           新增
+        </VbenButton>
+        <VbenButton
+          class="ml-2 pg-button-size-small"
+          size="sm"
+          @click="() => onValues()"
+        >
+          按模型改值
+        </VbenButton>
+        <VbenButton
+          class="ml-2 pg-button-size-small"
+          size="sm"
+          @click="onCacheOverride"
+        >
+          重建缓存
         </VbenButton>
       </template>
       <template #toolbar-tools>
@@ -326,18 +362,15 @@ function onBatchDelete() {
         <VbenTableAction
           :actions="[
             {
-              tooltip: { content: '编辑' },
-              icon: 'lucide:edit',
+              text: '编辑',
               onClick: () => onEdit(row),
             },
             {
-              tooltip: { content: '配置' },
-              icon: 'lucide:settings',
-              onClick: () => onDetail(row),
+              text: '改值',
+              onClick: () => onValues(row),
             },
             {
-              tooltip: { content: '删除' },
-              icon: 'lucide:trash-2',
+              text: '删除',
               danger: true,
               popConfirm: {
                 title: `确定删除 [${row.name}] 吗？`,

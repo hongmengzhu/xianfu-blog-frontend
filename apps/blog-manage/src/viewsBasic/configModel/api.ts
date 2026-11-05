@@ -2,29 +2,25 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  create = '/xianfu/manage/basic/config-model/create',
   createUpdate = '/xianfu/manage/basic/config-model/createUpdate',
   delete = '/xianfu/manage/basic/config-model/delete',
   detail = '/xianfu/manage/basic/config-model/detail/',
   disable = '/xianfu/manage/basic/config-model/disable',
   enable = '/xianfu/manage/basic/config-model/enable',
-  existName = '/xianfu/manage/basic/config-model/existName',
   existCode = '/xianfu/manage/basic/config-model/existCode',
-  existValue = '/xianfu/manage/basic/config-model/existValue',
-  exportExcel = '/xianfu/manage/basic/config-model/exportExcel',
+  existModel = '/xianfu/manage/basic/config-model/existModel',
+  existName = '/xianfu/manage/basic/config-model/existName',
   list = '/xianfu/manage/basic/config-model/query',
   physicalDeletion = '/xianfu/manage/basic/config-model/physicalDeletion',
   recovery = '/xianfu/manage/basic/config-model/recovery',
   selectNodeAllPublic = '/xianfu/manage/basic/config-model/selectNodeAllPublic',
-  selectNodePublic = '/xianfu/manage/basic/config-model/selectNodePublic',
-  selectPublic = '/xianfu/manage/basic/config-model/selectPublic',
   state = '/xianfu/manage/basic/config-model/state',
-  update = '/xianfu/manage/basic/config-model/update',
+  // 配置分类（设计器选择配置分类编号）
+  configCategoryList = '/xianfu/manage/basic/config-category/query',
 }
 
 /**
  * 列表
- * @constructor
  * @param data
  */
 export async function List(data?: any) {
@@ -32,42 +28,26 @@ export async function List(data?: any) {
 }
 
 /**
- * 公共列表展示
- * @param data
- */
-export const selectPublic = (data?: any) => {
-  return requestClient.post(Api.selectPublic, data);
-};
-
-/**
- * 公共树展示
- * @param data
- */
-export const selectNodePublic = (data?: any) => {
-  return requestClient.post(Api.selectNodePublic, data);
-};
-
-/**
- * 公共树展示
+ * 模型选择树
  * @param data
  */
 export const selectNodeAllPublic = (data?: any) => {
   return requestClient.post(Api.selectNodeAllPublic, data);
 };
+
 /**
- * 详情
- * @param data
+ * 详情（含字段与规则）
+ * @param id
  */
-export const detail = (data?: any) => {
-  return requestClient.get(Api.detail + data);
+export const detail = (id?: any) => {
+  return requestClient.get(Api.detail + id);
 };
 
 /**
- * 保存或者更新
+ * 设计器保存（新增/更新模型、字段、规则、配置）
  * @param data
- * @param isUpdate
  */
-export const saveOrUpdate = (data: any, isUpdate: boolean) => {
+export const saveOrUpdate = (data: any) => {
   return requestClient.post(Api.createUpdate, data, {
     errorMessageMode: 'message',
     successMessageMode: 'notification',
@@ -93,6 +73,7 @@ export const deleteIds = (params: any) => {
 /**
  * 批量选中-删除
  * @param params
+ * @param handleSuccess
  */
 export const batchSelectDelete = (params, handleSuccess) => {
   dialog.warning({
@@ -120,6 +101,7 @@ export const batchSelectDelete = (params, handleSuccess) => {
 /**
  * 批量选中-启用
  * @param params
+ * @param handleSuccess
  */
 export const batchSelectEnable = (params, handleSuccess) => {
   dialog.warning({
@@ -147,6 +129,7 @@ export const batchSelectEnable = (params, handleSuccess) => {
 /**
  * 批量选中-禁用
  * @param params
+ * @param handleSuccess
  */
 export const batchSelectDisable = (params, handleSuccess) => {
   dialog.warning({
@@ -174,6 +157,7 @@ export const batchSelectDisable = (params, handleSuccess) => {
 /**
  * 批量选中-恢复
  * @param params
+ * @param handleSuccess
  */
 export const batchSelectRecovery = (params, handleSuccess) => {
   dialog.warning({
@@ -201,6 +185,7 @@ export const batchSelectRecovery = (params, handleSuccess) => {
 /**
  * 批量选中-物理删除
  * @param params
+ * @param handleSuccess
  */
 export const batchSelectPhysicalDeletion = (params, handleSuccess) => {
   dialog.warning({
@@ -226,11 +211,11 @@ export const batchSelectPhysicalDeletion = (params, handleSuccess) => {
 };
 
 /**
- * 批量-设置状态
+ * 设置有效/停用
  * @param id
  * @param status 1 有效 2 停用
  */
-export const setStateEnableDisable = (id: number, status: number) =>
+export const setStateEnableDisable = (id: any, status: number) =>
   requestClient.post(
     Api.state,
     { ids: [id], state: status },
@@ -238,13 +223,9 @@ export const setStateEnableDisable = (id: number, status: number) =>
   );
 
 /**
- * 导出excel url地址
- */
-export const exportExcelUrl = Api.exportExcel;
-
-/**
- * 查询名称是否存在
- * @param params
+ * 名称查重
+ * @param wd
+ * @param id
  */
 export const existName = (wd, id?) => {
   id = id || '0';
@@ -254,9 +235,11 @@ export const existName = (wd, id?) => {
     { errorMessageMode: 'message', successMessageMode: 'notification' },
   );
 };
+
 /**
- * 查询名称是否存在
- * @param params
+ * 编码查重
+ * @param wd
+ * @param id
  */
 export const existCode = (wd, id?) => {
   id = id || '0';
@@ -268,14 +251,42 @@ export const existCode = (wd, id?) => {
 };
 
 /**
- * 查询名称是否存在
- * @param params
+ * 模型标识查重
+ * @param wd
+ * @param id
  */
-export const existValue = (wd, id?) => {
+export const existModel = (wd, id?) => {
   id = id || '0';
   return requestClient.post(
-    Api.existValue,
+    Api.existModel,
     { wd, id },
     { errorMessageMode: 'message', successMessageMode: 'notification' },
   );
+};
+
+/**
+ * 配置分类列表（原始分页结果）
+ */
+export const configCategoryList = (params?: any) => {
+  return requestClient.post(Api.configCategoryList, {
+    pageSize: 1000,
+    pageNum: 1,
+    ...params,
+  });
+};
+
+/**
+ * 配置分类树节点（供设计器选择配置分类编号）
+ */
+export const configCategoryNodes = async (params?: any) => {
+  const res: any = await configCategoryList(params);
+  const rows = res?.data || res || [];
+  return rows.map((item: any) => ({
+    value: item.code || item.no,
+    label: item.name,
+    parentNo: item.parentNo || '',
+    code: item.code,
+    no: item.no,
+    raw: item,
+  }));
 };
