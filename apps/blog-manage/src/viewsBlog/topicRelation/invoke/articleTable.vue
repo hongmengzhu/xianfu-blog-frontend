@@ -1,31 +1,30 @@
 <script lang="ts" setup>
 import type { RowVO } from '@pg/types';
+import type {
+  VxeGridInstance,
+  VxeGridProps,
+  VxeGridPropTypes,
+  VxeToolbarInstance,
+} from 'vxe-table';
 
 import { nextTick, reactive, ref } from 'vue';
+
 import { VbenButton } from '@vben/common-ui';
-import {
-  type VxeToolbarInstance,
-  type VxeGridInstance,
-  type VxeGridListeners,
-  type VxeGridProps,
-  VXETable,
-  type VxeGridPropTypes,
-} from 'vxe-table';
+
+import { useVbenModal } from '@vben-core/popup-ui';
+
 import _XEUtils_ from 'xe-utils';
 
+import { message } from '#/adapter';
 import {
-  selectPublic,
-  queryPublic,
   setStateEnableDisable,
 } from '#/viewsBlog/article/api';
-import { message } from '#/adapter';
 import ArticleTpl from '#/viewsBlog/article/invoke/list.vue';
-import { useVbenModal } from '@vben-core/popup-ui';
+const emit = defineEmits(['ok']);
 const appNo = defineModel('appNo', {
   default: () => '',
   type: String,
 });
-const emit = defineEmits(['ok']);
 const loading = ref(false);
 const xGrid = ref<VxeGridInstance<RowVO>>();
 const toolbarRef = ref<VxeToolbarInstance>();
@@ -120,7 +119,7 @@ function radioChange(opt) {
   changeRows.push(opt.row);
   console.log(opt.row);
   //
-  //emit('changeOk', changeRows);
+  // emit('changeOk', changeRows);
 }
 const cellRender = {
   name: 'PgState',
@@ -158,7 +157,7 @@ function eventMakeNew() {
   if ($grid) {
     $grid.insertAt(obj, -1).then(({ row }) => {
       if (row.id.indexOf('_') > 0) {
-        //创建后，开启展开
+        // 创建后，开启展开
         $grid.setRowExpand([row], true);
       }
     });
@@ -183,7 +182,7 @@ function selectArticle(opt) {
       if ($grid) {
         $grid.insertAt(item, -1).then(({ row }) => {
           if (row.id.indexOf('_') > 0) {
-            //创建后，开启展开
+            // 创建后，开启展开
             $grid.setRowExpand([row], true);
           }
         });
