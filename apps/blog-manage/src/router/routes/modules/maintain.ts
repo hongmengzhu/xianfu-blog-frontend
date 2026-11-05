@@ -25,7 +25,7 @@ const routes: RouteRecordRaw[] = [
       // },
       {
         meta: {
-          title: '配置',
+          title: '配置列表',
           icon: 'mdi:account-multiple',
         },
         name: 'basic-config',

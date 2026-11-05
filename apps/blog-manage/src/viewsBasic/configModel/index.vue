@@ -15,10 +15,16 @@ import {
   List,
 } from './api';
 import DrawerEditTpl from './components/DrawerEdit.vue';
+import DrawerFormTpl from './components/DrawerForm.vue';
 import { columns, useGridFormSchema } from './data';
 
 const [Drawer, drawerApi] = useVbenDrawer({
   connectedComponent: DrawerEditTpl,
+  destroyOnClose: true,
+});
+
+const [FormDrawer, formDrawerApi] = useVbenDrawer({
+  connectedComponent: DrawerFormTpl,
   destroyOnClose: true,
 });
 
@@ -91,6 +97,14 @@ function onCreate() {
 
 function onEdit(row: any) {
   drawerApi.setData({ values: row, isUpdate: true }).open();
+}
+
+/**
+ * 打开模型表单（根据设计器字段和表单类型自动生成）
+ * @param row 行数据
+ */
+function onForm(row: any) {
+  formDrawerApi.setData({ values: row }).open();
 }
 
 function onDelete(row: any) {
@@ -229,6 +243,7 @@ function onBatchDelete() {
 <template>
   <Page auto-content-height content-class="p-2">
     <Drawer @ok="onRefresh" />
+    <FormDrawer @ok="onRefresh" />
     <Grid>
       <template #toolbar-actions>
         <VbenButton
@@ -283,6 +298,10 @@ function onBatchDelete() {
             {
               text: '设计器',
               onClick: () => onEdit(row),
+            },
+            {
+              text: '表单',
+              onClick: () => onForm(row),
             },
             {
               text: '删除',

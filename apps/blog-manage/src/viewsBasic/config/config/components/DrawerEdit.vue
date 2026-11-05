@@ -41,7 +41,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
       initDrawer();
     }
   },
-  title: '配置',
+  title: '配置字段',
 });
 
 function buildSchema() {
@@ -310,7 +310,7 @@ async function initDrawer() {
     }
   } finally {
     drawerApi.setState({
-      title: `配置：${isUpdate ? '编辑' : '新增'}`,
+      title: `配置字段：${isUpdate ? '编辑' : '新增'}`,
       loading: false,
     });
   }

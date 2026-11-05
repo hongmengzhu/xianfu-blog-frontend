@@ -2,8 +2,6 @@ import type { VbenFormSchema } from '#/adapter/form';
 
 import _XEUtils_ from 'xe-utils';
 
-import { categoryOptions, modelOptions, setStateEnableDisable } from './api';
-
 /**
  * 搜索表单 Schema
  */
@@ -14,39 +12,17 @@ export function useGridFormSchema(): VbenFormSchema[] {
       fieldName: 'wd',
       label: '关键词',
       componentProps: {
-        placeholder: '名称/字段/描述',
+        placeholder: '请输入名称',
         clearable: true,
-      },
-    },
-    {
-      component: 'ApiSelect',
-      fieldName: 'model',
-      label: '模型',
-      componentProps: {
-        api: modelOptions,
-        filterable: true,
-        clearable: true,
-        placeholder: '请选择模型',
       },
     },
     {
       component: 'Input',
-      fieldName: 'field',
-      label: '字段标识',
+      fieldName: 'code',
+      label: '码值',
       componentProps: {
-        placeholder: '请输入字段标识',
+        placeholder: '请输入码值',
         clearable: true,
-      },
-    },
-    {
-      component: 'ApiSelect',
-      fieldName: 'categoryNo',
-      label: '配置分类',
-      componentProps: {
-        api: categoryOptions,
-        filterable: true,
-        clearable: true,
-        placeholder: '请选择配置分类',
       },
     },
     {
@@ -66,64 +42,36 @@ export function useGridFormSchema(): VbenFormSchema[] {
   ];
 }
 
-/** 配置值：二进制字段取 valueBinary，其余取 value */
-export function displayConfigValue(row: any) {
-  if (!row) {
-    return '';
-  }
-  if (Number(row.binary) === 1) {
-    return row.valueBinary || '';
-  }
-  return row.value ?? '';
-}
-
 export const columns: any[] = [
   { type: 'checkbox', width: 60 },
-  { field: 'name', title: '名称', minWidth: 150 },
-  { field: 'model', title: '模型', width: 160 },
-  { field: 'field', title: '字段标识', width: 150 },
-  {
-    field: 'value',
-    title: '配置值',
-    minWidth: 180,
-    formatter: ({ row }: any) => displayConfigValue(row),
-  },
-  { field: 'fieldPath', title: '字段路径', width: 140 },
-  { field: 'categoryNo', title: '配置分类', width: 120 },
+  { field: 'no', title: '编号', width: 170 },
+  { field: 'name', title: '名称', minWidth: 160 },
+  { field: 'code', title: '码值', width: 150 },
+  { field: 'nameFl', title: '名称外文', width: 150, visible: false },
+  { field: 'nameFull', title: '全称', width: 160, visible: false },
+  { field: 'eventNo', title: '事件编号', width: 180 },
+  { field: 'field', title: '字段名称', width: 150 },
+  { field: 'fieldPath', title: '路径字段', width: 150, visible: false },
+  { field: 'typeDomain', title: '域类型', width: 110 },
   {
     field: 'show',
     title: '显示',
-    width: 80,
+    width: 90,
     formatter: ({ cellValue }: any) =>
       Number(cellValue) === 1 ? '显示' : '隐藏',
   },
-  { field: 'sort', title: '排序', width: 80 },
+  {
+    field: 'content',
+    title: '内容',
+    minWidth: 200,
+    visible: false,
+  },
   {
     field: 'state',
     title: '状态',
-    width: 100,
-    cellRender: {
-      name: 'PgState',
-      events: {
-        click: ($table, record, e) => {
-          const sourceValue = record.state;
-          const newStatus = e.value === 1 ? 1 : 2;
-          setStateEnableDisable(record.id, newStatus)
-            .then(() => {
-              record.state = newStatus;
-              if ($table) {
-                $table.isUpdateByRow(record);
-              }
-            })
-            .catch(() => {
-              record.state = sourceValue;
-              if ($table) {
-                $table.isUpdateByRow(record);
-              }
-            });
-        },
-      },
-    },
+    width: 90,
+    formatter: ({ cellValue }: any) =>
+      Number(cellValue) === 1 ? '有效' : '停用',
   },
   {
     field: 'createAt',

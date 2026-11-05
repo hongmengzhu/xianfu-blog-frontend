@@ -17,6 +17,10 @@ enum Api {
   state = '/xianfu/manage/basic/config-model/state',
   // 配置分类（设计器选择配置分类编号）
   configCategoryList = '/xianfu/manage/basic/config-category/query',
+  // 按模型读取配置值（设计器生成的配置行）
+  allByModel = '/xianfu/manage/basic/config/allByModel',
+  // 按模型批量保存配置值
+  updateValues = '/xianfu/manage/basic/config/updateValues',
 }
 
 /**
@@ -273,6 +277,22 @@ export const configCategoryList = (params?: any) => {
     pageNum: 1,
     ...params,
   });
+};
+
+/**
+ * 按模型读取配置值（设计器生成的配置行）
+ * @param data { model } 或 { modelNo }
+ */
+export const allByModel = (data: any) => {
+  return requestClient.post(Api.allByModel, data);
+};
+
+/**
+ * 按模型批量保存配置值（按字段规则校验）
+ * @param data { model, data: { field: value } }
+ */
+export const updateValues = (data: any) => {
+  return requestClient.post(Api.updateValues, data);
 };
 
 /**

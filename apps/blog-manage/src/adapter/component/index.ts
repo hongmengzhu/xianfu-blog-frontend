@@ -6,6 +6,7 @@
 import type {
   CheckboxGroupProps,
   CheckboxProps,
+  ColorPickerProps,
   DatePickerProps,
   DividerProps,
   InputNumberProps,
@@ -35,18 +36,18 @@ import { $t } from '@vben/locales';
 
 import {
   PgDatePicker,
+  PgMarkdown,
+  PgMarkdownViewer,
   PgRadioGroup,
   PgSpan,
   PgTree,
   PgTreeSelect,
   PgUploadGroupOwner,
-  PgMarkdown,
-  PgMarkdownViewer,
 } from '@pg/components-n';
-import {getNanoidNo} from "@pg/utils";
+import { getNanoidNo } from '@pg/utils';
 
 import { message } from '#/adapter/naive';
-import {uploadFn, uploadFnByMarkdown} from "#/viewsBasic/attachment/api";
+import { uploadFn, uploadFnByMarkdown } from '#/viewsBasic/attachment/api';
 
 const NButton = defineAsyncComponent(() =>
   import('naive-ui/es/button').then((res) => res.NButton),
@@ -56,6 +57,9 @@ const NCheckbox = defineAsyncComponent(() =>
 );
 const NCheckboxGroup = defineAsyncComponent(() =>
   import('naive-ui/es/checkbox').then((res) => res.NCheckboxGroup),
+);
+const NColorPicker = defineAsyncComponent(() =>
+  import('naive-ui/es/color-picker').then((res) => res.NColorPicker),
 );
 const NDatePicker = defineAsyncComponent(() =>
   import('naive-ui/es/date-picker').then((res) => res.NDatePicker),
@@ -148,6 +152,7 @@ export type ComponentType =
   | 'ApiTreeSelect'
   | 'Checkbox'
   | 'CheckboxGroup'
+  | 'ColorPicker'
   | 'DatePicker'
   | 'Divider'
   | 'IconPicker'
@@ -157,9 +162,9 @@ export type ComponentType =
   | 'NDynamicTags'
   | 'NMention'
   | 'NSelect'
-  | 'PgUploadGroupOwner'
   | 'PgMarkdown'
   | 'PgMarkdownViewer'
+  | 'PgUploadGroupOwner'
   | 'Radio'
   | 'RadioGroup'
   | 'Rate'
@@ -181,6 +186,7 @@ export interface ComponentPropsMap {
   ApiTreeSelect: ApiComponentSharedProps & TreeSelectProps;
   Checkbox: CheckboxProps;
   CheckboxGroup: CheckboxGroupProps;
+  ColorPicker: ColorPickerProps;
   DatePicker: DatePickerProps;
   Divider: DividerProps;
   IconPicker: IconPickerProps;
@@ -304,6 +310,7 @@ async function initComponentAdapter() {
       );
     },
     DatePicker: NDatePicker,
+    ColorPicker: NColorPicker,
     // 自定义默认按钮
     DefaultButton: (props, { attrs, slots }) => {
       return h(NButton, { ...props, attrs, type: 'default' }, slots);
@@ -381,10 +388,10 @@ async function initComponentAdapter() {
         },
       ],
     }),
-    PgMarkdownViewer: PgMarkdownViewer,
+    PgMarkdownViewer,
     PgMarkdown: withDefaultPlaceholder(PgMarkdown, 'input', {
-      params:{
-        fileOwner: 'context-auto-'+getNanoidNo(32),
+      params: {
+        fileOwner: `context-auto-${getNanoidNo(32)}`,
       },
       uploadByMarkdown: uploadFnByMarkdown,
     }),
