@@ -18,8 +18,23 @@ const getAttrs = computed(() => {
     value: null,
   };
 });
+/**
+ * naive-ui 的 formatted-value 只有传 null 才会渲染成空输入框；
+ * 传空字符串 '' 会走到 format('')，直接抛 RangeError: Invalid time value，
+ * 并把组件更新打断（后续抽屉卸载时报 vnode 为 null 的 TypeError）。
+ * 这里统一把 ''.undefined 归一成 null。
+ */
 const formattedValue = computed(() => {
-  return props.value;
+  const value = props.value;
+  if (value === undefined || value === '') {
+    return null;
+  }
+  if (Array.isArray(value)) {
+    return value.map((item) =>
+      item === undefined || item === '' ? null : item,
+    );
+  }
+  return value;
 });
 const getValue = computed(() => props.value);
 function onUpdateFormattedValue(value: any) {

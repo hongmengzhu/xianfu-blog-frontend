@@ -9,7 +9,7 @@ import { PgTree } from '@pg/components-n';
 
 import { message } from '#/adapter';
 import { useVbenVxeGrid } from '#/adapter/vxe-table';
-import { selectNodeAllPublic } from '#/viewsBlog/bookmarkCategory/api';
+import { selectNodeAllPublic } from '#/viewsBm/toolCategoryCategory/api';
 
 import { List } from '../api';
 import { columns, useGridFormSchema } from './data';

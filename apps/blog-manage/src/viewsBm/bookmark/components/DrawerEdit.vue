@@ -16,7 +16,7 @@ import { NTag } from 'naive-ui';
 import { usePgForm } from '#/adapter';
 import ModalTagTpl from '#/viewsBasic/tags/relation/invoke/ModalTag.vue';
 import TopicTable from '#/viewsBlog/article/components/TopicTable.vue';
-import { selectNodeAllPublic as selectNodeAllPublicCategory } from '#/viewsBlog/bookmarkCategory/api';
+import { selectNodeAllPublic as selectNodeAllPublicCategory } from '#/viewsBm/bookmarkCategory/api';
 
 import { detail, existCode, existName, saveOrUpdate } from '../api';
 

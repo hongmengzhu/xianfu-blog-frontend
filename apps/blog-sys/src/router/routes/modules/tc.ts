@@ -50,6 +50,15 @@ const routes: RouteRecordRaw[] = [
         path: '/lq2/tc/tenant-account',
         component: () => import('#/viewTc/tenantAccount/index.vue'),
       },
+      {
+        meta: {
+          title: '模块域名',
+          icon: 'mdi:internet',
+        },
+        name: 'tc-tenant-domain-module',
+        path: '/lq2/tc/tenant-domain-module',
+        component: () => import('#/viewsTc/domainModule/index.vue'),
+      },
     ],
   },
 ];

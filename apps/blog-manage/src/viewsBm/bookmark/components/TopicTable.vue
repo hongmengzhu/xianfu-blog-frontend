@@ -4,8 +4,7 @@ import type { VxeGridPropTypes } from 'vxe-table';
 
 import { onMounted, ref } from 'vue';
 
-import { VbenButton } from '@vben/common-ui';
-import { useVbenModal } from '@vben/common-ui';
+import { useVbenModal, VbenButton } from '@vben/common-ui';
 
 import _XEUtils_ from 'xe-utils';
 
@@ -63,7 +62,7 @@ const columns: VxeGridPropTypes.Columns = [
 
 const [Grid, gridApi] = useVbenVxeGrid({
   gridEvents: {
-    radioChange: radioChange,
+    radioChange,
   } as any,
   gridOptions: {
     border: true,

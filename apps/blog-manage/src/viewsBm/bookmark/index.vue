@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { SelectRenderTag } from 'naive-ui';
+
 import type { Recordable } from '@vben/types';
 
 import { computed, h, reactive, ref } from 'vue';
@@ -8,16 +10,13 @@ import { Plus } from '@vben/icons';
 
 import { PgTree } from '@pg/components-n';
 import { FluentWindowNew20Filled } from '@pg/icons';
-
 import { NTag } from 'naive-ui';
-import type { SelectRenderTag } from 'naive-ui';
 
 import { dialog, message } from '#/adapter';
 import { useVbenVxeGrid, VbenTableAction } from '#/adapter/vxe-table';
-
-import CategoryTpl from '#/viewsBlog/bookmarkCategory/invoke/category.vue';
 import ModalTagTpl from '#/viewsBasic/tags/relation/invoke/ModalTag.vue';
-import { selectNodeAllPublic } from '#/viewsBlog/bookmarkCategory/api';
+import { selectNodeAllPublic } from '#/viewsBm/bookmarkCategory/api';
+
 import {
   batchSelectDisable,
   batchSelectEnable,
@@ -39,9 +38,9 @@ const treeChang = (record) => {
   currenRecord.value = true;
   console.log('treeChang', record);
   currenData.value = record?.data;
-  //formParam.categoryNo = record.data.no;
+  // formParam.categoryNo = record.data.no;
   gridApi.formApi.setFieldValue('categoryNo', record.data.no);
-  //reloadTree();
+  // reloadTree();
   onRefresh();
 
   // setTimeout(() => {
@@ -67,11 +66,6 @@ const treeOverload = (e) => {
 
 const [Drawer, drawerApi] = useVbenDrawer({
   connectedComponent: DrawerEdit,
-  destroyOnClose: true,
-});
-
-const [Modal, modalApi] = useVbenModal({
-  connectedComponent: CategoryTpl,
   destroyOnClose: true,
 });
 
@@ -500,51 +494,51 @@ function iconclick(e) {
           <template #expandContent="{ row }">
             <dl class="expandContent m-2">
               <dd class="title">
-                <n-tag
+                <NTag
                   v-if="row.typeContent === 'original'"
                   type="success"
                   size="small"
                 >
                   原
-                </n-tag>
-                <n-tag
+                </NTag>
+                <NTag
                   v-if="row.typeContent === 'repost'"
                   type="error"
                   size="small"
                 >
                   转
-                </n-tag>
-                <n-tag
+                </NTag>
+                <NTag
                   v-if="row.typeContent === 'translation'"
                   type="error"
                   size="small"
                 >
                   译
-                </n-tag>
+                </NTag>
 
-                <n-tag
+                <NTag
                   v-if="row.typeReading === 'unread'"
                   size="small"
                   class="mt-2"
                 >
                   未读
-                </n-tag>
-                <n-tag
+                </NTag>
+                <NTag
                   v-if="row.typeReading === 'warning'"
                   type="info"
                   size="small"
                   class="mt-2"
                 >
                   读中
-                </n-tag>
-                <n-tag
+                </NTag>
+                <NTag
                   v-if="row.typeReading === 'completed'"
                   type="info"
                   size="small"
                   class="mt-2"
                 >
                   已读
-                </n-tag>
+                </NTag>
               </dd>
               <dd class="content">
                 <n-grid x-gap="12" :cols="1" class="ml-2">
@@ -581,7 +575,6 @@ function iconclick(e) {
       </div>
     </div>
     <Drawer @ok="onRefresh" />
-    <Modal @ok="reloadTree" />
     <ModalTag @ok="modalOkTags" />
   </Page>
 </template>

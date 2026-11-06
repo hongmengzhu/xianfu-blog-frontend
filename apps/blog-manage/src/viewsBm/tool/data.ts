@@ -1,9 +1,11 @@
-import type { VbenFormSchema } from '#/adapter/form';
 import type { VxeGridPropTypes } from 'vxe-table';
+
+import type { VbenFormSchema } from '#/adapter/form';
 
 import _XEUtils_ from 'xe-utils';
 
 import { confirmSwitch } from '#/adapter/vxe-table';
+
 import { setStateEnableDisable } from './api';
 
 /**

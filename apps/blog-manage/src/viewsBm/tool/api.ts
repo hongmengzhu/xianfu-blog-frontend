@@ -2,22 +2,24 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  create = '/xianfu/manage/blog/bookmark-category/create',
-  delete = '/xianfu/manage/blog/bookmark-category/delete',
-  detail = '/xianfu/manage/blog/bookmark-category/detail/',
-  disable = '/xianfu/manage/blog/bookmark-category/disable',
-  enable = '/xianfu/manage/blog/bookmark-category/enable',
-  existName = '/xianfu/manage/blog/bookmark-category/existName',
-  exportExcel = '/xianfu/manage/blog/bookmark-category/exportExcel',
-  list = '/xianfu/manage/blog/bookmark-category/query',
-  queryAll = '/xianfu/manage/blog/bookmark-category/queryAll',
-  physicalDeletion = '/xianfu/manage/blog/bookmark-category/physicalDeletion',
-  recovery = '/xianfu/manage/blog/bookmark-category/recovery',
-  selectNodeAllPublic = '/xianfu/manage/blog/bookmark-category/selectNodeAllPublic',
-  selectNodeAll = '/xianfu/manage/blog/bookmark-category/selectNodeAll',
-  selectPublic = '/xianfu/manage/blog/bookmark-category/selectPublic',
-  state = '/xianfu/manage/blog/bookmark-category/state',
-  update = '/xianfu/manage/blog/bookmark-category/update',
+  create = '/xianfu/manage/bm/tool/create',
+  createUpdate = '/xianfu/manage/bm/tool/createUpdate',
+  delete = '/xianfu/manage/bm/tool/delete',
+  detail = '/xianfu/manage/bm/tool/detail/',
+  disable = '/xianfu/manage/bm/tool/disable',
+  enable = '/xianfu/manage/bm/tool/enable',
+  existName = '/xianfu/manage/bm/tool/existName',
+  existCode = '/xianfu/manage/bm/tool/existCode',
+  exportExcel = '/xianfu/manage/bm/tool/exportExcel',
+  list = '/xianfu/manage/bm/tool/query',
+  queryPublic = '/xianfu/manage/bm/tool/QueryPublic',
+  physicalDeletion = '/xianfu/manage/bm/tool/physicalDeletion',
+  recovery = '/xianfu/manage/bm/tool/recovery',
+  selectNodeAllPublic = '/xianfu/manage/bm/tool/selectNodeAllPublic',
+  selectNodePublic = '/xianfu/manage/bm/tool/selectNodePublic',
+  selectPublic = '/xianfu/manage/bm/tool/selectPublic',
+  state = '/xianfu/manage/bm/tool/state',
+  update = '/xianfu/manage/bm/tool/update',
 }
 
 /**
@@ -33,16 +35,24 @@ export async function List(data?: any) {
  * @constructor
  * @param data
  */
-export async function queryAll(data?: any) {
-  return requestClient.post(Api.queryAll, data);
+export async function queryPublic(data?: any) {
+  return requestClient.post(Api.queryPublic, data);
 }
+
+/**
+ * 公共列表展示
+ * @param data
+ */
+export const selectPublic = (data?: any) => {
+  return requestClient.post(Api.selectPublic, data);
+};
 
 /**
  * 公共树展示
  * @param data
  */
-export const selectNodeAll = (data?: any) => {
-  return requestClient.post(Api.selectNodeAll, data);
+export const selectNodePublic = (data?: any) => {
+  return requestClient.post(Api.selectNodePublic, data);
 };
 
 /**
@@ -65,9 +75,9 @@ export const detail = (data?: any) => {
  * @param data
  * @param isUpdate
  */
-export const saveOrUpdate = (data: any, isUpdate: boolean) => {
-  return requestClient.post(isUpdate ? Api.update : Api.create, data, {
-    errorMessageMode: 'message',
+export const saveOrUpdate = (data: any) => {
+  return requestClient.post(Api.createUpdate, data, {
+    errorMessageMode: 'notification',
     successMessageMode: 'notification',
   });
 };
@@ -173,7 +183,7 @@ export const batchSelectDisable = (params, handleSuccess) => {
  * 批量选中-恢复
  * @param params
  */
-export const batchSelectRecovery = (params, handleSuccess, dialog) => {
+export const batchSelectRecovery = (params, handleSuccess) => {
   dialog.warning({
     title: '确认设置恢复',
     content: '是否[批量恢复]选中数据',
@@ -200,7 +210,7 @@ export const batchSelectRecovery = (params, handleSuccess, dialog) => {
  * 批量选中-物理删除
  * @param params
  */
-export const batchSelectPhysicalDeletion = (params, handleSuccess, dialog) => {
+export const batchSelectPhysicalDeletion = (params, handleSuccess) => {
   dialog.warning({
     title: '确认物理删除',
     content: '是否[物理删除]选中数据，操作后数据不可恢复',
@@ -247,6 +257,17 @@ export const exportExcelUrl = Api.exportExcel;
 export const existName = (wd, id = '0') => {
   return requestClient.post(
     Api.existName,
+    { wd, id },
+    { errorMessageMode: 'message', successMessageMode: 'notification' },
+  );
+};
+/**
+ * 查询名称是否存在
+ * @param params
+ */
+export const existCode = (wd, id = '0') => {
+  return requestClient.post(
+    Api.existCode,
     { wd, id },
     { errorMessageMode: 'message', successMessageMode: 'notification' },
   );

@@ -70,37 +70,6 @@ const routes: RouteRecordRaw[] = [
       },
     ],
   },
-  {
-    component: BasicLayout,
-    meta: {
-      icon: 'ic:baseline-view-in-ar',
-      keepAlive: true,
-      order: 1000,
-      title: '书签',
-    },
-    name: 'bookmark',
-    path: '/lq2/bookmark/index',
-    children: [
-      {
-        meta: {
-          title: '书签',
-          icon: 'mdi:account-multiple',
-        },
-        name: 'bookmark-index',
-        path: '/lq2/bookmark/index',
-        component: () => import('#/viewsBlog/bookmark/index.vue'),
-      },
-      {
-        meta: {
-          title: '书签分类',
-          icon: 'mdi:account-multiple',
-        },
-        name: 'blog-cat',
-        path: '/lq2/bookmark/bookmark-category',
-        component: () => import('#/viewsBlog/bookmarkCategory/index.vue'),
-      },
-    ],
-  },
 ];
 
 export default routes;

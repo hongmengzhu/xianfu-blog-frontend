@@ -15,7 +15,6 @@ import { columns, useGridFormSchema } from './data';
  */
 const [ConfigDrawer, configDrawerApi] = useVbenDrawer({
   connectedComponent: DrawerConfigTpl,
-  destroyOnClose: true,
 });
 
 const [Grid, gridApi] = useVbenVxeGrid({

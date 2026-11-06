@@ -2,24 +2,22 @@ import { dialog, message } from '#/adapter';
 import { requestClient } from '#/api/request';
 
 enum Api {
-  create = '/xianfu/manage/blog/bookmark/create',
-  createUpdate = '/xianfu/manage/blog/bookmark/createUpdate',
-  delete = '/xianfu/manage/blog/bookmark/delete',
-  detail = '/xianfu/manage/blog/bookmark/detail/',
-  disable = '/xianfu/manage/blog/bookmark/disable',
-  enable = '/xianfu/manage/blog/bookmark/enable',
-  existName = '/xianfu/manage/blog/bookmark/existName',
-  existCode = '/xianfu/manage/blog/bookmark/existCode',
-  exportExcel = '/xianfu/manage/blog/bookmark/exportExcel',
-  list = '/xianfu/manage/blog/bookmark/query',
-  queryPublic = '/xianfu/manage/blog/bookmark/QueryPublic',
-  physicalDeletion = '/xianfu/manage/blog/bookmark/physicalDeletion',
-  recovery = '/xianfu/manage/blog/bookmark/recovery',
-  selectNodeAllPublic = '/xianfu/manage/blog/bookmark/selectNodeAllPublic',
-  selectNodePublic = '/xianfu/manage/blog/bookmark/selectNodePublic',
-  selectPublic = '/xianfu/manage/blog/bookmark/selectPublic',
-  state = '/xianfu/manage/blog/bookmark/state',
-  update = '/xianfu/manage/blog/bookmark/update',
+  create = '/xianfu/manage/bm/bookmark-category/create',
+  delete = '/xianfu/manage/bm/bookmark-category/delete',
+  detail = '/xianfu/manage/bm/bookmark-category/detail/',
+  disable = '/xianfu/manage/bm/bookmark-category/disable',
+  enable = '/xianfu/manage/bm/bookmark-category/enable',
+  existName = '/xianfu/manage/bm/bookmark-category/existName',
+  exportExcel = '/xianfu/manage/bm/bookmark-category/exportExcel',
+  list = '/xianfu/manage/bm/bookmark-category/query',
+  queryAll = '/xianfu/manage/bm/bookmark-category/queryAll',
+  physicalDeletion = '/xianfu/manage/bm/bookmark-category/physicalDeletion',
+  recovery = '/xianfu/manage/bm/bookmark-category/recovery',
+  selectNodeAllPublic = '/xianfu/manage/bm/bookmark-category/selectNodeAllPublic',
+  selectNodeAll = '/xianfu/manage/bm/bookmark-category/selectNodeAll',
+  selectPublic = '/xianfu/manage/bm/bookmark-category/selectPublic',
+  state = '/xianfu/manage/bm/bookmark-category/state',
+  update = '/xianfu/manage/bm/bookmark-category/update',
 }
 
 /**
@@ -35,24 +33,16 @@ export async function List(data?: any) {
  * @constructor
  * @param data
  */
-export async function queryPublic(data?: any) {
-  return requestClient.post(Api.queryPublic, data);
+export async function queryAll(data?: any) {
+  return requestClient.post(Api.queryAll, data);
 }
-
-/**
- * 公共列表展示
- * @param data
- */
-export const selectPublic = (data?: any) => {
-  return requestClient.post(Api.selectPublic, data);
-};
 
 /**
  * 公共树展示
  * @param data
  */
-export const selectNodePublic = (data?: any) => {
-  return requestClient.post(Api.selectNodePublic, data);
+export const selectNodeAll = (data?: any) => {
+  return requestClient.post(Api.selectNodeAll, data);
 };
 
 /**
@@ -75,9 +65,9 @@ export const detail = (data?: any) => {
  * @param data
  * @param isUpdate
  */
-export const saveOrUpdate = (data: any) => {
-  return requestClient.post(Api.createUpdate, data, {
-    errorMessageMode: 'notification',
+export const saveOrUpdate = (data: any, isUpdate: boolean) => {
+  return requestClient.post(isUpdate ? Api.update : Api.create, data, {
+    errorMessageMode: 'message',
     successMessageMode: 'notification',
   });
 };
@@ -183,7 +173,7 @@ export const batchSelectDisable = (params, handleSuccess) => {
  * 批量选中-恢复
  * @param params
  */
-export const batchSelectRecovery = (params, handleSuccess) => {
+export const batchSelectRecovery = (params, handleSuccess, dialog) => {
   dialog.warning({
     title: '确认设置恢复',
     content: '是否[批量恢复]选中数据',
@@ -210,7 +200,7 @@ export const batchSelectRecovery = (params, handleSuccess) => {
  * 批量选中-物理删除
  * @param params
  */
-export const batchSelectPhysicalDeletion = (params, handleSuccess) => {
+export const batchSelectPhysicalDeletion = (params, handleSuccess, dialog) => {
   dialog.warning({
     title: '确认物理删除',
     content: '是否[物理删除]选中数据，操作后数据不可恢复',
@@ -257,17 +247,6 @@ export const exportExcelUrl = Api.exportExcel;
 export const existName = (wd, id = '0') => {
   return requestClient.post(
     Api.existName,
-    { wd, id },
-    { errorMessageMode: 'message', successMessageMode: 'notification' },
-  );
-};
-/**
- * 查询名称是否存在
- * @param params
- */
-export const existCode = (wd, id = '0') => {
-  return requestClient.post(
-    Api.existCode,
     { wd, id },
     { errorMessageMode: 'message', successMessageMode: 'notification' },
   );
