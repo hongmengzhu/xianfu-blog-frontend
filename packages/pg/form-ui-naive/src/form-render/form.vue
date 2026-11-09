@@ -41,11 +41,6 @@ const props = withDefaults(
     commonConfig: () => ({}),
     globalCommonConfig: () => ({}),
     showCollapseButton: false,
-    tabs: {
-      active: 'home',
-      group: [{ label: '首页', value: 'home' }],
-      hide: false,
-    },
     wrapperClass: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3',
   },
 );

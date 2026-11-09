@@ -511,7 +511,6 @@ type ComponentProps<TValues extends FormValues = FormValues> =
   | MaybeComponentProps;
 
 export interface FormCommonConfig<TValues extends FormValues = FormValues> {
-  tabs?: object;
   /**
    * 是否启用 change 事件兼容回退。
    * 仅当组件不发送 update:*、只发送 change 时启用。
@@ -645,8 +644,6 @@ interface FormSchemaBody<TValues extends FormValues = FormValues> extends Omit<
    * @deprecated Use the form-level `codec` instead.
    */
   valueFormat?: FormValueFormat<TValues>;
-
-  tabGroup?: string;
 }
 
 type FormSchemaDiscriminated<
@@ -829,7 +826,7 @@ export interface FormFieldProps<
   component: Component | T;
   /** 组件参数 */
   componentProps?: ComponentProps<TValues>;
-  tabGroup?: string;
+
   /** 特殊的 **/
   special?: string;
 }
