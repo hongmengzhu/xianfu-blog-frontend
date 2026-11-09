@@ -663,7 +663,10 @@ async function handleEnter(sub, e) {
   <Drawer class="w-[1200px]">
     <Form>
       <template #tags="tpl">
-        <n-dynamic-tags v-model:value="tpl.modelValue" v-bind="tpl">
+        <n-dynamic-tags
+          v-model:value="tpl.modelValue"
+          v-bind="tpl.componentProps"
+        >
           <template #input="{ submit, deactivate }">
             <n-input
               size="small"

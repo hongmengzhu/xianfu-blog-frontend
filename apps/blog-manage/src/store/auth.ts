@@ -7,15 +7,14 @@ import { LOGIN_PATH } from '@vben/constants';
 import { preferences } from '@vben/preferences';
 import { resetAllStores, useAccessStore, useUserStore } from '@vben/stores';
 
-import { decodePaseto } from "@pg/utils";
+import { decodePaseto } from '@pg/utils';
 import { defineStore } from 'pinia';
 
 import { notification } from '#/adapter/naive';
-import { getUserInfoApiPublic, loginApi, logoutApi} from '#/api';
+import { getUserInfoApiPublic, loginApi, logoutApi } from '#/api';
 import { $t } from '#/locales';
-import { useConfigPubStore } from "#/store/configPub";
+import { useConfigPubStore } from '#/store/configPub';
 import { SmUtil } from '#/tools/smUtil';
-
 
 export const useAuthStore = defineStore('auth', () => {
   const accessStore = useAccessStore();
@@ -42,13 +41,13 @@ export const useAuthStore = defineStore('auth', () => {
       if (
         configPubStore.isLoginEncrypt() &&
         configPubStore.getLoginPub() &&
-        params['password']
+        params.password
       ) {
         sm.setPublicKey(configPubStore.getLoginPub());
         params.password = sm.encryptHex(params.password);
-        params['encrypt'] = 'encrypt';
+        params.encrypt = 'encrypt';
       }
-      params['account'] = params['username'];
+      params.account = params.username;
       //
       const { accessToken, authCode, refreshToken } = await loginApi(params);
       const { payload } = decodePaseto(accessToken);
@@ -58,8 +57,8 @@ export const useAuthStore = defineStore('auth', () => {
         // 将 accessToken 存储到 accessStore 中
         accessStore.setAccessToken(accessToken);
         accessStore.setRefreshToken(refreshToken);
-        configPubStore.setTenantId(payload.tno)
-        configPubStore.setTokenJti(payload.jti)
+        configPubStore.setTenantId(payload.tno);
+        configPubStore.setTokenJti(payload.jti);
         // 获取用户信息并存储到 accessStore 中
         // const [fetchUserInfoResult, accessCodes] = await Promise.all([
         //   fetchUserInfo(),
@@ -71,12 +70,12 @@ export const useAuthStore = defineStore('auth', () => {
         //
         const infoPublic = await fetchUserInfoPublic();
         // console.log('InfoPublic',infoPublic)
-        if(infoPublic?.menuRouter) {
+        if (infoPublic?.menuRouter) {
           configPubStore.setRouterOtherAuth(infoPublic.menuRouter.otherAuth);
           // 菜单
           configPubStore.setRouterList(infoPublic.menuRouter.data);
           // 按钮权限码
-          if (infoPublic.menuRouter?.dataCodes){
+          if (infoPublic.menuRouter?.dataCodes) {
             accessStore.setAccessCodes(infoPublic.menuRouter?.dataCodes);
           }
         }
@@ -134,9 +133,9 @@ export const useAuthStore = defineStore('auth', () => {
   async function fetchUserInfo() {
     // const userInfo = await getUserInfoApi();
     const infoPublic = await getUserInfoApiPublic();
-    console.log('fetchUserInfo=',infoPublic)
+    // console.log('fetchUserInfo=',infoPublic)
     userStore.setUserInfo(infoPublic.info);
-    if(infoPublic?.menuRouter) {
+    if (infoPublic?.menuRouter) {
       configPubStore.setData(infoPublic.menuRouter);
     }
     return infoPublic.info;
