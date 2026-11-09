@@ -212,7 +212,10 @@ async function onSubmit() {
   <Drawer>
     <Form>
       <template #parentId="slotProps">
-        <PgTreeSelect :api="selectNodeAllPublic" v-bind="slotProps" />
+        <PgTreeSelect
+          :api="selectNodeAllPublic"
+          v-bind="slotProps.componentProps"
+        />
       </template>
     </Form>
   </Drawer>

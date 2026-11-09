@@ -7,11 +7,7 @@ import { PgTreeSelect } from '@pg/components-n';
 
 import { usePgForm } from '#/adapter';
 
-import {
-  existName,
-  saveOrUpdate,
-  selectNodeAllPublic,
-} from '../api';
+import { existName, saveOrUpdate, selectNodeAllPublic } from '../api';
 
 const props = defineProps({
   data: {
@@ -191,7 +187,7 @@ onMounted(() => {
       <PgTreeSelect
         :api="selectNodeAllPublic"
         :convert-node="true"
-        v-bind="slotProps"
+        v-bind="slotProps.componentProps"
         class="w-full"
       />
     </template>

@@ -178,7 +178,7 @@ function onSubmit(values: Record<string, any>) {
   <Drawer>
     <Form>
       <template #parentId="slotProps">
-        <PgTreeSelect :api="selectPublic" v-bind="slotProps" />
+        <PgTreeSelect :api="selectPublic" v-bind="slotProps.componentProps" />
       </template>
     </Form>
   </Drawer>

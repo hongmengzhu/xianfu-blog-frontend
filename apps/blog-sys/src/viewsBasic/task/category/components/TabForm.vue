@@ -187,7 +187,7 @@ onMounted(() => {
       <PgTreeSelect
         :api="selectNodeAllPublic"
         :convert-node="true"
-        v-bind="slotProps"
+        v-bind="slotProps.componentProps"
         class="w-full"
       />
     </template>

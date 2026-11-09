@@ -53,7 +53,6 @@
     "@vben/hooks": "workspace:*",
     "@vben/preferences": "workspace:*",
     "@vben/utils": "workspace:*",
-    "@vee-validate/zod": "catalog:",
     "@vueuse/core": "catalog:",
     "@vueuse/shared": "catalog:",
     "@vueuse/integrations": "catalog:",
