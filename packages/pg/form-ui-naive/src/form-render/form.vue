@@ -10,7 +10,7 @@ import type {
 } from '../types';
 import type { NormalizedFormFieldSchema } from './schema';
 
-import { computed, reactive, ref, toRaw, toRefs } from 'vue';
+import { computed, reactive, toRaw, toRefs } from 'vue';
 
 import { cn, isString } from '@vben-core/shared/utils';
 
@@ -157,35 +157,6 @@ function isNormalizedFormGroupSchema(
 function getGroupWrapperClass(schema: NormalizedFormGroupSchema) {
   return getWrapperClass(schema.wrapperClass ?? props.wrapperClass);
 }
-const activeTab = ref('home');
-if (props?.tabs?.active) {
-  activeTab.value = props?.tabs?.active;
-}
-const computedTab = computed(() => {
-  // console.log('props', props);
-  if (props?.tabs && props?.tabs?.group) {
-    return props?.tabs?.group;
-  }
-  return [{ label: '首页', value: 'home' }];
-});
-const computedTabHide = computed(() => {
-  // console.log('props', props);
-  if (props?.tabs && props?.tabs.hasOwnProperty('hide')) {
-    return props?.tabs?.hide;
-  }
-  return false;
-});
-
-const tabId = ref([
-  `tabId-${Math.random().toString(36).slice(2, 11)}`,
-  'tabId-hide',
-]);
-const display = computed(() => {
-  return computedTabHide.value ? 'none' : 'flex';
-});
-const tabsComputedProps = computed(() => {
-  return props.tabs && props.tabs.props ? props.tabs.props : {};
-});
 </script>
 
 <template>
