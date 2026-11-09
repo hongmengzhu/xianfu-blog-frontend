@@ -8,6 +8,7 @@ enum Api {
   detail = '/xianfu/manage/basic/tags-relation/detail/',
   disable = '/xianfu/manage/basic/tags-relation/disable',
   enable = '/xianfu/manage/basic/tags-relation/enable',
+  existCode = '/xianfu/manage/basic/tags-relation/existCode',
   existName = '/xianfu/manage/basic/tags-relation/existName',
   exportExcel = '/xianfu/manage/basic/tags-relation/exportExcel',
   list = '/xianfu/manage/basic/tags-relation/query',
@@ -241,14 +242,31 @@ export const setStateEnableDisable = (id: number, status: number) =>
 export const exportExcelUrl = Api.exportExcel;
 
 /**
- * 查询名称是否存在
- * @param params
+ * 查询名称是否存在（同一分类下）
+ * @param wd 名称
+ * @param category 分类编号
+ * @param id 当前记录id（编辑时排除自身）
  */
-export const existName = (wd, id?) => {
+export const existName = (wd, category, id?) => {
   id = id || '0';
   return requestClient.post(
     Api.existName,
-    { wd, id },
+    { wd, category, id },
+    { errorMessageMode: 'message', successMessageMode: 'notification' },
+  );
+};
+
+/**
+ * 查询标签(编码)是否存在（同一分类下）
+ * @param wd 标签
+ * @param category 分类编号
+ * @param id 当前记录id（编辑时排除自身）
+ */
+export const existCode = (wd, category, id?) => {
+  id = id || '0';
+  return requestClient.post(
+    Api.existCode,
+    { wd, category, id },
     { errorMessageMode: 'message', successMessageMode: 'notification' },
   );
 };

@@ -109,6 +109,43 @@ const routes: RouteRecordRaw[] = [
       },
       {
         meta: {
+          title: '标签',
+          icon: 'mdi:account-key',
+        },
+        name: 'basic-tags',
+        path: '/lq2/basic/tags',
+        children: [
+          {
+            meta: {
+              title: '标签',
+              icon: 'mdi:account-key',
+            },
+            name: 'basic-tags-index',
+            path: '/lq2/basic/tags-index',
+            component: () => import('#/viewsBasic/tags/tags/index.vue'),
+          },
+          {
+            meta: {
+              title: '标签分类',
+              icon: 'mdi:account-key',
+            },
+            name: 'basic-tags-category',
+            path: '/lq2/basic/tags-category',
+            component: () => import('#/viewsBasic/tags/category/index.vue'),
+          },
+          {
+            meta: {
+              title: '标签关系',
+              icon: 'mdi:account-key',
+            },
+            name: 'basic-tags-relation',
+            path: '/lq2/basic/tags-relation',
+            component: () => import('#/viewsBasic/tags/relation/index.vue'),
+          },
+        ],
+      },
+      {
+        meta: {
           title: '任务',
           icon: 'mdi:account-key',
         },

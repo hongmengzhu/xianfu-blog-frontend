@@ -7,6 +7,7 @@ enum Api {
   detail = '/xianfu/manage/basic/tags-category/detail/',
   disable = '/xianfu/manage/basic/tags-category/disable',
   enable = '/xianfu/manage/basic/tags-category/enable',
+  existCode = '/xianfu/manage/basic/tags-category/existCode',
   existName = '/xianfu/manage/basic/tags-category/existName',
   exportExcel = '/xianfu/manage/basic/tags-category/exportExcel',
   list = '/xianfu/manage/basic/tags-category/query',
@@ -247,6 +248,20 @@ export const existName = (wd, id?) => {
   id = id || '0';
   return requestClient.post(
     Api.existName,
+    { wd, id },
+    { errorMessageMode: 'message', successMessageMode: 'notification' },
+  );
+};
+
+/**
+ * 查询编码是否存在
+ * @param wd
+ * @param id
+ */
+export const existCode = (wd, id?) => {
+  id = id || '0';
+  return requestClient.post(
+    Api.existCode,
     { wd, id },
     { errorMessageMode: 'message', successMessageMode: 'notification' },
   );

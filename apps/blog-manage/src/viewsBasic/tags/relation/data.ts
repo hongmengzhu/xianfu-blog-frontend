@@ -1,9 +1,22 @@
-import type { VbenFormSchema } from '#/adapter/form';
 import type { VxeGridPropTypes } from 'vxe-table';
+
+import type { VbenFormSchema } from '#/adapter/form';
 
 import _XEUtils_ from 'xe-utils';
 
-import { existName, setStateEnableDisable } from './api';
+import { confirmSwitch } from '#/adapter/vxe-table';
+
+import { categoryNameMap, moduleNameMap } from '../shared';
+import { setStateEnableDisable } from './api';
+
+/**
+ * 类型：普通 / 系统 / api
+ */
+export const typeSysOptions = [
+  { label: '普通', value: 'general' },
+  { label: '系统', value: 'system' },
+  { label: 'api', value: 'api' },
+];
 
 /**
  * 搜索表单 Schema
@@ -15,7 +28,7 @@ export function useGridFormSchema(): VbenFormSchema[] {
       fieldName: 'wd',
       label: '关键词',
       componentProps: {
-        placeholder: '请输入',
+        placeholder: '名称 / 编码 / 简称 / 全称',
         clearable: true,
       },
     },
@@ -24,10 +37,10 @@ export function useGridFormSchema(): VbenFormSchema[] {
       componentProps: {
         allowClear: true,
         options: [
-          { label: '停用', value: '2' },
           { label: '有效', value: '1' },
-          { label: '弃置', value: '12' },
+          { label: '停用', value: '2' },
           { label: '取消', value: '11' },
+          { label: '弃置', value: '12' },
         ],
       },
       fieldName: 'state',
@@ -36,36 +49,63 @@ export function useGridFormSchema(): VbenFormSchema[] {
   ];
 }
 
+/**
+ * 表格列配置
+ */
 export const columns: VxeGridPropTypes.Columns = [
-  { type: 'checkbox', title: 'ID', width: 120 },
-  { field: 'name', title: '名称', minWidth: 200 },
-  { field: 'nameFl', title: '英文', minWidth: 120, visible: false },
+  { type: 'checkbox', width: 34 },
+  {
+    field: 'name',
+    title: '标签',
+    minWidth: 180,
+    align: 'left',
+    slots: { default: 'tags' },
+  },
   { field: 'code', title: '编码', width: 160 },
+  { field: 'nameFull', title: '全称', minWidth: 160, visible: false },
+  { field: 'nameShort', title: '简称', width: 120, visible: false },
+  {
+    field: 'module',
+    title: '模块',
+    width: 150,
+    formatter({ cellValue }) {
+      return moduleNameMap.value[cellValue] || cellValue;
+    },
+  },
+  {
+    field: 'categoryNo',
+    title: '分类',
+    width: 160,
+    formatter({ cellValue }) {
+      return categoryNameMap.value[cellValue] || cellValue;
+    },
+  },
+  {
+    field: 'typeSys',
+    title: '类型',
+    width: 90,
+    formatter({ cellValue }) {
+      return (
+        typeSysOptions.find((item) => item.value === cellValue)?.label ||
+        cellValue
+      );
+    },
+  },
   {
     field: 'state',
     title: '状态',
-    // slots: { default: 'state' },
     width: 90,
     cellRender: {
-      name: 'PgState',
-      events: {
-        // 状态更新
-        click: ($table, record, e) => {
-          const sourceValue = record.state;
-          const newStatus = e.value === 1 ? 1 : 2;
-          setStateEnableDisable(record.id, newStatus)
-            .then(() => {
-              record.state = newStatus;
-              if ($table) {
-                $table.isUpdateByRow(record);
-              }
-            })
-            .catch(() => {
-              record.state = sourceValue;
-              if ($table) {
-                $table.isUpdateByRow(record);
-              }
-            });
+      name: 'CellSwitchPg',
+      attrs: {
+        beforeChange: async (newStatus: number, record: any) => {
+          try {
+            await confirmSwitch(record.name, newStatus);
+            await setStateEnableDisable(record.id, newStatus);
+            return true;
+          } catch {
+            return false;
+          }
         },
       },
     },
@@ -76,11 +116,8 @@ export const columns: VxeGridPropTypes.Columns = [
     width: 160,
     visible: false,
     formatter({ cellValue }) {
-      return _XEUtils_.toDateString(cellValue, 'yyyy-MM-dd');
+      return _XEUtils_.toDateString(cellValue, 'yyyy-MM-dd HH:mm');
     },
   },
   { title: '操作', width: 160, field: 'right', slots: { default: 'operate' } },
-];
-
-export const formSchema = [
 ];
