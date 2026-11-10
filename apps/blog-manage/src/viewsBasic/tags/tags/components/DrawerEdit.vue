@@ -53,40 +53,95 @@ const previewType = computed<TagColorType>(() => preview.type || 'default');
 const previewSize = computed<TagSize>(() => preview.size ?? 'medium');
 
 /**
- * 自定义颜色兼容历史数据：可能是纯色值，也可能是 {"color": "...", "textColor": "..."} 的 JSON 字符串
+ * 解析颜色：兼容纯色值、{ color, textColor } 对象、以及 JSON 字符串三种历史格式
  */
-const previewColor = computed(() => {
-  const color: any = preview.color;
+function parseColorValue(color: any): Record<string, any> | undefined {
   if (!color) {
     return undefined;
   }
-  if (typeof color === 'object') {
-    return color;
-  }
-  if (typeof color === 'string' && color.trim().startsWith('{')) {
-    try {
-      return JSON.parse(color);
-    } catch {
-      return color;
+  let raw = color;
+  if (typeof raw === 'string') {
+    const trimmed = raw.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+    if (trimmed.startsWith('{')) {
+      try {
+        raw = JSON.parse(trimmed);
+      } catch {
+        return undefined;
+      }
+    } else {
+      return {
+        color: trimmed,
+        textColor: contrastTextColor(trimmed),
+      };
     }
   }
-  return color;
-});
+  if (typeof raw === 'object') {
+    const background = raw.color;
+    if (!background) {
+      return undefined;
+    }
+    return {
+      borderColor: raw.borderColor,
+      color: background,
+      textColor: raw.textColor ?? contrastTextColor(background),
+    };
+  }
+  return undefined;
+}
 
 /**
- * 取表单中的自定义颜色（字符串形式），供 ColorPicker 使用
+ * 根据背景色计算可读的文本颜色
+ */
+function contrastTextColor(color: string): string {
+  const hex = String(color).replace('#', '');
+  if (![3, 4, 6, 8].includes(hex.length)) {
+    return '#ffffff';
+  }
+  const full =
+    hex.length <= 4
+      ? hex
+          .split('')
+          .map((c) => c + c)
+          .join('')
+      : hex;
+  const r = Number.parseInt(full.slice(0, 2), 16);
+  const g = Number.parseInt(full.slice(2, 4), 16);
+  const b = Number.parseInt(full.slice(4, 6), 16);
+  if (Number.isNaN(r) || Number.isNaN(g) || Number.isNaN(b)) {
+    return '#ffffff';
+  }
+  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  return luminance > 0.6 ? '#000000' : '#ffffff';
+}
+
+/**
+ * 预览用颜色：naive 的 Tag 只接受 { color, textColor, borderColor } 对象
+ */
+const previewColor = computed(() =>
+  parseColorValue(preview.color || undefined),
+);
+
+/**
+ * 取表单中的自定义颜色（纯色值），供 ColorPicker 使用
  */
 function colorToText(color: any): string {
+  return parseColorValue(color)?.color || '';
+}
+
+/**
+ * 表单颜色 -> 存储颜色（沿用 relation 标签的约定：JSON 字符串）
+ */
+function colorToStore(color: string): string {
   if (!color) {
     return '';
   }
-  if (typeof color === 'string') {
-    return color;
-  }
-  if (typeof color === 'object') {
-    return color.color || '';
-  }
-  return '';
+  return JSON.stringify({
+    color,
+    textColor: contrastTextColor(color),
+  });
 }
 
 /**
@@ -436,7 +491,7 @@ async function onSubmit() {
     attributeMap: {
       type: attributeType || 'default',
       bordered: attributeBordered ?? true,
-      color: attributeColor || '',
+      color: colorToStore(attributeColor),
       size: attributeSize || 'medium',
       strong: attributeStrong ?? false,
       round: attributeRound ?? false,
@@ -476,7 +531,7 @@ async function onSubmit() {
           <span class="text-xs text-gray-400">
             {{
               preview.color
-                ? '自定义颜色会覆盖颜色类型'
+                ? `自定义颜色 ${preview.color} 会覆盖颜色类型`
                 : '当前使用颜色类型对应的默认配色'
             }}
           </span>
