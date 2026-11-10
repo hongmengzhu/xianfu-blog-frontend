@@ -1,14 +1,23 @@
 <script lang="ts" setup>
-import type { Recordable } from '@vben-core/typings';
 import type { DropdownOption, TreeOption } from 'naive-ui';
-import { NDropdown, NTree, NInput } from 'naive-ui';
 
-import { computed, onMounted, ref, unref, watch } from 'vue';
+import type { Recordable } from '@vben-core/typings';
+
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  unref,
+  watch,
+} from 'vue';
 
 import { isFunction } from '@vben/utils';
 
 import { RiMore2Fill } from '@pg/icons';
 import { getTreeAll, useNode } from '@pg/utils';
+import { NDropdown, NInput, NTree } from 'naive-ui';
 import { get } from 'xe-utils';
 
 import { pgTreeSelectProps, pgTreeSelectPropsDefault } from './props';
@@ -32,11 +41,72 @@ const isFirstLoaded = ref<boolean>(false);
 const loading = ref(false);
 const checkedAll = ref(false);
 const selectedKeys = ref([]);
+const rootRef = ref<HTMLElement | null>(null);
+const measuredMinHeight = ref('');
+let regionResizeObserver: null | ResizeObserver = null;
+let visibilityObserver: IntersectionObserver | null = null;
+
+/**
+ * 累加从 start（含）到 stop（不含）之间各层元素的底部内边距
+ * @param start
+ * @param stop
+ */
+function sumBottomPadding(start: HTMLElement | null, stop: HTMLElement | null) {
+  let total = 0;
+  let current = start;
+  while (current && current !== stop) {
+    const style = window.getComputedStyle(current);
+    total += Number.parseFloat(style.paddingBottom) || 0;
+    current = current.parentElement;
+  }
+  return total;
+}
+
+/**
+ * 计算树的最小高度：以最近的 Page 内容区为可用区域，
+ * 自动扣除 Page header、内边距等占位，避免固定写死 100vh - 141px
+ * 在带 header 的页面里多出滚动条。
+ */
+function measureMinHeight() {
+  if (props.minHeight) {
+    return;
+  }
+  const el = rootRef.value;
+  if (!el || typeof window === 'undefined') {
+    return;
+  }
+  const rect = el.getBoundingClientRect();
+  // 隐藏状态（display:none）下不计算，等可见后再测量
+  if (rect.width === 0 && rect.height === 0) {
+    return;
+  }
+  const region = el.closest(
+    '[data-layout-region="page-content"]',
+  ) as HTMLElement | null;
+  let bottom: number;
+  if (region) {
+    const regionRect = region.getBoundingClientRect();
+    const regionStyle = window.getComputedStyle(region);
+    bottom =
+      regionRect.bottom - (Number.parseFloat(regionStyle.paddingBottom) || 0);
+  } else {
+    // 没有 Page 容器（如 Modal、NLayout）时退化为视口底部，
+    // 再扣除各层父元素底部内边距，避免多出几个像素的滚动条
+    bottom = window.innerHeight;
+  }
+  const bottomPadding = sumBottomPadding(
+    el.parentElement,
+    region ?? document.body,
+  );
+  const available = Math.floor(bottom - rect.top - bottomPadding) - 1;
+  measuredMinHeight.value = available > 0 ? `${available}px` : '';
+}
+
 const minHeightComputed = computed(() => {
-  if(props.minHeight) {
+  if (props.minHeight) {
     return props.minHeight;
   }
-  return `calc(100vh - 141px)`;
+  return measuredMinHeight.value || undefined;
 });
 const classComputed = computed(() => props.class);
 
@@ -202,9 +272,9 @@ watch(
 );
 watch(
   () => props.reload,
-  (val,old) => {
-    console.log('props.reload',val,old);
-    if (val!=old) {
+  (val, old) => {
+    console.log('props.reload', val, old);
+    if (val != old) {
       handlerReload();
     }
   },
@@ -220,6 +290,32 @@ watch(
 
 onMounted(() => {
   props.immediate && fetch();
+  nextTick(measureMinHeight);
+  window.addEventListener('resize', measureMinHeight);
+  const region = rootRef.value?.closest(
+    '[data-layout-region="page-content"]',
+  ) as HTMLElement | null;
+  if (region && typeof ResizeObserver !== 'undefined') {
+    regionResizeObserver = new ResizeObserver(() => measureMinHeight());
+    regionResizeObserver.observe(region);
+  }
+  const el = rootRef.value;
+  if (el && typeof IntersectionObserver !== 'undefined') {
+    visibilityObserver = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        measureMinHeight();
+      }
+    });
+    visibilityObserver.observe(el);
+  }
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', measureMinHeight);
+  regionResizeObserver?.disconnect();
+  regionResizeObserver = null;
+  visibilityObserver?.disconnect();
+  visibilityObserver = null;
 });
 
 /**
@@ -287,41 +383,44 @@ function defaultAllHandle() {
 
 <template>
   <div
+    ref="rootRef"
     :style="{ minHeight: minHeightComputed }"
     :class="classComputed"
-    class="bg-background relative h-full overflow-hidden"
+    class="bg-background relative flex h-full flex-col overflow-hidden"
   >
-    <div v-if="props.headerShow" class="flex h-[34px] items-center">
-      <n-input
+    <div v-if="props.headerShow" class="flex h-[34px] shrink-0 items-center">
+      <NInput
         v-model:value="pattern"
         clearable
         placeholder="搜索"
         size="tiny"
       />
-      <n-dropdown :options="menuOptionsRef" :show-arrow="true">
+      <NDropdown :options="menuOptionsRef" :show-arrow="true">
         <RiMore2Fill :size="29" />
-      </n-dropdown>
+      </NDropdown>
     </div>
     <div
-      class="flex h-[34px] cursor-pointer items-center"
+      class="flex h-[34px] shrink-0 cursor-pointer items-center"
       @click="defaultAllHandle"
     >
       全部
     </div>
-    <n-tree
-      @update:checked-keys="OnUpdateCheckedKeys"
-      v-bind="getAttrs"
-      :checked-keys="checkedKeysComputed"
-      :data="treeData"
-      :node-props="nodeProps"
-      :pattern="pattern"
-      :selected-keys="selectedKeysComputed"
-    >
-      <template v-if="props.slotEmpty" #empty>
-        <slot name="empty"> </slot>
-      </template>
-    </n-tree>
-    <n-dropdown
+    <div class="min-h-0 flex-1 overflow-y-auto">
+      <NTree
+        @update:checked-keys="OnUpdateCheckedKeys"
+        v-bind="getAttrs"
+        :checked-keys="checkedKeysComputed"
+        :data="treeData"
+        :node-props="nodeProps"
+        :pattern="pattern"
+        :selected-keys="selectedKeysComputed"
+      >
+        <template v-if="props.slotEmpty" #empty>
+          <slot name="empty"> </slot>
+        </template>
+      </NTree>
+    </div>
+    <NDropdown
       :options="optionsRef"
       :show="showDropdownRef"
       :x="xRef"

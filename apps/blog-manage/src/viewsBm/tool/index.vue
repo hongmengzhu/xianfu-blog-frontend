@@ -3,7 +3,7 @@ import type { SelectRenderTag } from 'naive-ui';
 
 import type { Recordable } from '@vben/types';
 
-import { computed, h, reactive, ref } from 'vue';
+import { computed, h, onMounted, reactive, ref } from 'vue';
 
 import { Page, useVbenDrawer, useVbenModal, VbenButton } from '@vben/common-ui';
 import { Plus } from '@vben/icons';
@@ -14,6 +14,7 @@ import { NTag } from 'naive-ui';
 
 import { dialog, message } from '#/adapter';
 import { useVbenVxeGrid, VbenTableAction } from '#/adapter/vxe-table';
+import { selectNodeAllPublic as selectNodeAllPublicModule } from '#/viewsBasic/module/api';
 import ModalTagTpl from '#/viewsBasic/tags/relation/invoke/ModalTag.vue';
 import { selectNodeAllPublic } from '#/viewsBm/toolCategory/api';
 
@@ -33,6 +34,57 @@ const currenData = ref<Recordable<any>>({});
 const reloadTreeState = ref(0);
 const reloadTreeComputed = computed(() => reloadTreeState.value);
 const formParam = reactive({ tagsQuery: [] });
+
+/** 模块 tab 的“全部”哨兵值 */
+const ALL_MODULE = '__all__';
+const moduleTab = ref<string>(ALL_MODULE);
+/** 当前模块编号，空字符串表示不过滤 */
+const moduleNo = computed(() =>
+  moduleTab.value === ALL_MODULE ? '' : moduleTab.value,
+);
+const moduleOptions = ref<Array<{ label: string; value: string }>>([]);
+
+/**
+ * 加载模块（数据来自 basic_module），用于模块 tab
+ */
+async function loadModules() {
+  try {
+    const list: any[] = (await selectNodeAllPublicModule({})) || [];
+    moduleOptions.value = list
+      .filter((item: any) => {
+        const state = Number(item?.extend?.state ?? 1);
+        return state === 1 && item?.value;
+      })
+      .map((item: any) => ({ label: item.label, value: item.value }));
+  } catch (error) {
+    console.error('加载模块失败：', error);
+  }
+}
+
+onMounted(() => {
+  loadModules();
+});
+
+/**
+ * 分类树接口：带上当前模块过滤
+ * @param params
+ */
+function treeApi(params: Record<string, any> = {}) {
+  return selectNodeAllPublic({ ...params, module: moduleNo.value });
+}
+
+/**
+ * 切换模块：重置分类选择，分类树与列表按模块重新加载
+ * @param value
+ */
+function onModuleChange(value: number | string) {
+  moduleTab.value = String(value);
+  currenRecord.value = false;
+  currenData.value = {};
+  gridApi.formApi.setFieldValue('categoryNo', '');
+  reloadTree();
+  onRefresh();
+}
 
 const treeChang = (record) => {
   currenRecord.value = true;
@@ -124,7 +176,11 @@ const [Grid, gridApi] = useVbenVxeGrid({
           }
           queryParams.pageSize = page.pageSize;
           queryParams.pageNum = page.currentPage;
-          return await List({ ...queryParams, ...formParam });
+          return await List({
+            ...queryParams,
+            ...formParam,
+            module: moduleNo.value,
+          });
         },
       },
     },
@@ -177,7 +233,7 @@ async function onRefresh() {
 function onCreate() {
   drawerApi
     .setData({
-      values: {},
+      values: { module: moduleNo.value },
       parent: currenData.value,
       isUpdate: false,
     })
@@ -406,7 +462,28 @@ function tagsOf(row: any): string[] {
 </script>
 
 <template>
-  <Page auto-content-height content-class="p-2">
+  <Page
+    auto-content-height
+    content-class="p-2"
+    header-class="border-b-0 px-2 py-0"
+  >
+    <template #title>
+      <n-tabs
+        v-model:value="moduleTab"
+        type="line"
+        size="small"
+        @update:value="onModuleChange"
+      >
+        <n-tab :name="ALL_MODULE">全部</n-tab>
+        <n-tab
+          v-for="item in moduleOptions"
+          :key="item.value"
+          :name="item.value"
+        >
+          {{ item.label }}
+        </n-tab>
+      </n-tabs>
+    </template>
     <div class="flex size-full">
       <n-card
         class="min-w-[160px]"
@@ -414,7 +491,7 @@ function tagsOf(row: any): string[] {
         content-style="padding-left:10px;padding-right:10px;padding-top:10px;"
       >
         <PgTree
-          :api="selectNodeAllPublic"
+          :api="treeApi"
           :is-node-all="true"
           :reload="reloadTreeComputed"
           @ok="treeChang"

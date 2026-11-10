@@ -1,17 +1,11 @@
 <script setup lang="ts">
 import type { Recordable } from '@vben/types';
 
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 import { useVbenModal } from '@vben-core/popup-ui';
 
 import { PgTree } from '@pg/components-n';
-import { VXETable } from 'vxe-table';
-import type {
-  VxeGridInstance,
-  VxeGridListeners,
-  VxeGridProps,
-} from 'vxe-table';
 
 import { message } from '#/adapter';
 import { useDataDictionaryStore } from '#/store';
@@ -175,7 +169,7 @@ async function onUpdateValue(tabName: string) {
     </n-tabs>
     <PgTree
       :api="selectNodeAllPublic"
-      :params="{ terminalCode: terminalCode }"
+      :params="{ terminalCode }"
       :props="{
         blockLine: true,
         showLine: true,
