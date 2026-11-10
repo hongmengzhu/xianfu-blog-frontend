@@ -389,6 +389,20 @@ function iconclick(e) {
     })
     .open();
 }
+/**
+ * 标签列表：兼容数组/字符串
+ * @param row
+ */
+function tagsOf(row: any): string[] {
+  const tags = row?.tags;
+  if (Array.isArray(tags)) {
+    return tags;
+  }
+  if (typeof tags === 'string' && tags) {
+    return tags.split(',');
+  }
+  return [];
+}
 </script>
 
 <template>
@@ -563,7 +577,20 @@ function iconclick(e) {
                         </NTag>
                       </div>
                     </div>
-                    <div v-else>标签：{{ row.tags }}</div>
+                    <div
+                      v-else
+                      class="flex flex-row flex-wrap items-center leading-6"
+                    >
+                      标签：
+                      <NTag
+                        v-for="tag in tagsOf(row)"
+                        :key="tag"
+                        size="small"
+                        class="mr-2"
+                      >
+                        {{ tag }}
+                      </NTag>
+                    </div>
                   </n-gi>
                   <n-gi> 操作时间：{{ row.operationTime }} </n-gi>
                   <n-gi> 编号：{{ row.no }} </n-gi>

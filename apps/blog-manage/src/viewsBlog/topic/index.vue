@@ -10,10 +10,10 @@ import { PgTree } from '@pg/components-n';
 
 import { dialog, message } from '#/adapter';
 import { useVbenVxeGrid, VbenTableAction } from '#/adapter/vxe-table';
-
+import { selectNodeAllPublic } from '#/viewsBlog/topicCategory/api';
 import CategoryTpl from '#/viewsBlog/topicCategory/invoke/category.vue';
 import modalEditTpl from '#/viewsBlog/topicRelation/invoke/ModalEdit.vue';
-import { selectNodeAllPublic } from '#/viewsBlog/topicCategory/api';
+
 import {
   batchSelectDisable,
   batchSelectEnable,
@@ -337,6 +337,20 @@ function rowEventAddArticle(row) {
     })
     .open();
 }
+/**
+ * 标签列表：兼容数组/字符串
+ * @param row
+ */
+function tagsOf(row: any): string[] {
+  const tags = row?.tags;
+  if (Array.isArray(tags)) {
+    return tags;
+  }
+  if (typeof tags === 'string' && tags) {
+    return tags.split(',');
+  }
+  return [];
+}
 </script>
 
 <template>
@@ -393,17 +407,17 @@ function rowEventAddArticle(row) {
           <template #operate="{ row }">
             <VbenTableAction
               :actions="[
-                  {
-                    tooltip: { content: '编辑' },
-                    icon: 'lucide:edit',
-                    onClick: () => onEdit(row),
-                  },
-                  {
-                    label: '添加文章',
-                    type: 'primary',
-                    onClick: () => rowEventAddArticle(row),
-                  },
-                ]"
+                {
+                  tooltip: { content: '编辑' },
+                  icon: 'lucide:edit',
+                  onClick: () => onEdit(row),
+                },
+                {
+                  label: '添加文章',
+                  type: 'primary',
+                  onClick: () => rowEventAddArticle(row),
+                },
+              ]"
               align="center"
             />
           </template>
@@ -466,7 +480,44 @@ function rowEventAddArticle(row) {
               </dd>
               <dd class="content">
                 <n-grid x-gap="12" :cols="1" class="ml-2">
-                  <n-gi> 标签：{{ row.tags }} </n-gi>
+                  <n-gi>
+                    <div
+                      v-if="row.tagsStyle?.length"
+                      class="flex flex-row flex-wrap items-center leading-6"
+                    >
+                      标签：
+                      <div
+                        v-for="item in row.tagsStyle"
+                        :key="item.tagNo || item.code"
+                        class="mr-2"
+                      >
+                        <n-tag
+                          :bordered="item.attributeMap?.bordered ?? true"
+                          :type="item.attributeMap?.type || 'default'"
+                          :color="item.attributeMap?.color"
+                          :size="item.attributeMap?.size || 'medium'"
+                          :strong="item.attributeMap?.strong ?? false"
+                          :round="item.attributeMap?.round ?? false"
+                        >
+                          {{ item.name }}
+                        </n-tag>
+                      </div>
+                    </div>
+                    <div
+                      v-else
+                      class="flex flex-row flex-wrap items-center leading-6"
+                    >
+                      标签：
+                      <n-tag
+                        v-for="tag in tagsOf(row)"
+                        :key="tag"
+                        size="small"
+                        class="mr-2"
+                      >
+                        {{ tag }}
+                      </n-tag>
+                    </div>
+                  </n-gi>
                   <n-gi> 操作时间：{{ row.operationTime }} </n-gi>
                   <n-gi> 编号：{{ row.no }} </n-gi>
                 </n-grid>
@@ -486,27 +537,34 @@ function rowEventAddArticle(row) {
 .grid2 .vxe-tools--wrapper {
   margin-right: 0.8em;
 }
+
 .goods,
 .goods dd {
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
 }
+
 .goods {
   display: flex;
 }
+
 .goods .image {
   margin-right: 10px;
 }
+
 dl.expandContent {
   display: flex;
 }
+
 dl.expandContent dd {
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
 }
+
 dl.expandContent dd.content {
   width: 100%;
 }
+
 dl.expandContent dd.title {
   flex: 0 0 60px;
   text-align: center;

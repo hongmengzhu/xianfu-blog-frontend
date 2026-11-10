@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { SelectRenderTag } from 'naive-ui';
+
 import type { Recordable } from '@vben/types';
 
 import { computed, h, reactive, ref } from 'vue';
@@ -8,14 +10,13 @@ import { Plus } from '@vben/icons';
 
 import { PgTree } from '@pg/components-n';
 import { FluentWindowNew20Filled } from '@pg/icons';
+import { NTag } from 'naive-ui';
 
-import { NTag, type SelectRenderTag } from 'naive-ui';
-
-import { dialog, message } from '#/adapter';
+import { message } from '#/adapter';
 import { useVbenVxeGrid, VbenTableAction } from '#/adapter/vxe-table';
-
 import ModalTagTpl from '#/viewsBasic/tags/relation/invoke/ModalTag.vue';
 import { selectNodeAllPublic } from '#/viewsBlog/collectCategory/api';
+
 import {
   batchSelectDisable,
   batchSelectEnable,
@@ -295,8 +296,6 @@ function onRecovery() {
   });
 }
 
-
-
 const optionsTags = ref([]);
 const [ModalTag, modalTagApi] = useVbenModal({
   connectedComponent: ModalTagTpl,
@@ -362,6 +361,20 @@ function iconclick(e) {
     })
     .open();
 }
+/**
+ * 标签列表：兼容数组/字符串
+ * @param row
+ */
+function tagsOf(row: any): string[] {
+  const tags = row?.tags;
+  if (Array.isArray(tags)) {
+    return tags;
+  }
+  if (typeof tags === 'string' && tags) {
+    return tags.split(',');
+  }
+  return [];
+}
 </script>
 
 <template>
@@ -424,21 +437,21 @@ function iconclick(e) {
               :render-tag="renderTag"
               :options="optionsTags"
               @update:value="
-                  (opt) => {
-                    //formApi.setFieldValue('tagsQuery', opt);
-                  }
-                "
+                (opt) => {
+                  //formApi.setFieldValue('tagsQuery', opt);
+                }
+              "
             >
               <template #arrow>
                 <FluentWindowNew20Filled
                   @click="iconclick"
                   style="
-                      width: 30px;
-                      height: 30px;
-                      margin-top: -5px;
-                      margin-left: -5px;
-                      color: #020617;
-                    "
+                    width: 30px;
+                    height: 30px;
+                    margin-top: -5px;
+                    margin-left: -5px;
+                    color: #020617;
+                  "
                   class="size-10 transition-none hover:text-black"
                 />
               </template>
@@ -447,12 +460,12 @@ function iconclick(e) {
           <template #operate="{ row }">
             <VbenTableAction
               :actions="[
-                  {
-                    tooltip: { content: '编辑' },
-                    icon: 'lucide:edit',
-                    onClick: () => onEdit(row),
-                  },
-                ]"
+                {
+                  tooltip: { content: '编辑' },
+                  icon: 'lucide:edit',
+                  onClick: () => onEdit(row),
+                },
+              ]"
               align="center"
             />
           </template>
@@ -467,51 +480,51 @@ function iconclick(e) {
           <template #expandContent="{ row }">
             <dl class="expandContent m-2">
               <dd class="title">
-                <n-tag
+                <NTag
                   v-if="row.typeContent === 'original'"
                   type="success"
                   size="small"
                 >
                   原
-                </n-tag>
-                <n-tag
+                </NTag>
+                <NTag
                   v-if="row.typeContent === 'repost'"
                   type="error"
                   size="small"
                 >
                   转
-                </n-tag>
-                <n-tag
+                </NTag>
+                <NTag
                   v-if="row.typeContent === 'translation'"
                   type="error"
                   size="small"
                 >
                   译
-                </n-tag>
+                </NTag>
 
-                <n-tag
+                <NTag
                   v-if="row.typeReading === 'unread'"
                   size="small"
                   class="mt-2"
                 >
                   未读
-                </n-tag>
-                <n-tag
+                </NTag>
+                <NTag
                   v-if="row.typeReading === 'warning'"
                   type="info"
                   size="small"
                   class="mt-2"
                 >
                   读中
-                </n-tag>
-                <n-tag
+                </NTag>
+                <NTag
                   v-if="row.typeReading === 'completed'"
                   type="info"
                   size="small"
                   class="mt-2"
                 >
                   已读
-                </n-tag>
+                </NTag>
               </dd>
               <dd class="content">
                 <n-grid x-gap="12" :cols="1" class="ml-2">
@@ -523,20 +536,32 @@ function iconclick(e) {
                       标签：
                       <div v-for="item in row.tagsStyle" class="mr-2">
                         <NTag
-                          size="small"
-                          :bordered="item.attributeMap.bordered"
-                          :type="item.attributeMap.type"
-                          :color="item.attributeMap.color"
-                          :size="item.attributeMap.size"
-                          :strong="item.attributeMap.strong"
-                          :round="item.attributeMap.round"
+                          :bordered="item.attributeMap?.bordered ?? true"
+                          :type="item.attributeMap?.type || 'default'"
+                          :color="item.attributeMap?.color"
+                          :size="item.attributeMap?.size || 'medium'"
+                          :strong="item.attributeMap?.strong ?? false"
+                          :round="item.attributeMap?.round ?? false"
                           class="cursor-pointer"
                         >
                           {{ item.name }}
                         </NTag>
                       </div>
                     </div>
-                    <div v-else>标签：{{ row.tags }}</div>
+                    <div
+                      v-else
+                      class="flex flex-row flex-wrap items-center leading-6"
+                    >
+                      标签：
+                      <NTag
+                        v-for="tag in tagsOf(row)"
+                        :key="tag"
+                        size="small"
+                        class="mr-2"
+                      >
+                        {{ tag }}
+                      </NTag>
+                    </div>
                   </n-gi>
                   <n-gi> 操作时间：{{ row.operationTime }} </n-gi>
                   <n-gi> 编号：{{ row.no }} </n-gi>
@@ -556,27 +581,34 @@ function iconclick(e) {
 .grid2 .vxe-tools--wrapper {
   margin-right: 0.8em;
 }
+
 .goods,
 .goods dd {
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
 }
+
 .goods {
   display: flex;
 }
+
 .goods .image {
   margin-right: 10px;
 }
+
 dl.expandContent {
   display: flex;
 }
+
 dl.expandContent dd {
-  padding: 0px;
-  margin: 0px;
+  padding: 0;
+  margin: 0;
 }
+
 dl.expandContent dd.content {
   width: 100%;
 }
+
 dl.expandContent dd.title {
   flex: 0 0 60px;
   text-align: center;
