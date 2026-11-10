@@ -1,14 +1,17 @@
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue';
+import type { Recordable } from '@vben/types';
+
+import { computed, onMounted, ref } from 'vue';
 
 import { Page, useVbenDrawer, VbenButton } from '@vben/common-ui';
 import { Plus } from '@vben/icons';
 
+import { PgTree } from '@pg/components-n';
+
 import { message } from '#/adapter';
 import { useVbenVxeGrid, VbenTableAction } from '#/adapter/vxe-table';
 
-import { selectNodePublic as selectNodePublicCategory } from '../category/api';
-import { fillCategoryNames, loadModules, moduleOptions } from '../shared';
+import { selectNodeAllPublic as selectPublicCategory } from '../category/api';
 import {
   batchSelectDisable,
   batchSelectEnable,
@@ -21,11 +24,42 @@ import DrawerEdit from './components/DrawerEdit.vue';
 import { columns, useGridFormSchema } from './data';
 
 const moduleNo = ref('');
+const currenRecord = ref(false);
+const currenData = ref<Recordable<any>>({});
+const reloadTreeState = ref(0);
+const reloadTreeComputed = computed(() => reloadTreeState.value);
 
 const [Drawer, drawerApi] = useVbenDrawer({
   connectedComponent: DrawerEdit,
   destroyOnClose: true,
 });
+
+const treeChang = (record) => {
+  currenRecord.value = true;
+  currenData.value = record;
+  // console.log('record', record);
+  gridApi.formApi.setFieldValue('categoryNo', record.key);
+  reloadTree();
+  onRefresh();
+
+  setTimeout(() => {
+    reloadTree();
+  }, 2000);
+};
+/**
+ * 重新加载
+ */
+function reloadTree() {
+  reloadTreeState.value++;
+}
+/**
+ * 树重载
+ * @param e
+ */
+const treeOverload = (e) => {
+  gridApi.formApi.reset();
+  onRefresh();
+};
 
 const [Grid, gridApi] = useVbenVxeGrid({
   formOptions: {
@@ -68,15 +102,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
   } as any,
 });
 
-onMounted(async () => {
-  loadModules();
-  try {
-    const list: any[] = (await selectNodePublicCategory({})) || [];
-    fillCategoryNames(list);
-  } catch (error) {
-    console.error(error);
-  }
-});
+onMounted(async () => {});
 
 /**
  * 重新查询
@@ -249,78 +275,86 @@ function onPhysicalDeletion() {
 <template>
   <Page auto-content-height content-class="p-2">
     <Drawer @ok="onRefresh" />
-    <Grid>
-      <template #toolbar-actions>
-        <n-select
-          v-model:value="moduleNo"
-          :options="moduleOptions"
-          clearable
-          placeholder="全部模块"
-          size="small"
-          class="mr-2 w-[160px]"
-          @update:value="onRefresh"
+    <div class="flex size-full">
+      <n-card
+        class="min-w-[160px]"
+        style="width: unset"
+        content-style="padding-left:10px;padding-right:10px;padding-top:10px;"
+      >
+        <PgTree
+          :api="selectPublicCategory"
+          :is-node-all="true"
+          :reload="reloadTreeComputed"
+          @ok="treeChang"
+          @overload="treeOverload"
         />
-        <VbenButton
-          type="primary"
-          class="pg-button-size-small"
-          @click="onCreate"
-        >
-          <Plus class="size-5" />
-          新增
-        </VbenButton>
-      </template>
-      <template #toolbar-tools>
-        <VbenButton
-          class="ml-2 pg-button-size-small"
-          size="sm"
-          @click="onBatchEnable"
-        >
-          批量有效
-        </VbenButton>
-        <VbenButton
-          class="ml-2 pg-button-size-small"
-          size="sm"
-          @click="onBatchDisable"
-        >
-          批量停用
-        </VbenButton>
-        <VbenButton
-          class="ml-2 pg-button-size-small"
-          size="sm"
-          @click="onRecovery"
-        >
-          删除恢复
-        </VbenButton>
-        <VbenButton
-          class="ml-2 pg-button-size-small"
-          size="sm"
-          @click="onPhysicalDeletion"
-        >
-          物理删除
-        </VbenButton>
-      </template>
-      <template #operate="{ row }">
-        <VbenTableAction
-          :actions="[
-            {
-              tooltip: { content: '编辑' },
-              icon: 'lucide:edit',
-              onClick: () => onEdit(row),
-            },
-            {
-              tooltip: { content: '删除' },
-              icon: 'lucide:trash-2',
-              danger: true,
-              popConfirm: {
-                title: `确定删除 [${row.name}] 吗？`,
-                confirm: () => onDelete(row),
-              },
-            },
-          ]"
-          align="center"
-        />
-      </template>
-    </Grid>
+      </n-card>
+      <div class="w-[calc(100%-160px)] ml-2 pl-2 bg-card rounded-md">
+        <Grid>
+          <template #toolbar-actions>
+            <VbenButton
+              type="primary"
+              class="pg-button-size-small"
+              @click="onCreate"
+            >
+              <Plus class="size-5" />
+              新增
+            </VbenButton>
+          </template>
+          <template #toolbar-tools>
+            <VbenButton
+              class="ml-2 pg-button-size-small"
+              size="sm"
+              @click="onBatchEnable"
+            >
+              批量有效
+            </VbenButton>
+            <VbenButton
+              class="ml-2 pg-button-size-small"
+              size="sm"
+              @click="onBatchDisable"
+            >
+              批量停用
+            </VbenButton>
+            <VbenButton
+              class="ml-2 pg-button-size-small"
+              size="sm"
+              @click="onRecovery"
+            >
+              删除恢复
+            </VbenButton>
+            <VbenButton
+              class="ml-2 pg-button-size-small"
+              size="sm"
+              @click="onPhysicalDeletion"
+            >
+              物理删除
+            </VbenButton>
+          </template>
+          <template #operate="{ row }">
+            <VbenTableAction
+              :actions="[
+                {
+                  tooltip: { content: '编辑' },
+                  icon: 'lucide:edit',
+                  onClick: () => onEdit(row),
+                },
+                {
+                  tooltip: { content: '删除' },
+                  icon: 'lucide:trash-2',
+                  danger: true,
+                  popConfirm: {
+                    title: `确定删除 [${row.name}] 吗？`,
+                    confirm: () => onDelete(row),
+                  },
+                },
+              ]"
+              align="center"
+            />
+          </template>
+        </Grid>
+      </div>
+    </div>
   </Page>
 </template>
 

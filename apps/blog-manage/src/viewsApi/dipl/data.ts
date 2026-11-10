@@ -1,11 +1,9 @@
-import type { VbenFormSchema } from '#/adapter/form';
 import type { VxeGridPropTypes } from 'vxe-table';
+
+import type { VbenFormSchema } from '#/adapter/form';
 
 import {
   basicTypeFormatter,
-  HttpMethodFormatter,
-  RamResourceTypeAttrFormatter,
-  RamResourceTypeFormatter,
 } from '@pg/types';
 import _XEUtils_ from 'xe-utils';
 
@@ -16,6 +14,17 @@ import { setStateEnableDisable } from './api';
  */
 export function useGridFormSchema(): VbenFormSchema[] {
   return [
+    {
+      fieldName: 'categoryNo',
+      label: '隐藏',
+      defaultValue: null,
+      component: 'Input',
+      componentProps: {},
+      dependencies: {
+        show: false,
+        triggerFields: ['wd'],
+      },
+    },
     {
       component: 'Input',
       fieldName: 'wd',

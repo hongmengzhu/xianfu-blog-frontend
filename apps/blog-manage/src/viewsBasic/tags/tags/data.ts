@@ -64,7 +64,6 @@ export const columns: VxeGridPropTypes.Columns = [
     },
   },
   { field: 'type', title: '类型', width: 120 },
-  { field: 'url', title: '建议url', minWidth: 160, visible: false },
   {
     field: 'state',
     title: '状态',

@@ -3,15 +3,14 @@ import type { Recordable } from '@vben/types';
 
 import { computed, reactive, ref } from 'vue';
 
-import { Page, useVbenDrawer, useVbenModal, VbenButton } from '@vben/common-ui';
+import { Page, useVbenDrawer, VbenButton } from '@vben/common-ui';
 import { Plus } from '@vben/icons';
 
 import { PgTree } from '@pg/components-n';
 
-import { dialog, message } from '#/adapter';
+import { message } from '#/adapter';
 import { useVbenVxeGrid, VbenTableAction } from '#/adapter/vxe-table';
 import { selectNodeAllPublic as selectPublicCategory } from '#/viewsApi/diplCategory/api';
-import Category from '#/viewsApi/diplCategory/invoke/category.vue';
 
 import {
   batchSelectDisable,
@@ -19,7 +18,6 @@ import {
   batchSelectPhysicalDeletion,
   batchSelectRecovery,
   cacheOverride,
-  deleteIds as categoryDeleteIds,
   List,
 } from './api';
 import AccessKeyTpl from './components/DrawerAccessKey.vue';
@@ -67,32 +65,6 @@ const [DrawerAccessKey, drawerAccessKeyApi] = useVbenDrawer({
   connectedComponent: AccessKeyTpl,
   destroyOnClose: true,
 });
-
-const [Modal, modalApi] = useVbenModal({
-  // 连接抽离的组件
-  connectedComponent: Category,
-  destroyOnClose: true,
-});
-/**
- * 树 搜索尾部菜单
- */
-const menuDropdownOptions = [
-  {
-    label: '添加',
-    key: '添加',
-    props: {
-      onClick: () => {
-        modalApi
-          .setData({
-            // 表单值
-            values: {},
-            isUpdate: false,
-          })
-          .open();
-      },
-    },
-  },
-];
 
 const [Grid, gridApi] = useVbenVxeGrid({
   formOptions: {
@@ -348,82 +320,12 @@ function onRecovery() {
 function onCacheOverride() {
   cacheOverride();
 }
-
-/**
- * 删除 指定数据
- * @param row
- */
-const removeTreeEvent = (row: any) => {
-  dialog.warning({
-    title: '确认删除',
-    content: `是否[删除]选中数据[ ${row.name} ]，操作后数据不可恢复`,
-    positiveText: '确认',
-    negativeText: '取消',
-    onPositiveClick: () => {
-      categoryDeleteIds([row.id]).then(() => {
-        setTimeout(() => {
-          reloadTree();
-        }, 2000);
-      });
-    },
-  });
-};
-
-/**
- * 树右键菜单
- * @param option
- */
-const rightClickMenuOptions = ({ option }) => {
-  return [
-    {
-      label: '添加下级',
-      key: '添加下级',
-      props: {
-        onClick: () => {
-          drawerApi
-            .setData({
-              // 表单值
-              values: {},
-              parent: option.data,
-              isUpdate: false,
-            })
-            .open();
-        },
-      },
-    },
-    {
-      label: '修改',
-      key: '修改',
-      props: {
-        onClick: () => {
-          modalApi
-            .setData({
-              // 表单值
-              values: option.data,
-              isUpdate: true,
-            })
-            .open();
-        },
-      },
-    },
-    {
-      label: '删除',
-      key: '删除',
-      props: {
-        onClick: () => {
-          removeTreeEvent(option.data);
-        },
-      },
-    },
-  ];
-};
 </script>
 
 <template>
   <Page auto-content-height content-class="p-2">
     <Drawer @ok="onRefresh" />
     <DrawerAccessKey />
-    <Modal @ok="reloadTree" />
     <div class="flex size-full">
       <n-card
         class="min-w-[160px]"
