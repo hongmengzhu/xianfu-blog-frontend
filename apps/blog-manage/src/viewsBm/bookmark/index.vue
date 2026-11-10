@@ -26,6 +26,7 @@ import {
   List,
 } from './api';
 import DrawerEdit from './components/DrawerEdit.vue';
+import PushToTool from './components/PushToTool.vue';
 import { columns, useGridFormSchema } from './data';
 
 const currenRecord = ref(false);
@@ -66,6 +67,11 @@ const treeOverload = (e) => {
 
 const [Drawer, drawerApi] = useVbenDrawer({
   connectedComponent: DrawerEdit,
+  destroyOnClose: true,
+});
+
+const [ModalPush, modalPushApi] = useVbenModal({
+  connectedComponent: PushToTool,
   destroyOnClose: true,
 });
 
@@ -190,6 +196,32 @@ function onCreate() {
  */
 function onEdit(row: any) {
   drawerApi.setData({ values: row, isUpdate: true }).open();
+}
+
+/**
+ * 打开推送弹窗
+ * @param ids 要推送的书签 id
+ */
+function openPush(ids: (number | string)[]) {
+  if (!ids || ids.length === 0) {
+    message.warning('你没有选择任何数据');
+    return;
+  }
+  modalPushApi.setData({ ids }).open();
+}
+
+/**
+ * 批量推送：把勾选的书签推送到工具模块
+ */
+function onBatchPush() {
+  const $grid = gridApi.grid;
+  if (!$grid) return;
+  const checkboxRecords = $grid.getCheckboxRecords();
+  if (checkboxRecords.length === 0) {
+    message.warning('你没有选择任何数据');
+    return;
+  }
+  openPush(checkboxRecords.map((item: any) => item.id));
 }
 
 /**
@@ -436,6 +468,13 @@ function iconclick(e) {
             </VbenButton>
             <VbenButton
               class="ml-2 pg-button-size-small"
+              size="sm"
+              @click="onBatchPush"
+            >
+              批量推送
+            </VbenButton>
+            <VbenButton
+              class="ml-2 pg-button-size-small"
               danger
               @click="onBatchPhysicalDeletion"
             >
@@ -478,6 +517,11 @@ function iconclick(e) {
                   tooltip: { content: '编辑' },
                   icon: 'lucide:edit',
                   onClick: () => onEdit(row),
+                },
+                {
+                  tooltip: { content: '推送到工具' },
+                  icon: 'lucide:send',
+                  onClick: () => openPush([row.id]),
                 },
               ]"
               align="center"
@@ -575,6 +619,7 @@ function iconclick(e) {
       </div>
     </div>
     <Drawer @ok="onRefresh" />
+    <ModalPush @ok="onRefresh" />
     <ModalTag @ok="modalOkTags" />
   </Page>
 </template>

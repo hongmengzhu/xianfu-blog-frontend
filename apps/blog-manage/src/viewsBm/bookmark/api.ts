@@ -14,6 +14,7 @@ enum Api {
   list = '/xianfu/manage/bm/bookmark/query',
   queryPublic = '/xianfu/manage/bm/bookmark/QueryPublic',
   physicalDeletion = '/xianfu/manage/bm/bookmark/physicalDeletion',
+  push = '/xianfu/manage/bm/bookmark/push',
   recovery = '/xianfu/manage/bm/bookmark/recovery',
   selectNodeAllPublic = '/xianfu/manage/bm/bookmark/selectNodeAllPublic',
   selectNodePublic = '/xianfu/manage/bm/bookmark/selectNodePublic',
@@ -29,6 +30,17 @@ enum Api {
  */
 export async function List(data?: any) {
   return requestClient.post(Api.list, data);
+}
+
+/**
+ * 批量推送到工具模块
+ * @param data { ids, categoryNo, tags }
+ */
+export function pushToTool(data: any) {
+  return requestClient.post(Api.push, data, {
+    errorMessageMode: 'message',
+    successMessageMode: 'none',
+  } as any);
 }
 /**
  * 列表
