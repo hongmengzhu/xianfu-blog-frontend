@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, h, reactive } from 'vue';
+import { computed, defineComponent, h, reactive, watch } from 'vue';
 
 import { useVbenDrawer, VbenButton } from '@vben/common-ui';
 
@@ -243,6 +243,8 @@ const [Form, formApi] = usePgForm({
           fieldName: 'attributeColor',
           label: '自定义颜色',
           component: 'ColorPicker',
+          // naive 的 ColorPicker 使用 value 绑定
+          modelPropName: 'value',
           componentProps: {
             modes: ['hex'],
             showAlpha: false,
@@ -268,6 +270,8 @@ const [Form, formApi] = usePgForm({
           label: '边框',
           defaultValue: true,
           component: 'Switch',
+          // naive 的 Switch 使用 value 绑定，默认的 checked 绑定无效
+          modelPropName: 'value',
           componentProps: {
             size: 'small',
           },
@@ -292,6 +296,8 @@ const [Form, formApi] = usePgForm({
           label: '粗体',
           defaultValue: false,
           component: 'Switch',
+          // naive 的 Switch 使用 value 绑定，默认的 checked 绑定无效
+          modelPropName: 'value',
           componentProps: {
             size: 'small',
           },
@@ -301,6 +307,8 @@ const [Form, formApi] = usePgForm({
           label: '圆角',
           defaultValue: false,
           component: 'Switch',
+          // naive 的 Switch 使用 value 绑定，默认的 checked 绑定无效
+          modelPropName: 'value',
           componentProps: {
             size: 'small',
           },
@@ -342,9 +350,24 @@ const [Form, formApi] = usePgForm({
     },
   ],
   showDefaultActions: false,
-  // 任意字段变化时同步刷新显示效果
-  handleValuesChange: (values) => {
-    syncPreview(values as Record<string, any>);
+});
+
+/**
+ * 同步预览数据：直接订阅表单内部的响应式 values。
+ * 不用 handleValuesChange，因为分组 schema 下它取不到分组内字段。
+ */
+const PreviewSync = defineComponent({
+  name: 'TagPreviewSync',
+  setup() {
+    const actions = formApi.form as undefined | { useValues?: () => any };
+    const values = actions?.useValues?.();
+    if (values) {
+      watch(values, (v: any) => syncPreview(v as Record<string, any>), {
+        deep: true,
+        immediate: true,
+      });
+    }
+    return () => null;
   },
 });
 
@@ -439,6 +462,7 @@ async function onSubmit() {
     <Form>
       <template #attributePreview>
         <div class="flex flex-wrap items-center gap-3">
+          <PreviewSync />
           <n-tag
             :bordered="preview.bordered"
             :color="previewColor"
