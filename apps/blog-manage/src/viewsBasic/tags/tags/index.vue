@@ -147,6 +147,51 @@ function onEdit(row: any) {
 }
 
 /**
+ * 读取标签显示属性
+ * @param row
+ * @param key
+ * @param defaultValue
+ */
+function tagAttr(row: any, key: string, defaultValue: any) {
+  const map = row?.attributeMap;
+  if (map && Object.prototype.hasOwnProperty.call(map, key)) {
+    return map[key];
+  }
+  return defaultValue;
+}
+
+/**
+ * 标签自定义颜色：兼容对象 / JSON 字符串 / 纯色值
+ * naive 的 Tag 只接受 { color, textColor, borderColor } 对象
+ * @param row
+ */
+function tagColor(row: any) {
+  const color = row?.attributeMap?.color;
+  if (!color) {
+    return undefined;
+  }
+  if (typeof color === 'string') {
+    const trimmed = color.trim();
+    if (!trimmed) {
+      return undefined;
+    }
+    if (trimmed.startsWith('{')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        return parsed && typeof parsed === 'object' ? parsed : undefined;
+      } catch {
+        return undefined;
+      }
+    }
+    return /^#|rgb|hsl/i.test(trimmed) ? { color: trimmed } : undefined;
+  }
+  if (typeof color === 'object' && Object.keys(color).length > 0) {
+    return color;
+  }
+  return undefined;
+}
+
+/**
  * 删除
  */
 function onDelete(row: any) {
@@ -330,6 +375,18 @@ function onPhysicalDeletion() {
             >
               物理删除
             </VbenButton>
+          </template>
+          <template #name="{ row }">
+            <n-tag
+              :bordered="tagAttr(row, 'bordered', true)"
+              :color="tagColor(row)"
+              :round="tagAttr(row, 'round', false)"
+              :size="tagAttr(row, 'size', 'medium')"
+              :strong="tagAttr(row, 'strong', false)"
+              :type="tagAttr(row, 'type', 'default')"
+            >
+              {{ row.name }}
+            </n-tag>
           </template>
           <template #operate="{ row }">
             <VbenTableAction
