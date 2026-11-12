@@ -1,23 +1,17 @@
 <script setup lang="ts">
 import type { Recordable } from '@vben/types';
 
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 import { useVbenModal } from '@vben-core/popup-ui';
 
 import { PgTree } from '@pg/components-n';
-import {
-  type VxeGridInstance,
-  type VxeGridListeners,
-  type VxeGridProps,
-  VXETable,
-} from 'vxe-table';
 
 import { message } from '#/adapter';
 import { useDataDictionaryStore } from '#/store';
 
 import { selectNodeAllPublic } from '../../group/api';
-import { selectedByRole,updateByRole } from '../api';
+import { selectedByRole, updateByRole } from '../api';
 
 const emit = defineEmits(['ok']);
 
@@ -34,7 +28,7 @@ const currenData = ref<Recordable<any>>({});
 const parentData = ref<Recordable<any>>({});
 const reloadTreeState = ref(0);
 const reloadTreeComputed = computed(() => reloadTreeState.value);
-const formParam = { typeValue: '0',typeCategory:'group' };
+const formParam = { typeValue: '0', typeCategory: 'group' };
 
 const treeChang = (record) => {
   currenRecord.value = true;
@@ -84,7 +78,7 @@ const [Modal, modalApi] = useVbenModal({
     console.log('checkedData.value', checkedData.value);
     // 获取选中数据
     if (checkedData.value <= 0) {
-      if(treeCheckedKeys.value.length <= 0) {
+      if (treeCheckedKeys.value.length <= 0) {
         message.warning('你没有选择任何数据');
         return false;
       } else {
@@ -98,7 +92,7 @@ const [Modal, modalApi] = useVbenModal({
     }
     const ids = [];
     checkedData.value.map((item) => {
-      if (item && item?.data){
+      if (item && item?.data) {
         ids.push(item.data.no);
       }
     });
@@ -108,15 +102,14 @@ const [Modal, modalApi] = useVbenModal({
     }
     updateByRole({
       typeValue: parentData.value.no,
-      nos:ids,
+      nos: ids,
     }).then((d) => {
-      setTimeout(()=>{
+      setTimeout(() => {
         emit('ok', checkedData.value);
         modalApi.setData({ rows: checkedData.value });
         modalApi.close();
-      },1500);
+      }, 1500);
     });
-
 
     return true;
   },
@@ -129,16 +122,18 @@ const [Modal, modalApi] = useVbenModal({
       if (values) {
         parentData.value = values;
         title = `角色授权：${values.name} ( ${values.code} )`;
-        selectedByRole({ typeValue: values.no,typeCategory:'role' }).then((d) => {
-          if (d) {
-            console.log('dKey', d);
-            for (const dKey in d) {
-              console.log('dKey', d[dKey]);
-              treeCheckedKeys.value.push(d[dKey].groupNo);
+        selectedByRole({ typeValue: values.no, typeCategory: 'role' }).then(
+          (d) => {
+            if (d) {
+              console.log('dKey', d);
+              for (const dKey in d) {
+                console.log('dKey', d[dKey]);
+                treeCheckedKeys.value.push(d[dKey].groupNo);
+              }
             }
-          }
-          console.log('treeCheckedKeys.value', treeCheckedKeys.value);
-        });
+            console.log('treeCheckedKeys.value', treeCheckedKeys.value);
+          },
+        );
       }
     }
     modalApi.setState({ title });
@@ -147,8 +142,8 @@ const [Modal, modalApi] = useVbenModal({
 });
 const treeCheckedKeysComputed = computed(() => treeCheckedKeys.value);
 async function onUpdateValue(tabName: string) {
-  console.log('onBeforeLeave=',tabName);
-  if(terminalCode.value!=tabName) {
+  console.log('onBeforeLeave=', tabName);
+  if (terminalCode.value != tabName) {
     terminalCode.value = tabName;
     reloadTreeState.value++;
   }
@@ -161,27 +156,29 @@ async function onUpdateValue(tabName: string) {
       type="card"
       size="small"
       animated
-      style="margin-top: -2px;"
+      style="margin-top: -2px"
       class="ajsMenu"
       @update:value="onUpdateValue"
     >
-      <template #prefix>
-        终端类型
-      </template>
-      <n-tab v-for="item in dataDictionaryStore.get('terminalCode')" :name="item.value" :tab="item.label" />
+      <template #prefix> 终端类型 </template>
+      <n-tab
+        v-for="item in dataDictionaryStore.get('terminalCode')"
+        :name="item.value"
+        :tab="item.label"
+      />
     </n-tabs>
     <PgTree
       :api="selectNodeAllPublic"
-      :params="{terminalCode:terminalCode}"
+      :params="{ terminalCode }"
       :props="{
-              blockLine: true,
-              showLine: true,
-              cascade: true,
-              checkable: true,
-              selectable: false,
-              defaultCheckedKeys: treeCheckedKeysComputed,
-              // defaultSelectedKeys: treeCheckedKeys,
-            }"
+        blockLine: true,
+        showLine: true,
+        cascade: true,
+        checkable: true,
+        selectable: false,
+        defaultCheckedKeys: treeCheckedKeysComputed,
+        // defaultSelectedKeys: treeCheckedKeys,
+      }"
       :is-node-all="true"
       :reload="reloadTreeComputed"
       :right-click-menu="true"
