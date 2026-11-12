@@ -9,22 +9,26 @@ import '@vben/styles';
 import '@vben/styles/naive';
 
 import { useTitle } from '@vueuse/core';
-
-import { $t, setupI18n } from '#/locales';
-import { router } from './router';
-
-import { initComponentAdapter } from './adapter/component';
-import { initSetupPgForm, initSetupVbenForm, useVbenForm } from './adapter/form';
-import App from './app.vue';
-// import { initTimezone } from './timezone-init';
-
-// 离线图标注册：编译时从 @iconify/json 提取数据，运行时不再远程拉取
-import '#/icons/setup';
 import naive from 'naive-ui';
 // 完整导入 UI 组件库
 import VxeUI from 'vxe-pc-ui';
 // 完整导入 表格库
 import VxeUITable from 'vxe-table';
+
+import { $t, setupI18n } from '#/locales';
+
+import { initComponentAdapter } from './adapter/component';
+// import { initTimezone } from './timezone-init';
+import {
+  initSetupPgForm,
+  initSetupVbenForm,
+  useVbenForm,
+} from './adapter/form';
+import App from './app.vue';
+import { router } from './router';
+
+// 离线图标注册：编译时从 @iconify/json 提取数据，运行时不再远程拉取
+import '#/icons/setup';
 
 import 'vxe-pc-ui/lib/style.css';
 import 'vxe-table/lib/style.css';
@@ -47,16 +51,16 @@ async function bootstrap(namespace: string) {
   // setDefaultModalProps({
   //   fullscreenButton: false,
   // });
-  // 设置抽屉的默认配置
+  // // 设置抽屉的默认配置
   // setDefaultDrawerProps({
-  //   zIndex: 1020,
+  //   // zIndex: 2000,
   // });
 
   const app = createApp(App);
 
   // 注册v-loading指令
   registerLoadingDirective(app, {
-    loading: 'loading', // 在这里可以自定义指令名称，也可以明确提供false表示不注册这个指令
+    loading: 'loading', // 在这里可以自定义指令名称,也可以明确提供false表示不注册这个指令
     spinning: 'spinning',
   });
 

@@ -1,3 +1,5 @@
+import type { VbenFormProps as FormPropsPg } from '@pg/form-ui-n';
+
 import type {
   VbenFormProps as FormProps,
   VbenFormSchema as FormSchema,
@@ -20,12 +22,15 @@ async function initSetupVbenForm() {
       // 一些组件是 v-model:checked 或者 v-model:fileList
       modelPropNameMap: {
         Checkbox: 'checked',
+        // IconPicker uses Vue's standard modelValue/update:modelValue pair.
+        IconPicker: 'modelValue',
         Radio: 'checked',
         Switch: 'checked',
         Upload: 'fileList',
       },
     },
     rules: {
+      // 输入项目必填国际化适配
       required: (value, _params, ctx) => {
         if (value === undefined || value === null || value.length === 0) {
           return $t('ui.formRules.required', [ctx.label]);
@@ -96,6 +101,24 @@ async function initSetupPgForm() {
     },
   });
 }
-const usePgForm = useFormPg<ComponentType, ComponentPropsMap>;
+
+function usePgForm<
+  TFormValues extends FormValues = FormValues,
+  TSubmitValues extends FormValues = TFormValues,
+>(
+  options: FormPropsPg<
+    ComponentType,
+    ComponentPropsMap,
+    TFormValues,
+    TSubmitValues
+  >,
+) {
+  return useFormPg<
+    TFormValues,
+    ComponentType,
+    ComponentPropsMap,
+    TSubmitValues
+  >(options);
+}
 
 export { initSetupPgForm, usePgForm, zPg };

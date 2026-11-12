@@ -5,9 +5,6 @@ import { preferences } from '@vben/preferences';
 import { useAccessStore, useUserStore } from '@vben/stores';
 import { startProgress, stopProgress } from '@vben/utils';
 
-import { useTitle } from '@vueuse/core';
-
-import { $t } from '#/locales';
 import { accessRoutes, coreRouteNames } from '#/router/routes';
 import { useAuthStore, useConfigPubStore } from '#/store';
 import { configInitializer } from '#/viewsPub/config/api';
@@ -27,7 +24,7 @@ function setupCommonGuard(router: Router) {
 
     // 页面加载进度条
     if (!to.meta.loaded && preferences.transition.progress) {
-      startProgress();
+      void startProgress();
     }
     return true;
   });
@@ -39,14 +36,7 @@ function setupCommonGuard(router: Router) {
 
     // 关闭页面加载进度条
     if (preferences.transition.progress) {
-      stopProgress();
-    }
-
-    // 动态修改标题
-    if (preferences.app.dynamicTitle) {
-      const { title } = to.meta;
-      // useTitle(`${$t(title)} - ${preferences.app.name}`);
-      useTitle(`${$t(title)} - ${preferences.app.name}`);
+      void stopProgress();
     }
   });
 }
@@ -114,6 +104,7 @@ function setupAccessGuard(router: Router) {
     if (accessStore.isAccessChecked) {
       return true;
     }
+
     // 生成路由表
     // 当前登录用户拥有的角色标识列表
     const userInfo = userStore.userInfo || (await authStore.fetchUserInfo());
