@@ -8,6 +8,7 @@ enum Api {
   disable = '/xianfu/sys/tc/tenant-domain-module/disable',
   enable = '/xianfu/sys/tc/tenant-domain-module/enable',
   existName = '/xianfu/sys/tc/tenant-domain-module/existName',
+  existCode = '/xianfu/sys/tc/tenant-domain-module/existCode',
   exportExcel = '/xianfu/sys/tc/tenant-domain-module/exportExcel',
   list = '/xianfu/sys/tc/tenant-domain-module/query',
   physicalDeletion = '/xianfu/sys/tc/tenant-domain-module/physicalDeletion',
@@ -239,6 +240,18 @@ export const existName = (wd, id?) => {
   id = id || '0';
   return requestClient.post(
     Api.existName,
+    { wd, id },
+    { errorMessageMode: 'message', successMessageMode: 'notification' },
+  );
+};
+/**
+ * 查询名称是否存在
+ * @param params
+ */
+export const existCode = (wd, id?) => {
+  id = id || '0';
+  return requestClient.post(
+    Api.existCode,
     { wd, id },
     { errorMessageMode: 'message', successMessageMode: 'notification' },
   );

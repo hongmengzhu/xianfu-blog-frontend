@@ -1,115 +1,237 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue';
 
-import { useVbenDrawer } from '@vben-core/popup-ui';
+import { Page, useVbenDrawer, VbenButton } from '@vben/common-ui';
+import { Plus } from '@vben/icons';
 
-import { PgTree } from '@pg/components-n';
+import { useVbenVxeGrid, VbenTableAction } from '#/adapter/vxe-table';
+import { selectNodeAllPublic as selectNodeAllPublicModule } from '#/viewsBasic/module/api';
 
-import { selectPublic } from './api';
-import Edit from './components/edit.vue';
-import TabForm from './components/TabForm.vue';
+import { deleteIds, queryAll } from './api';
+import DrawerEdit from './components/DrawerEdit.vue';
+import { columns } from './data';
 
-const currenRecord = ref(false);
-const currenData = ref<Recordable<any>>({});
-const reloadTree = ref(false);
-const reloadTreeComputed = computed(() => reloadTree.value);
-onMounted(() => {});
-
-const treeChang = (record) => {
-  currenRecord.value = true;
-  currenData.value = record;
-};
-/**
- * 重新加载
- */
-function reloadTable() {
-  reloadTree.value = true;
-  setTimeout(() => {
-    reloadTree.value = true;
-  },2000)
-}
-/**
- * 树重载
- * @param e
- */
-const treeOverload = (e) => {};
-const [FormDrawer, formDrawerApi] = useVbenDrawer({
-  connectedComponent: Edit,
+const [Drawer, drawerApi] = useVbenDrawer({
+  connectedComponent: DrawerEdit,
+  destroyOnClose: true,
 });
+
+/** 模块 tab 的“全部”哨兵值 */
+const ALL_MODULE = '__all__';
+const moduleTab = ref<string>(ALL_MODULE);
+/** 当前模块编号，空字符串表示不过滤 */
+const moduleNo = computed(() =>
+  moduleTab.value === ALL_MODULE ? '' : moduleTab.value,
+);
+const moduleOptions = ref<Array<{ label: string; value: string }>>([]);
+
 /**
- * 树右键菜单
- * @param option
+ * 加载模块（数据来自 basic_module），用于模块 tab
  */
-const rightClickMenuOptions = (opt: any) => {
-  return [
-    {
-      label: '添加下级',
-      key: '添加下级',
-      props: {
-        onClick: () => {
-          formDrawerApi.setData({
-            // 表单值
-            values: {},
-            parent: opt?.option?.data,
-            isUpdate: false,
-          });
-          formDrawerApi.open();
+async function loadModules() {
+  try {
+    const list: any[] = (await selectNodeAllPublicModule({})) || [];
+    moduleOptions.value = list
+      .filter((item: any) => {
+        const state = Number(item?.extend?.state ?? 1);
+        return state === 1 && item?.value;
+      })
+      .map((item: any) => ({ label: item.label, value: item.value }));
+  } catch (error) {
+    console.error('加载模块失败：', error);
+  }
+}
+
+onMounted(() => {
+  loadModules();
+});
+
+/**
+ * 切换模块：按模块重新查询
+ * @param value
+ */
+function onModuleChange(value: number | string) {
+  moduleTab.value = String(value);
+  onRefresh();
+}
+
+const [Grid, gridApi] = useVbenVxeGrid({
+  gridEvents: {},
+  gridOptions: {
+    columns,
+    height: 'auto',
+    keepSource: true,
+    rowConfig: {
+      keyField: 'id',
+      isHover: true,
+    },
+    pagerConfig: {
+      enabled: false,
+    },
+    proxyConfig: {
+      ajax: {
+        query: async (_params) => {
+          return await queryAll({ module: moduleNo.value });
         },
       },
     },
-  ];
-};
-/**
- * 树 搜索尾部菜单
- */
-const menuDropdownOptions = [
-  {
-    label: '添加',
-    key: '添加',
-    props: {
-      onClick: () => {
-        formDrawerApi.setData({
-          // 表单值
-          values: {},
-          isUpdate: false,
-        });
-        formDrawerApi.open();
-      },
+    toolbarConfig: {
+      custom: true,
+      export: false,
+      refresh: true,
+      zoom: true,
     },
-  },
-];
+    treeConfig: {
+      parentField: 'parentNo',
+      rowField: 'no',
+      transform: true,
+      expandAll: true,
+      showLine: true,
+      showRootLine: true,
+    },
+  } as any,
+});
+
+/**
+ * 编辑
+ * @param row
+ */
+function onEdit(row: any) {
+  drawerApi.setData({ values: row, isUpdate: true }).open();
+}
+
+/**
+ * 添加下级
+ * @param row
+ */
+function onAppend(row: any) {
+  drawerApi
+    .setData({
+      values: null,
+      isUpdate: false,
+      parent: row,
+    })
+    .open();
+}
+
+/**
+ * 创建
+ */
+function onCreate() {
+  drawerApi
+    .setData({
+      values: null,
+      isUpdate: false,
+    })
+    .open();
+}
+
+/**
+ * 删除
+ * @param row
+ */
+function onDelete(row: any) {
+  deleteIds([row.id])
+    .then(() => {
+      onRefresh();
+    })
+    .catch(() => {
+      onRefresh();
+    });
+}
+/**
+ * 重新查询
+ */
+async function gridQuery(params: Record<string, any> = {}) {
+  try {
+    await gridApi.query(params);
+  } catch (error) {
+    console.error('Error occurred while reloading:', error);
+  }
+}
+/**
+ * 刷新表格
+ */
+async function onRefresh() {
+  try {
+    if (gridApi.state?.formOptions) {
+      const formValues = await gridApi.formApi.getValues();
+      gridApi.formApi.setLatestSubmissionValues(formValues);
+      await gridQuery(formValues);
+    } else {
+      await gridQuery();
+    }
+    setTimeout(() => {
+      gridApi.grid.setAllTreeExpand(true);
+    }, 900);
+  } catch (error) {
+    console.error('Error occurred while reloading:', error);
+  }
+}
 </script>
-
 <template>
-  <NLayout class="h-full p-2" has-sider>
-    <NLayoutSider class="min-w-[200px]">
-      <PgTree
-        :api="selectPublic"
-        :menu-dropdown-options="menuDropdownOptions"
-        :reload="reloadTreeComputed"
-        :right-click-menu="true"
-        :right-click-menu-options="rightClickMenuOptions"
-        @ok="treeChang"
-        @overload="treeOverload"
-      />
-    </NLayoutSider>
-    <NLayout class="w-[calc(100%-200px)]">
-      <NLayoutContent>
-        <n-tabs v-if="currenRecord" animated type="line">
-          <n-tab-pane name="基本信息" tab="基本信息">
-            <TabForm :data="currenData" :is-update="true" @ok="reloadTable" />
-          </n-tab-pane>
-          <n-tab-pane name="other" tab="other">
-
-          </n-tab-pane>
-        </n-tabs>
-        <div v-else style="padding-top: 40px">
-          <n-empty description="尚未选择" />
-        </div>
-      </NLayoutContent>
-    </NLayout>
-    <FormDrawer @ok="reloadTable" />
-  </NLayout>
+  <Page
+    auto-content-height
+    content-class="p-2"
+    header-class="border-b-0 px-2 py-0"
+  >
+    <template #title>
+      <n-tabs
+        v-model:value="moduleTab"
+        type="line"
+        size="small"
+        @update:value="onModuleChange"
+      >
+        <n-tab :name="ALL_MODULE">全部</n-tab>
+        <n-tab
+          v-for="item in moduleOptions"
+          :key="item.value"
+          :name="item.value"
+        >
+          {{ item.label }}
+        </n-tab>
+      </n-tabs>
+    </template>
+    <Grid>
+      <template #toolbar-actions>
+        <VbenButton type="primary" size="sm" @click="onCreate">
+          <Plus class="size-5" />
+          新增
+        </VbenButton>
+      </template>
+      <template #operate="{ row }">
+        <VbenTableAction
+          :actions="[
+            {
+              tooltip: {
+                content: '添加下级',
+              },
+              text: '添加下级',
+              onClick: () => onAppend(row),
+            },
+            {
+              tooltip: {
+                content: '编辑',
+              },
+              icon: 'lucide:edit',
+              onClick: () => onEdit(row),
+            },
+            {
+              tooltip: {
+                content: '删除',
+              },
+              icon: 'lucide:trash-2',
+              danger: true,
+              popConfirm: {
+                title: `确定删除 [${row.name}] 吗？`,
+                confirm: () => onDelete(row),
+              },
+            },
+          ]"
+          align="center"
+        />
+      </template>
+    </Grid>
+    <Drawer @ok="onRefresh" />
+  </Page>
 </template>
-
-<style scoped></style>

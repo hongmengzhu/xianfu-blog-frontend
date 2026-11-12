@@ -1,15 +1,22 @@
 import type { VxeGridPropTypes } from 'vxe-table';
 
+import { YesNoStringOptionsFormatter } from '@pg/types/src/basic/yes-no';
 import _XEUtils_ from 'xe-utils';
 
-import { existName, setStateEnableDisable } from './api';
-import {h} from "vue";
-import {confirmSwitch} from "#/adapter/vxe-table";
+import { confirmSwitch } from '#/adapter/vxe-table';
+
+import { setStateEnableDisable } from './api';
 
 export const columns: VxeGridPropTypes.Columns = [
-  { type: 'checkbox',  width: 34 },
+  { type: 'checkbox', width: 34 },
   { field: 'name', title: '名称', minWidth: 200, treeNode: true },
   { field: 'code', title: '代号', width: 160 },
+  {
+    field: 'vhost',
+    title: '虚拟域名',
+    width: 100,
+    formatter: YesNoStringOptionsFormatter,
+  },
   {
     field: 'state',
     title: '状态',
@@ -17,7 +24,11 @@ export const columns: VxeGridPropTypes.Columns = [
     cellRender: {
       name: 'CellSwitchPg',
       attrs: {
-        beforeChange: async (newStatus: number | string, record: any, $table: any) => {
+        beforeChange: async (
+          newStatus: number | string,
+          record: any,
+          $table: any,
+        ) => {
           try {
             await confirmSwitch(record.name, newStatus);
             await setStateEnableDisable(record.id, newStatus);
@@ -41,5 +52,4 @@ export const columns: VxeGridPropTypes.Columns = [
   { title: '操作', width: 160, field: 'right', slots: { default: 'operate' } },
 ];
 
-export const formSchema = [
-];
+export const formSchema = [];

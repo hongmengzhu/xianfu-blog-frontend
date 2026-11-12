@@ -10,10 +10,11 @@ enum Api {
   existName = '/xianfu/sys/basic/explain-category/existName',
   exportExcel = '/xianfu/sys/basic/explain-category/exportExcel',
   list = '/xianfu/sys/basic/explain-category/query',
+  queryAll = '/xianfu/sys/basic/explain-category/queryAll',
   physicalDeletion = '/xianfu/sys/basic/explain-category/physicalDeletion',
   recovery = '/xianfu/sys/basic/explain-category/recovery',
   selectNodeAllPublic = '/xianfu/sys/basic/explain-category/selectNodeAllPublic',
-  selectNodePublic = '/xianfu/sys/basic/explain-category/selectNodePublic',
+  selectNodeAll = '/xianfu/sys/basic/explain-category/selectNodeAll',
   selectPublic = '/xianfu/sys/basic/explain-category/selectPublic',
   state = '/xianfu/sys/basic/explain-category/state',
   update = '/xianfu/sys/basic/explain-category/update',
@@ -27,21 +28,21 @@ enum Api {
 export async function List(data?: any) {
   return requestClient.post(Api.list, data);
 }
-
 /**
- * 公共列表展示
+ * 列表
+ * @constructor
  * @param data
  */
-export const selectPublic = (data?: any) => {
-  return requestClient.post(Api.selectPublic, data);
-};
+export async function queryAll(data?: any) {
+  return requestClient.post(Api.queryAll, data);
+}
 
 /**
  * 公共树展示
  * @param data
  */
-export const selectNodePublic = (data?: any) => {
-  return requestClient.post(Api.selectNodePublic, data);
+export const selectNodeAll = (data?: any) => {
+  return requestClient.post(Api.selectNodeAll, data);
 };
 
 /**
@@ -91,7 +92,7 @@ export const deleteIds = (params: any) => {
  * 批量选中-删除
  * @param params
  */
-export const batchSelectDelete = (params:any, handleSuccess:any) => {
+export const batchSelectDelete = (params, handleSuccess) => {
   dialog.warning({
     title: '确认删除',
     content: '是否删除选中数据',
@@ -118,7 +119,7 @@ export const batchSelectDelete = (params:any, handleSuccess:any) => {
  * 批量选中-启用
  * @param params
  */
-export const batchSelectEnable = (params:any, handleSuccess:any) => {
+export const batchSelectEnable = (params, handleSuccess) => {
   dialog.warning({
     title: '确认设置有效',
     content: '是否[批量有效]选中数据',
@@ -145,7 +146,7 @@ export const batchSelectEnable = (params:any, handleSuccess:any) => {
  * 批量选中-禁用
  * @param params
  */
-export const batchSelectDisable = (params:any, handleSuccess:any) => {
+export const batchSelectDisable = (params, handleSuccess) => {
   dialog.warning({
     title: '确认设置停用',
     content: '是否[批量停用]选中数据',
@@ -229,10 +230,11 @@ export const batchSelectPhysicalDeletion = (params, handleSuccess, dialog) => {
  */
 export const setStateEnableDisable = (id: number, status: number) =>
   requestClient.post(
-    1 === status ? Api.enable : Api.disable,
+    Api.state,
     { ids: [id], state: status },
     { errorMessageMode: 'message', successMessageMode: 'message' },
   );
+
 /**
  * 导出excel url地址
  */
@@ -242,8 +244,7 @@ export const exportExcelUrl = Api.exportExcel;
  * 查询名称是否存在
  * @param params
  */
-export const existName = (wd, id?) => {
-  id = id || '0';
+export const existName = (wd, id = '0') => {
   return requestClient.post(
     Api.existName,
     { wd, id },

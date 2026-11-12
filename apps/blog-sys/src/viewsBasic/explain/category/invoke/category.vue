@@ -1,31 +1,12 @@
 <script lang="ts" setup>
-import { computed, h, onMounted, watch } from 'vue';
+import { h } from 'vue';
 
-import { VbenButton } from '@vben/common-ui';
-
-import { PgTreeSelect } from '@pg/components-n';
+import { useVbenModal, VbenButton } from '@vben/common-ui';
 
 import { usePgForm } from '#/adapter';
 
 import { existName, saveOrUpdate, selectNodeAllPublic } from '../api';
-
-const props = defineProps({
-  data: {
-    type: Object as PropType<Recordable<any>>,
-    // eslint-disable-next-line vue/require-valid-default-prop
-    default: {},
-  },
-  isUpdate: {
-    type: Boolean,
-    default: false,
-  },
-});
 const emit = defineEmits(['ok']);
-
-const getValue = computed(() => {
-  return props.data.data;
-});
-
 const [Form, formApi] = usePgForm({
   // 通过 schema 的 type: 'group' 把字段组织成可折叠的分组，分组默认展开
   schema: [
@@ -36,16 +17,39 @@ const [Form, formApi] = usePgForm({
       defaultCollapsed: false,
       children: [
         {
-          fieldName: 'parentId',
+          fieldName: 'parentNo',
           label: '上级',
+          defaultValue: '',
           component: 'PgTreeSelect',
           componentProps: {
             api: selectNodeAllPublic,
-            params: {},
+            params: { by: 'no' },
+            filterQueryAsync: true,
             props: {
+              disabled: true,
               placeholder: '如果为空,则是一级',
               filterable: true,
             },
+          },
+        },
+        {
+          fieldName: 'typeSys',
+          label: '类型',
+          defaultValue: 'general',
+          component: 'Input',
+          componentProps: {
+            type: 'button',
+            options: [
+              { label: '普通', value: 'general' },
+              { label: '系统', value: 'system' },
+              { label: 'api', value: 'api' },
+            ],
+          },
+          rules: 'required',
+          dependencies: {
+            show: false,
+            // 随意一个字段改变时，都会触发
+            triggerFields: ['description'],
           },
         },
         {
@@ -78,8 +82,8 @@ const [Form, formApi] = usePgForm({
         },
         {
           fieldName: 'code',
-          label: '标识',
-          rules: 'required',
+          label: '标志',
+          defaultValue: '系统自动建立',
           component: 'Input',
           componentProps: {
             placeholder: '请输入',
@@ -88,10 +92,12 @@ const [Form, formApi] = usePgForm({
               if (!values.nameFl) {
                 formApi.setFieldValue('nameFl', e.target.value);
               }
-              if (!values.path) {
-                formApi.setFieldValue('path', e.target.value);
-              }
             },
+          },
+          dependencies: {
+            show: false,
+            // 随意一个字段改变时，都会触发
+            triggerFields: ['description'],
           },
         },
         {
@@ -130,6 +136,7 @@ const [Form, formApi] = usePgForm({
       fieldName: 'id',
       label: 'id',
       component: 'Input',
+      defaultValue: '',
       componentProps: {},
       dependencies: {
         show: false,
@@ -138,58 +145,74 @@ const [Form, formApi] = usePgForm({
       },
     },
   ],
-  handleSubmit: onSubmit,
-  showDefaultActions: true,
+  showDefaultActions: false,
+});
+const [Modal, modalApi] = useVbenModal({
+  onCancel() {
+    modalApi.close();
+  },
+  onConfirm: onSubmit,
+  onOpenChange(isOpen: boolean) {
+    if (isOpen) {
+      modalApi.setState({
+        loading: true,
+        confirmLoading: false,
+        closeOnClickModal: false,
+        destroyOnClose: true,
+      });
+      const { values, isUpdate, parent } =
+        modalApi.getData<Record<string, any>>();
+      if (values) {
+        formApi.setValues({
+          ...values,
+        });
+      }
+      if (parent) {
+        formApi.setFieldValue('parentNo', parent.no);
+      }
+      console.log('values', values);
+      console.log('parent', parent);
+      modalApi.setState({
+        title: `分类：${isUpdate ? '编辑' : '新增'}`,
+        loading: false,
+      });
+    }
+  },
+  title: '：',
 });
 
-// 解决第一次 赋值
-setTimeout(() => {
-  formApi.setValues({
-    ...getValue.value,
-  });
-}, 500);
-
-watch(
-  () => props.data,
-  () => {
-    formApi.setValues({
-      ...getValue.value,
-    });
-  },
-  { deep: true },
-);
 /**
  * 提交
  */
-function onSubmit(values: Record<string, any>) {
+async function onSubmit() {
+  const { valid } = await formApi.validate();
+  if (!valid) {
+    return false;
+  }
+  const values = await formApi.getValues<Omit<Record<string, any>, 'id'>>();
+  modalApi.lock();
   try {
-    // console.log('values', values);
-    saveOrUpdate(values, props.isUpdate).then((d) => {
+    modalApi.setState({ loading: true, confirmLoading: true });
+    const { isUpdate } = modalApi.getData<Record<string, any>>();
+    values.typeSys = 'general';
+    // values['typeAttr'] = 'categoryLast';
+    saveOrUpdate(values, isUpdate).then((d) => {
       setTimeout(() => {
         emit('ok', values);
-      }, 500);
+        modalApi.setState({ loading: false });
+        modalApi.close();
+      }, 900);
     });
   } catch (error) {
     console.error(error);
+  } finally {
+    modalApi.unlock();
+    modalApi.setState({ loading: false, confirmLoading: false });
   }
 }
-
-onMounted(() => {
-  formApi.setValues(getValue.value);
-  // formApi.setValues({name:"sssss"});
-  // console.log('getValues',formApi.getValues())
-  // console.log('ddd',getValue.value)
-});
 </script>
 <template>
-  <Form>
-    <template #parentId="slotProps">
-      <PgTreeSelect
-        :api="selectNodeAllPublic"
-        :convert-node="true"
-        v-bind="slotProps.componentProps"
-        class="w-full"
-      />
-    </template>
-  </Form>
+  <Modal>
+    <Form />
+  </Modal>
 </template>

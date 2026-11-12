@@ -4,10 +4,11 @@ import { h } from 'vue';
 import { useVbenDrawer, VbenButton } from '@vben/common-ui';
 
 import { usePgForm } from '#/adapter';
+import { selectNodeAllPublic as selectNodeAllPublicModule } from '#/viewsBasic/module/api';
 
-import { selectNodeAllPublic } from '../../category/api';
-import { existName, saveOrUpdate } from '../api';
+import { existName, saveOrUpdate, selectNodeAll } from '../api';
 
+const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
   // 通过 schema 的 type: 'group' 把字段组织成可折叠的分组，分组默认展开
   schema: [
@@ -18,24 +19,39 @@ const [Form, formApi] = usePgForm({
       defaultCollapsed: false,
       children: [
         {
-          fieldName: 'categoryId',
-          label: '分类',
-          rules: 'required',
+          fieldName: 'module',
+          label: '模块',
           component: 'PgTreeSelect',
           componentProps: {
-            api: selectNodeAllPublic,
+            api: selectNodeAllPublicModule,
             params: {},
             props: {
-              placeholder: '如果为空,则是一级',
+              placeholder: '请选择所属模块',
               filterable: true,
             },
           },
+          rules: 'required',
+        },
+        {
+          fieldName: 'parentNo',
+          label: '上级',
+          component: 'PgTreeSelect',
+          componentProps: {
+            api: selectNodeAll,
+            params: { by: 'no' },
+            filterQueryAsync: true,
+            props: {
+              filterable: true,
+              placeholder: '请选择',
+            },
+          },
+          // rules: 'required',
         },
         {
           fieldName: 'name',
           label: '名称',
           component: 'Input',
-          defaultValue: '',
+          rules: 'required',
           componentProps: {
             placeholder: '请输入',
             onBlur: async (e) => {
@@ -45,7 +61,6 @@ const [Form, formApi] = usePgForm({
               }
             },
           },
-          rules: 'required',
           suffix: () =>
             h(
               VbenButton,
@@ -61,8 +76,8 @@ const [Form, formApi] = usePgForm({
         },
         {
           fieldName: 'code',
-          label: '标识',
-          rules: 'required',
+          label: '编码',
+          defaultValue: '系统自动建立',
           component: 'Input',
           componentProps: {
             placeholder: '请输入',
@@ -71,11 +86,9 @@ const [Form, formApi] = usePgForm({
               if (!values.nameFl) {
                 formApi.setFieldValue('nameFl', e.target.value);
               }
-              if (!values.path) {
-                formApi.setFieldValue('path', e.target.value);
-              }
             },
           },
+          rules: 'required',
         },
         {
           fieldName: 'description',
@@ -84,15 +97,6 @@ const [Form, formApi] = usePgForm({
           componentProps: {
             type: 'textarea',
             placeholder: '描述',
-          },
-        },
-        {
-          fieldName: 'content',
-          label: '内容',
-          component: 'Textarea',
-          componentProps: {
-            type: 'textarea',
-            placeholder: '内容',
           },
         },
       ],
@@ -107,6 +111,7 @@ const [Form, formApi] = usePgForm({
           fieldName: 'nameFl',
           label: '名称英文',
           component: 'Input',
+          defaultValue: '',
           componentProps: {
             placeholder: '请输入',
           },
@@ -121,6 +126,7 @@ const [Form, formApi] = usePgForm({
     {
       fieldName: 'id',
       label: 'id',
+      defaultValue: '0',
       component: 'Input',
       componentProps: {},
       dependencies: {
@@ -130,51 +136,72 @@ const [Form, formApi] = usePgForm({
       },
     },
   ],
-  handleSubmit: onSubmit,
   showDefaultActions: false,
 });
 const [Drawer, drawerApi] = useVbenDrawer({
   onCancel() {
     drawerApi.close();
   },
-  onConfirm: async () => {
-    await formApi.submit();
-  },
+  onConfirm: onSubmit,
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
+      drawerApi.setState({
+        loading: true,
+        confirmLoading: false,
+        closeOnClickModal: false,
+        destroyOnClose: true,
+      });
       const { values, isUpdate, parent } =
         drawerApi.getData<Record<string, any>>();
       if (values) {
-        // console.log('values',values)
-        // console.log('values.parent',parent)
-        if (parent) {
-          values.categoryId = parent.id;
-        }
-        formApi.setValues(values);
-      } else if (parent) {
-        formApi.setValues({ categoryId: parent.id });
+        formApi.setValues({
+          ...values,
+        });
+      } else {
+        formApi.setValues({});
       }
-
-      drawerApi.setState({ title: `说明：${isUpdate ? '编辑' : '新增'}` });
+      if (parent) {
+        formApi.setFieldValue('parentNo', parent.no);
+        // 子分类默认继承上级分类的模块
+        if (parent.module) {
+          formApi.setFieldValue('module', parent.module);
+        }
+      }
+      // console.log('values', values);
+      drawerApi.setState({
+        title: `分类：${isUpdate ? '编辑' : '新增'}`,
+        loading: false,
+      });
     }
   },
-  title: '',
+  title: '：',
 });
 
 /**
  * 提交
  */
-function onSubmit(values: Record<string, any>) {
+async function onSubmit() {
+  const { valid } = await formApi.validate();
+  if (!valid) {
+    return false;
+  }
+  const values = await formApi.getValues<Omit<Record<string, any>, 'id'>>();
+  drawerApi.lock();
   try {
-    console.log('values', values);
+    drawerApi.setState({ loading: true, confirmLoading: true });
     const { isUpdate } = drawerApi.getData<Record<string, any>>();
     saveOrUpdate(values, isUpdate).then((d) => {
       setTimeout(() => {
+        emit('ok', values);
+        drawerApi.setState({ loading: false });
         drawerApi.close();
-      }, 500);
+      }, 900);
     });
   } catch (error) {
     console.error(error);
+  } finally {
+    drawerApi.unlock();
+    drawerApi.setState({ loading: false, confirmLoading: false });
   }
 }
 </script>

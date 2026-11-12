@@ -59,16 +59,16 @@ const routes: RouteRecordRaw[] = [
         path: '/lq2/basic/data-dictionary',
         component: () => import('#/viewsBasic/data-dict/dict/index.vue'),
       },
-      {
-        meta: {
-          title: '数据快照',
-          icon: 'mdi:account-key',
-        },
-        name: 'basic-data-snapshot',
-        path: '/lq2/basic/data-snapshot',
-        component: () =>
-          import('#/viewsBasic/data-snapshot/snapshot/index.vue'),
-      },
+      // {
+      //   meta: {
+      //     title: '数据快照',
+      //     icon: 'mdi:account-key',
+      //   },
+      //   name: 'basic-data-snapshot',
+      //   path: '/lq2/basic/data-snapshot',
+      //   component: () =>
+      //     import('#/viewsBasic/data-snapshot/snapshot/index.vue'),
+      // },
       {
         meta: {
           title: '模块',
@@ -106,34 +106,34 @@ const routes: RouteRecordRaw[] = [
           },
         ],
       },
-      {
-        meta: {
-          title: '任务',
-          icon: 'mdi:account-key',
-        },
-        name: 'basic-task',
-        path: '/lq2/basic/task',
-        children: [
-          {
-            meta: {
-              title: '任务',
-              icon: 'mdi:account-key',
-            },
-            name: 'basic-task-index',
-            path: '/lq2/basic/task-index',
-            component: () => import('#/viewsBasic/task/list/index.vue'),
-          },
-          {
-            meta: {
-              title: '任务分类',
-              icon: 'mdi:account-key',
-            },
-            name: 'basic-task-category',
-            path: '/lq2/basic/task-category',
-            component: () => import('#/viewsBasic/task/category/index.vue'),
-          },
-        ],
-      },
+      // {
+      //   meta: {
+      //     title: '任务',
+      //     icon: 'mdi:account-key',
+      //   },
+      //   name: 'basic-task',
+      //   path: '/lq2/basic/task',
+      //   children: [
+      //     {
+      //       meta: {
+      //         title: '任务',
+      //         icon: 'mdi:account-key',
+      //       },
+      //       name: 'basic-task-index',
+      //       path: '/lq2/basic/task-index',
+      //       component: () => import('#/viewsBasic/task/list/index.vue'),
+      //     },
+      //     {
+      //       meta: {
+      //         title: '任务分类',
+      //         icon: 'mdi:account-key',
+      //       },
+      //       name: 'basic-task-category',
+      //       path: '/lq2/basic/task-category',
+      //       component: () => import('#/viewsBasic/task/category/index.vue'),
+      //     },
+      //   ],
+      // },
     ],
   },
 ];

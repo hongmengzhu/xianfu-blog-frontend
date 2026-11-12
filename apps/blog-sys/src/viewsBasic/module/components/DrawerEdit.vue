@@ -3,14 +3,11 @@ import { h } from 'vue';
 
 import { useVbenDrawer, VbenButton } from '@vben/common-ui';
 
+import { YesNoStringOptions } from '@pg/types';
+
 import { usePgForm } from '#/adapter';
 
-import {
-  existCode,
-  existName,
-  saveOrUpdate,
-  selectNodeAll,
-} from '../api';
+import { existCode, existName, saveOrUpdate, selectNodeAll } from '../api';
 
 const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
@@ -101,6 +98,16 @@ const [Form, formApi] = usePgForm({
             placeholder: '描述',
           },
         },
+        {
+          fieldName: 'vhost',
+          label: '虚拟域名',
+          defaultValue: 'no',
+          component: 'PgRadioGroup',
+          componentProps: {
+            type: 'button',
+            options: YesNoStringOptions,
+          },
+        },
       ],
     },
     {
@@ -158,6 +165,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
       if (values) {
         formApi.setValues({
           ...values,
+          vhost: values.vhost || 'no',
         });
       }
       if (parent) {

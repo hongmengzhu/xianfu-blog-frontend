@@ -57,6 +57,19 @@ const [Form, formApi] = usePgForm({
               }
             },
           },
+          rules: 'required',
+          suffix: () =>
+            h(
+              VbenButton,
+              {
+                class: 'pg-button-size-small',
+                onClick: async (e) => {
+                  const values = await formApi.getValues();
+                  existName(values.name, values.id);
+                },
+              },
+              () => h('span', { class: 'font-normal' }, '查重'),
+            ),
         },
         {
           fieldName: 'description',

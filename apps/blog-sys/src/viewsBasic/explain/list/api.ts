@@ -3,14 +3,16 @@ import { requestClient } from '#/api/request';
 
 enum Api {
   create = '/xianfu/sys/basic/explain/create',
+  createUpdate = '/xianfu/sys/basic/explain/createUpdate',
   delete = '/xianfu/sys/basic/explain/delete',
   detail = '/xianfu/sys/basic/explain/detail/',
   disable = '/xianfu/sys/basic/explain/disable',
   enable = '/xianfu/sys/basic/explain/enable',
   existName = '/xianfu/sys/basic/explain/existName',
+  existCode = '/xianfu/sys/basic/explain/existCode',
   exportExcel = '/xianfu/sys/basic/explain/exportExcel',
   list = '/xianfu/sys/basic/explain/query',
-  listByGroup = '/xianfu/sys/basic/explain/queryByGroup',
+  queryPublic = '/xianfu/sys/basic/explain/QueryPublic',
   physicalDeletion = '/xianfu/sys/basic/explain/physicalDeletion',
   recovery = '/xianfu/sys/basic/explain/recovery',
   selectNodeAllPublic = '/xianfu/sys/basic/explain/selectNodeAllPublic',
@@ -18,7 +20,6 @@ enum Api {
   selectPublic = '/xianfu/sys/basic/explain/selectPublic',
   state = '/xianfu/sys/basic/explain/state',
   update = '/xianfu/sys/basic/explain/update',
-  updateByMenu = '/xianfu/sys/basic/explain/updateByMenu',
 }
 
 /**
@@ -34,8 +35,8 @@ export async function List(data?: any) {
  * @constructor
  * @param data
  */
-export async function ListByGroup(data?: any) {
-  return requestClient.post(Api.listByGroup, data);
+export async function queryPublic(data?: any) {
+  return requestClient.post(Api.queryPublic, data);
 }
 
 /**
@@ -74,20 +75,9 @@ export const detail = (data?: any) => {
  * @param data
  * @param isUpdate
  */
-export const saveOrUpdate = (data: any, isUpdate: boolean) => {
-  return requestClient.post(isUpdate ? Api.update : Api.create, data, {
-    errorMessageMode: 'message',
-    successMessageMode: 'notification',
-  });
-};
-
-/**
- * 保存或者更新
- * @param data
- */
-export const updateByMenu = (data: any) => {
-  return requestClient.post(Api.updateByMenu, data, {
-    errorMessageMode: 'message',
+export const saveOrUpdate = (data: any) => {
+  return requestClient.post(Api.createUpdate, data, {
+    errorMessageMode: 'notification',
     successMessageMode: 'notification',
   });
 };
@@ -112,7 +102,7 @@ export const deleteIds = (params: any) => {
  * 批量选中-删除
  * @param params
  */
-export const batchSelectDelete = (params:any, handleSuccess:any) => {
+export const batchSelectDelete = (params, handleSuccess) => {
   dialog.warning({
     title: '确认删除',
     content: '是否删除选中数据',
@@ -139,7 +129,7 @@ export const batchSelectDelete = (params:any, handleSuccess:any) => {
  * 批量选中-启用
  * @param params
  */
-export const batchSelectEnable = (params:any, handleSuccess:any) => {
+export const batchSelectEnable = (params, handleSuccess) => {
   dialog.warning({
     title: '确认设置有效',
     content: '是否[批量有效]选中数据',
@@ -166,7 +156,7 @@ export const batchSelectEnable = (params:any, handleSuccess:any) => {
  * 批量选中-禁用
  * @param params
  */
-export const batchSelectDisable = (params:any, handleSuccess:any) => {
+export const batchSelectDisable = (params, handleSuccess) => {
   dialog.warning({
     title: '确认设置停用',
     content: '是否[批量停用]选中数据',
@@ -193,7 +183,7 @@ export const batchSelectDisable = (params:any, handleSuccess:any) => {
  * 批量选中-恢复
  * @param params
  */
-export const batchSelectRecovery = (params:any, handleSuccess:any) => {
+export const batchSelectRecovery = (params, handleSuccess) => {
   dialog.warning({
     title: '确认设置恢复',
     content: '是否[批量恢复]选中数据',
@@ -220,7 +210,7 @@ export const batchSelectRecovery = (params:any, handleSuccess:any) => {
  * 批量选中-物理删除
  * @param params
  */
-export const batchSelectPhysicalDeletion = (params:any, handleSuccess:any) => {
+export const batchSelectPhysicalDeletion = (params, handleSuccess) => {
   dialog.warning({
     title: '确认物理删除',
     content: '是否[物理删除]选中数据，操作后数据不可恢复',
@@ -250,10 +240,11 @@ export const batchSelectPhysicalDeletion = (params:any, handleSuccess:any) => {
  */
 export const setStateEnableDisable = (id: number, status: number) =>
   requestClient.post(
-    1 === status ? Api.enable : Api.disable,
+    Api.state,
     { ids: [id], state: status },
     { errorMessageMode: 'message', successMessageMode: 'message' },
   );
+
 /**
  * 导出excel url地址
  */
@@ -261,13 +252,22 @@ export const exportExcelUrl = Api.exportExcel;
 
 /**
  * 查询名称是否存在
- * @param wd
- * @param id
+ * @param params
  */
-export const existName = (wd: string, id?: number | string) => {
-  id = id || '0';
+export const existName = (wd, id = '0') => {
   return requestClient.post(
     Api.existName,
+    { wd, id },
+    { errorMessageMode: 'message', successMessageMode: 'notification' },
+  );
+};
+/**
+ * 查询名称是否存在
+ * @param params
+ */
+export const existCode = (wd, id = '0') => {
+  return requestClient.post(
+    Api.existCode,
     { wd, id },
     { errorMessageMode: 'message', successMessageMode: 'notification' },
   );

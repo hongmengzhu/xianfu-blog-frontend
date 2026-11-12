@@ -1,19 +1,38 @@
 import type { VxeGridPropTypes } from 'vxe-table';
 
+import type { VbenFormSchema } from '#/adapter/form';
+
 import _XEUtils_ from 'xe-utils';
 
-import { existName, setStateEnableDisable } from './api';
-import {h} from "vue";
-import {confirmSwitch} from "#/adapter/vxe-table";
+import { confirmSwitch } from '#/adapter/vxe-table';
 
+import { setStateEnableDisable } from './api';
+
+/**
+ * 搜索表单 Schema
+ */
+export function useGridFormSchema(): VbenFormSchema[] {
+  return [];
+}
+
+/**
+ * 表格列配置
+ */
 export const columns: VxeGridPropTypes.Columns = [
-  { type: 'checkbox', title: 'ID', width: 120 },
-  { field: 'name', title: '名称', minWidth: 200, sortable: true },
-  { field: 'code', title: '代号', width: 160 },
-  { field: 'description', title: '描述', width: 160 },
+  // { type: 'checkbox',width: 34 },
+  {
+    field: 'name',
+    title: '名称',
+    minWidth: 200,
+    treeNode: true,
+    align: 'left',
+  },
+  { field: 'code', title: '码值', width: 160 },
+  { field: 'no', title: '编号', width: 160 },
   {
     field: 'state',
     title: '状态',
+    // slots: { default: 'state' },
     width: 90,
     cellRender: {
       name: 'CellSwitchPg',
@@ -44,7 +63,4 @@ export const columns: VxeGridPropTypes.Columns = [
     },
   },
   { title: '操作', width: 160, field: 'right', slots: { default: 'operate' } },
-];
-
-export const formSchema = [
 ];
