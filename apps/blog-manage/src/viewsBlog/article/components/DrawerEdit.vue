@@ -487,6 +487,17 @@ const [Form, formApi] = usePgForm({
         triggerFields: ['description'],
       },
     },
+    {
+      fieldName: 'module',
+      label: '模块',
+      defaultValue: '',
+      component: 'Input',
+      componentProps: {},
+      dependencies: {
+        show: false,
+        triggerFields: ['description'],
+      },
+    },
   ],
   showDefaultActions: false,
 });
@@ -541,6 +552,8 @@ const [Drawer, drawerApi] = useVbenDrawer({
           //
         });
       } else {
+        // 新增时带入当前模块 tab，未选分类时按模块归属
+        formApi.setFieldValue('module', values?.module || '');
         formApi.setFieldValue(
           'operationTime',
           dayjs().format('YYYY-MM-DD HH:mm:ss'),

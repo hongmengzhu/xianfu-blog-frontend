@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
+
 import { NInput, NSelect } from 'naive-ui';
+
 import { selectPublicCountryCode } from '#/viewsBasic/country/api';
 
 const emit = defineEmits(['blur', 'change']);
@@ -10,7 +12,7 @@ const modelValue = defineModel<[string, string]>({
 });
 const options = ref([{ label: '中国 +86', value: '86' }]);
 selectPublicCountryCode({}).then((d) => {
-  //console.log('selectPublicCountryCode =>', d);
+  // console.log('selectPublicCountryCode =>', d);
   if (d) {
     options.value = d;
   }

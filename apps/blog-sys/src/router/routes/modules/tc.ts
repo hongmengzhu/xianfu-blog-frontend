@@ -48,7 +48,7 @@ const routes: RouteRecordRaw[] = [
         },
         name: 'tc-tenant-account',
         path: '/lq2/tc/tenant-account',
-        component: () => import('#/viewTc/tenantAccount/index.vue'),
+        component: () => import('#/viewsTc/tenantAccount/index.vue'),
       },
       {
         meta: {

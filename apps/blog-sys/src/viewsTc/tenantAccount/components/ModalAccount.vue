@@ -5,12 +5,7 @@ import { useVbenModal, VbenButton } from '@vben/common-ui';
 
 import { usePgForm } from '#/adapter';
 
-import {
-  existAccount,
-  existMail,
-  existPhone,
-  saveOrUpdate,
-} from '../api';
+import { existAccount, existMail, existPhone, saveOrUpdate } from '../api';
 const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
   schema: [

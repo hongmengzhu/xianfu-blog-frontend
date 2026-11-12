@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { Page, useVbenDrawer, VbenButton } from '@vben/common-ui';
 import { Plus } from '@vben/icons';
 

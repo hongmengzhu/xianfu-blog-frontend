@@ -4,6 +4,7 @@ import { h } from 'vue';
 import { useVbenModal, VbenButton } from '@vben/common-ui';
 
 import { usePgForm } from '#/adapter';
+import { selectNodeAllPublic as selectNodeAllPublicModule } from '#/viewsBasic/module/api';
 
 import { existName, saveOrUpdate, selectNodeAllPublic } from '../api';
 const emit = defineEmits(['ok']);
@@ -16,6 +17,20 @@ const [Form, formApi] = usePgForm({
       title: '基本',
       defaultCollapsed: false,
       children: [
+        {
+          fieldName: 'module',
+          label: '模块',
+          component: 'PgTreeSelect',
+          componentProps: {
+            api: selectNodeAllPublicModule,
+            params: {},
+            props: {
+              placeholder: '请选择所属模块',
+              filterable: true,
+            },
+          },
+          rules: 'required',
+        },
         {
           fieldName: 'parentNo',
           label: '上级',
@@ -166,9 +181,16 @@ const [Modal, modalApi] = useVbenModal({
         formApi.setValues({
           ...values,
         });
+        if (!values.module || values.module === 'no') {
+          formApi.setFieldValue('module', '');
+        }
       }
       if (parent) {
         formApi.setFieldValue('parentNo', parent.no);
+        // 子分类默认继承上级分类的模块
+        if (parent.module && parent.module !== 'no') {
+          formApi.setFieldValue('module', parent.module);
+        }
       }
       console.log('values', values);
       console.log('parent', parent);

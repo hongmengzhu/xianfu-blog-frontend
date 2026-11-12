@@ -1,22 +1,21 @@
 <script setup lang="ts">
-import {
-  basicTypeDomainFormatter,
-  IdentityTypeFormatter,
-  type RowVO,
-  SexOptionsFormatter,
-} from '@pg/types';
+import type { RowVO } from '@pg/types';
+import type {
+  VxeGridInstance,
+  VxeGridProps,
+} from 'vxe-table';
 
 import { onMounted, reactive, ref } from 'vue';
 
 import { useVbenModal } from '@vben-core/popup-ui';
 
-import { message } from '#/adapter';
 import {
-  type VxeGridInstance,
-  type VxeGridListeners,
-  type VxeGridProps,
-  VXETable,
-} from 'vxe-table';
+  basicTypeDomainFormatter,
+  IdentityTypeFormatter,
+  SexOptionsFormatter,
+} from '@pg/types';
+
+import { message } from '#/adapter';
 
 import { List } from '../api';
 import { columns } from './data';

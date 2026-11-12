@@ -1,8 +1,11 @@
 <script lang="ts" setup>
+import { computed, onMounted, ref } from 'vue';
+
 import { Page, useVbenDrawer, VbenButton } from '@vben/common-ui';
 import { Plus } from '@vben/icons';
 
 import { useVbenVxeGrid, VbenTableAction } from '#/adapter/vxe-table';
+import { selectNodeAllPublic as selectNodeAllPublicModule } from '#/viewsBasic/module/api';
 
 import { deleteIds, queryAll } from './api';
 import DrawerEdit from './components/DrawerEdit.vue';
@@ -12,6 +15,45 @@ const [Drawer, drawerApi] = useVbenDrawer({
   connectedComponent: DrawerEdit,
   destroyOnClose: true,
 });
+
+/** 模块 tab 的“全部”哨兵值 */
+const ALL_MODULE = '__all__';
+const moduleTab = ref<string>(ALL_MODULE);
+/** 当前模块编号，空字符串表示不过滤 */
+const moduleNo = computed(() =>
+  moduleTab.value === ALL_MODULE ? '' : moduleTab.value,
+);
+const moduleOptions = ref<Array<{ label: string; value: string }>>([]);
+
+/**
+ * 加载模块（数据来自 basic_module），用于模块 tab
+ */
+async function loadModules() {
+  try {
+    const list: any[] = (await selectNodeAllPublicModule({})) || [];
+    moduleOptions.value = list
+      .filter((item: any) => {
+        const state = Number(item?.extend?.state ?? 1);
+        return state === 1 && item?.value;
+      })
+      .map((item: any) => ({ label: item.label, value: item.value }));
+  } catch (error) {
+    console.error('加载模块失败：', error);
+  }
+}
+
+onMounted(() => {
+  loadModules();
+});
+
+/**
+ * 切换模块：按模块重新查询
+ * @param value
+ */
+function onModuleChange(value: number | string) {
+  moduleTab.value = String(value);
+  onRefresh();
+}
 
 const [Grid, gridApi] = useVbenVxeGrid({
   gridEvents: {},
@@ -29,7 +71,7 @@ const [Grid, gridApi] = useVbenVxeGrid({
     proxyConfig: {
       ajax: {
         query: async (_params) => {
-          return await queryAll({});
+          return await queryAll({ module: moduleNo.value });
         },
       },
     },
@@ -128,7 +170,28 @@ async function onRefresh() {
 }
 </script>
 <template>
-  <Page auto-content-height content-class="p-2">
+  <Page
+    auto-content-height
+    content-class="p-2"
+    header-class="border-b-0 px-2 py-0"
+  >
+    <template #title>
+      <n-tabs
+        v-model:value="moduleTab"
+        type="line"
+        size="small"
+        @update:value="onModuleChange"
+      >
+        <n-tab :name="ALL_MODULE">全部</n-tab>
+        <n-tab
+          v-for="item in moduleOptions"
+          :key="item.value"
+          :name="item.value"
+        >
+          {{ item.label }}
+        </n-tab>
+      </n-tabs>
+    </template>
     <Grid>
       <template #toolbar-actions>
         <VbenButton type="primary" size="sm" @click="onCreate">

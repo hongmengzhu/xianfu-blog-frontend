@@ -4,6 +4,7 @@ import { h } from 'vue';
 import { useVbenDrawer, VbenButton } from '@vben/common-ui';
 
 import { usePgForm } from '#/adapter';
+import { selectNodeAllPublic as selectNodeAllPublicModule } from '#/viewsBasic/module/api';
 
 import { existName, saveOrUpdate, selectNodeAll } from '../api';
 
@@ -17,6 +18,20 @@ const [Form, formApi] = usePgForm({
       title: '基本',
       defaultCollapsed: false,
       children: [
+        {
+          fieldName: 'module',
+          label: '模块',
+          component: 'PgTreeSelect',
+          componentProps: {
+            api: selectNodeAllPublicModule,
+            params: {},
+            props: {
+              placeholder: '请选择所属模块',
+              filterable: true,
+            },
+          },
+          rules: 'required',
+        },
         {
           fieldName: 'parentNo',
           label: '上级',
@@ -142,11 +157,19 @@ const [Drawer, drawerApi] = useVbenDrawer({
         formApi.setValues({
           ...values,
         });
+        // 历史数据的默认模块值 no 视为未设置，需重新选择
+        if (!values.module || values.module === 'no') {
+          formApi.setFieldValue('module', '');
+        }
       } else {
         formApi.setValues({});
       }
       if (parent) {
         formApi.setFieldValue('parentNo', parent.no);
+        // 子分类默认继承上级分类的模块
+        if (parent.module && parent.module !== 'no') {
+          formApi.setFieldValue('module', parent.module);
+        }
       }
       // console.log('values', values);
       drawerApi.setState({
