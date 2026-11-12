@@ -63,7 +63,7 @@ function setupAccessGuard(router: Router) {
     const configPubStore = useConfigPubStore();
 
     // 基本路由，这些路由不需要进入权限拦截
-    if (coreRouteNames.includes(to.name as string)) {
+    if (coreRouteNames.includes(to.name)) {
       // 加载配置信息
       configInitializer(configPubStore);
       if (to.path === LOGIN_PATH && accessStore.accessToken) {
@@ -73,7 +73,7 @@ function setupAccessGuard(router: Router) {
             preferences.app.defaultHomePath,
         );
       }
-      if(!configPubStore.isLoadOnce()) {
+      if (!configPubStore.isLoadOnce()) {
         // 加载配置信息
         configInitializer(configPubStore);
       }
@@ -103,7 +103,7 @@ function setupAccessGuard(router: Router) {
         };
       }
 
-      if(!configPubStore.isLoadOnce()) {
+      if (!configPubStore.isLoadOnce()) {
         // 加载配置信息
         configInitializer(configPubStore);
       }
@@ -117,7 +117,7 @@ function setupAccessGuard(router: Router) {
     // 生成路由表
     // 当前登录用户拥有的角色标识列表
     const userInfo = userStore.userInfo || (await authStore.fetchUserInfo());
-    const userRoles = userInfo.roles ?? [];
+    const userRoles = userInfo?.roles ?? [];
     // 加载配置信息
     configInitializer(configPubStore);
 
@@ -138,7 +138,7 @@ function setupAccessGuard(router: Router) {
       redirectPath = from.query.redirect as string;
     } else if (to.fullPath === preferences.app.defaultHomePath) {
       redirectPath = preferences.app.defaultHomePath;
-    } else if (userInfo.homePath && to.fullPath === userInfo.homePath) {
+    } else if (userInfo?.homePath && to.fullPath === userInfo.homePath) {
       redirectPath = userInfo.homePath;
     } else {
       redirectPath = to.fullPath;
