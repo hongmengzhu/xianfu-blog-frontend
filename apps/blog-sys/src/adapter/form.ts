@@ -85,7 +85,7 @@ async function initSetupPgForm() {
         Upload: 'fileList',
       },
     },
-    defineRules: {
+    rules: {
       required: (value, _params, ctx) => {
         if (value === undefined || value === null || value.length === 0) {
           return $t('ui.formRules.required', [ctx.label]);

@@ -23,16 +23,7 @@ import {
 import { VXETable } from 'vxe-table';
 
 import { message, usePgForm } from '#/adapter';
-import {
-  selectNodeAllPublic as departmentNode,
-  selectPublic,
-} from '#/viewsRam/department/api';
-import { selectNodeAllPublic as groupNode } from '#/viewsRam/group/api';
-import { selectNodeAllPublic as levelNode } from '#/viewsRam/level/api';
-import { selectNodeAllPublic as positionNode } from '#/viewsRam/position/api';
-import { selectNodeAllPublic as postNode } from '#/viewsRam/post/api';
-import { selectNodeAllPublic as roleNode } from '#/viewsRam/role/api';
-import { selectNodeAllPublic as teamNode } from '#/viewsRam/team/api';
+import { selectNodeAllPublic as selectNodeAllPublicTenant } from '#/viewsMc/tenant/api';
 
 import {
   batchSelectDisable,
@@ -49,29 +40,28 @@ import { columns } from './data';
 
 const currenRecord = ref(false);
 const currenData = ref<Recordable<any>>({});
-const reloadTreeState = ref(false);
+const reloadTreeState = ref(0);
 const reloadTreeComputed = computed(() => reloadTreeState.value);
-let formParam = { departments: [] };
 const router = useRouter();
 const treeChang = (record) => {
   currenRecord.value = true;
-  currenData.value = record;
+  currenData.value = record.data.extend;
   console.log('record', record);
-  formParam.departments = [record.data.no];
+  formApi.setFieldValue('tenantNo', record.data.key);
   reloadTable();
 };
 /**
  * 重新加载
  */
 function reloadTree() {
-  reloadTreeState.value = true;
+  reloadTreeState.value++;
 }
 /**
  * 树重载
  * @param e
  */
 const treeOverload = (e) => {
-  formParam.departments = [];
+  formApi.setFieldValue('tenantNo', '');
   reloadTable();
 };
 const [Drawer, drawerApi] = useVbenDrawer({
@@ -150,83 +140,6 @@ const [Form, formApi] = usePgForm({
       },
     },
     {
-      fieldName: 'departments',
-      label: '部门',
-      component: 'PgTreeSelect',
-      componentProps: {
-        api: departmentNode,
-        params: { by: 'no' },
-        props: {
-          multiple: true,
-          placeholder: '请选择',
-        },
-      },
-    },
-    {
-      fieldName: 'roles',
-      label: '角色',
-      component: 'PgTreeSelect',
-      componentProps: {
-        api: roleNode,
-        params: { by: 'no' },
-        props: {
-          multiple: true,
-          placeholder: '请选择',
-        },
-      },
-    },
-    {
-      fieldName: 'levels',
-      label: '级别',
-      component: 'PgTreeSelect',
-      componentProps: {
-        api: levelNode,
-        params: { by: 'no' },
-        props: {
-          multiple: true,
-          placeholder: '请选择',
-        },
-      },
-    },
-    {
-      fieldName: 'groups',
-      label: '分组',
-      component: 'PgTreeSelect',
-      componentProps: {
-        api: groupNode,
-        params: { by: 'no' },
-        props: {
-          multiple: true,
-          placeholder: '请选择',
-        },
-      },
-    },
-    {
-      fieldName: 'teams',
-      label: '团队',
-      component: 'PgTreeSelect',
-      componentProps: {
-        api: teamNode,
-        params: { by: 'no' },
-        props: {
-          multiple: true,
-          placeholder: '请选择',
-        },
-      },
-    },
-    {
-      fieldName: 'job',
-      label: '职位',
-      component: 'PgTreeSelect',
-      componentProps: {
-        api: postNode,
-        params: { by: 'no' },
-        props: {
-          placeholder: '请选择',
-        },
-      },
-    },
-    {
       fieldName: 'state',
       label: '状态',
       component: 'Select',
@@ -235,40 +148,6 @@ const [Form, formApi] = usePgForm({
         options: state,
         clearable: true,
       },
-    },
-    {
-      fieldName: 'position',
-      label: '职务',
-      component: 'PgTreeSelect',
-      componentProps: {
-        api: positionNode,
-        params: { by: 'no' },
-        props: {
-          placeholder: '请选择',
-        },
-      },
-    },
-    {
-      fieldName: 'job',
-      label: '职位',
-      component: 'PgTreeSelect',
-      componentProps: {
-        api: postNode,
-        params: { by: 'no' },
-        props: {
-          placeholder: '请选择',
-        },
-      },
-    },
-    {
-      fieldName: 'jobTitle',
-      label: '职衔',
-      component: 'Input',
-    },
-    {
-      fieldName: 'jobRank',
-      label: '职级',
-      component: 'Input',
     },
     {
       fieldName: 'registerTimeRange',
@@ -314,28 +193,6 @@ const [Form, formApi] = usePgForm({
         // },
       },
     },
-    {
-      fieldName: 'birthdayRange',
-      label: '生日',
-      component: 'PgDatePicker',
-      special: 'DatePicker',
-      componentProps: {
-        clearable: true,
-        isTimestamp: false,
-        type: 'daterange',
-        format: 'yyyy-MM-dd',
-        valueFormat: 'yyyy-MM-dd',
-        // formattedValue:'2022-11-10 11:11:11',
-        // defaultValue:'2022-11-10 11:11:11',
-        shortcuts: {
-          昨天: () => Date.now() - 24 * 60 * 60 * 1000,
-        },
-        // onUpdateValue: ( value, formattedValue ) => {
-        //   console.log('OnUpdateValue', value, formattedValue)
-        //   formApi.setFieldValue('registerTime', dayjs(formattedValue));
-        // },
-      },
-    },
   ],
   handleSubmit: onSubmit,
 });
@@ -344,9 +201,6 @@ const [Form, formApi] = usePgForm({
  */
 async function onSubmit(values: Record<string, any>) {
   console.log('values', values);
-  formParam = {
-    ...values,
-  };
   reloadTable();
 }
 
@@ -468,13 +322,6 @@ const gridOptions = reactive<VxeGridProps<RowVO>>({
         });
         queryParams.pageSize = page.pageSize;
         queryParams.pageNum = page.currentPage;
-        if (formParam) {
-          for (const key in formParam) {
-            if (formParam[key]) {
-              queryParams[key] = formParam[key];
-            }
-          }
-        }
         return List(queryParams);
       },
       // 当点击工具栏删除按钮或者手动提交指令 delete 时会被触发
@@ -788,7 +635,7 @@ onMounted(() => {
     formApi.setFieldValue('tenantNo', router.currentRoute.value.query.tenantNo);
 
     setTimeout(() => {
-      formApi.submitForm();
+      formApi.submit();
     }, 500);
   }
 });
@@ -838,7 +685,7 @@ function modalReload(opt) {
   <NLayout class="h-full p-2" has-sider>
     <NLayoutSider class="min-w-[160px]" width="160">
       <PgTree
-        :api="selectPublic"
+        :api="selectNodeAllPublicTenant"
         :menu-dropdown-options="menuDropdownOptions"
         :reload="reloadTreeComputed"
         :right-click-menu="false"

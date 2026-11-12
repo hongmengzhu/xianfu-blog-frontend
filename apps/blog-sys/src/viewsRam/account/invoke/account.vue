@@ -178,7 +178,7 @@ const [Modal, modalApi] = useVbenModal({
     modalApi.close();
   },
   onConfirm: async () => {
-    await formApi.submitForm();
+    await formApi.submit();
     // modalApi.close();
   },
   onOpenChange(isOpen: boolean) {

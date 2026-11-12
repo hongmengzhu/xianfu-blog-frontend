@@ -1,5 +1,4 @@
 <script setup lang="ts">
-
 import { useVbenModal, z } from '@vben/common-ui';
 import { $t } from '@vben/locales';
 import { useUserStore } from '@vben/stores';
@@ -70,7 +69,7 @@ const [Modal, modalApi] = useVbenModal({
     modalApi.close();
   },
   onConfirm: async () => {
-    await formApi.submitForm();
+    await formApi.submit();
     // modalApi.close();
   },
   onOpenChange(isOpen: boolean) {

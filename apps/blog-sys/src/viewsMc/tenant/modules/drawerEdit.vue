@@ -170,7 +170,7 @@ const [Drawer, drawerApi] = useVbenDrawer({
     drawerApi.close();
   },
   onConfirm: async () => {
-    await formApi.submitForm();
+    await formApi.submit();
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {

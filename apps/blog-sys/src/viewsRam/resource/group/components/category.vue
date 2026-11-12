@@ -6,11 +6,7 @@ import { useVbenModal, VbenButton } from '@vben/common-ui';
 import { usePgForm } from '#/adapter';
 import { typeCodePublic } from '#/viewsBasic/data-dict/dict/api';
 
-import {
-  createUpdateByCategory,
-  existName,
-  selectCategory,
-} from '../api';
+import { createUpdateByCategory, existName, selectCategory } from '../api';
 const emit = defineEmits(['ok']);
 const [Form, formApi] = usePgForm({
   // 通过 schema 的 type: 'group' 把字段组织成可折叠的分组，分组默认展开
@@ -222,7 +218,7 @@ const [Modal, modalApi] = useVbenModal({
     modalApi.close();
   },
   onConfirm: async () => {
-    await formApi.submitForm();
+    await formApi.submit();
   },
   onOpenChange(isOpen: boolean) {
     if (isOpen) {
