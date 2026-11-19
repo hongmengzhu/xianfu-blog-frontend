@@ -164,14 +164,34 @@ setupVbenVxeTable({
           { color: 'error', label: $t('common.disabled'), value: 0 },
         ];
         const tagItem = tagOptions.find((item) => item.value === value);
-        return h(
-          NTag,
-          {
-            ...props,
-            ...objectOmit(tagItem ?? {}, ['label']),
-          },
-          { default: () => tagItem?.label ?? value },
-        );
+        // NTag 的 color 只接受 {color,borderColor,textColor} 对象，
+        // 语义色（success/warning/error/info...）应通过 type 传入，否则会触发 prop 校验告警
+        const { color, ...rest } = (tagItem ?? {}) as Record<string, any>;
+        const tagProps: Record<string, any> = {
+          ...props,
+          ...objectOmit(rest, ['label', 'value']),
+        };
+        if (typeof color === 'string' && color) {
+          if (
+            [
+              'default',
+              'error',
+              'info',
+              'primary',
+              'success',
+              'warning',
+            ].includes(color)
+          ) {
+            tagProps.type = color;
+          } else {
+            tagProps.color = { color };
+          }
+        } else if (color) {
+          tagProps.color = color;
+        }
+        return h(NTag, tagProps, {
+          default: () => tagItem?.label ?? value,
+        });
       },
     });
 
