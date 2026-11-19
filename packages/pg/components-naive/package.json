@@ -59,7 +59,6 @@
     "@vue/shared": "catalog:",
     "naive-ui": "catalog:",
     "vditor": "catalog:",
-    "vee-validate": "catalog:",
     "vue": "catalog:",
     "vue-router": "catalog:",
     "vuedraggable": "catalog:",

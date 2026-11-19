@@ -47,12 +47,12 @@
     "@vben-core/typings": "workspace:*",
     "@vueuse/core": "catalog:",
     "naive-ui": "catalog:",
-    "vee-validate": "catalog:",
     "vue": "catalog:",
     "zod": "catalog:",
     "zod-defaults": "catalog:"
   },
   "devDependencies": {
+    "@tanstack/store": "catalog:",
     "unplugin-vue": "catalog:"
   }
 }
